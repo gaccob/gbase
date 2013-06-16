@@ -1,0 +1,9 @@
+tags
+ds/*.o
+net/*.o
+os/*.o
+test/*/*.o
+test/*/test
+test/*/client
+test/*/server
+gbase.a

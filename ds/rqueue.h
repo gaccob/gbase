@@ -1,0 +1,26 @@
+#ifndef RQUEUE_H_
+#define RQUEUE_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "os/os_def.h"
+
+struct rqueue_t;
+
+struct rqueue_t* rqueue_init(size_t size);
+void rqueue_release(struct rqueue_t* q);
+void* rqueue_push_back(struct rqueue_t* q, void* data);
+void* rqueue_pop_front(struct rqueue_t* q);
+void* rqueue_head(struct rqueue_t* q);
+int rqueue_is_empty(struct rqueue_t* q);
+int rqueue_is_full(struct rqueue_t* q);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // RQUEUE_H_
+
+

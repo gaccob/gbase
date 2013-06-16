@@ -1,0 +1,50 @@
+#ifndef HASH_H_
+#define HASH_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "os/os_def.h"
+
+typedef int (*hash_func)(const void*);
+typedef int (*cmp_func)(const void*, const void*);
+
+struct hash_t;
+
+struct hash_t* hash_init(hash_func hash, cmp_func cmp, int hint_size);
+int hash_release(struct hash_t* htable);
+int hash_clean(struct hash_t* htable);
+int hash_insert(struct hash_t* htable, void* data);
+int hash_remove(struct hash_t* htable, void* data);
+int hash_count(struct hash_t* htable);
+void* hash_find(struct hash_t* htable, void* data);
+
+/* jhash.h: Jenkins hash support.
+ *
+ * Copyright (C) 1996 Bob Jenkins (bob_jenkins@burtleburtle.net)
+ *
+ * http://burtleburtle.net/bob/hash/
+ *
+ * These are the credits from Bob's sources:
+ *
+ * lookup2.c, by Bob Jenkins, December 1996, Public Domain.
+ * hash(), hash2(), hash3, and mix() are externally useful functions.
+ * Routines to test the hash are included if SELF_TEST is defined.
+ * You can use this free for any purpose.  It has no warranty.
+ *
+ * Copyright (C) 2003 David S. Miller (davem@redhat.com)
+ *
+ * I've modified Bob's hash to be useful in the Linux kernel, and
+ * any bugs present are surely my fault.  -DaveM
+ */
+ uint32_t hash_jhash(const void* key, uint32_t length);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // HASH_H_
+
+
+
