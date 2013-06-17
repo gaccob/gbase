@@ -13,7 +13,7 @@ extern "C" {
 
 #if defined(WIN32) || defined(_WIN32)
     #define OS_WIN 1
-#elif defined(__LINUX__)
+#elif defined(__LINUX__) || defined(__linux__)
     #define OS_LINUX 1
 #elif defined(__APPLE__) || defined(__APPLE_CC__)
     #define OS_MAC 1
