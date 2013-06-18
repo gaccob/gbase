@@ -170,21 +170,21 @@ int32_t connector_start(struct connector_t* con)
 }
 
 /*
-*    return < 0 success
-*    return >=0, send bytes, maybe < buflen, some bytes full discard
+*    return = 0 success
+*    return < 0, fail, maybe full
 */
 int32_t connector_send(struct connector_t* con, const char* buffer, int32_t buflen)
 {
     int32_t nwrite, res;
     if(!con || !buffer || buflen < 0)
         return -1;
-    nwrite = connbuffer_write_len(con->write_buf);
-    res = connbuffer_write(con->write_buf, buffer, buflen);
 
-    /* add out events (no buffer before send) */
-    if (res == connbuffer_read_len(con->write_buf))
-        reactor_modify(con->r, &con->h, (EVENT_IN | EVENT_OUT));
-    return res;
+    nwrite = connbuffer_write_len(con->write_buf);
+    if (buflen > nwrite)
+        return -1;
+    connbuffer_write(con->write_buf, buffer, buflen);
+    reactor_modify(con->r, &con->h, (EVENT_IN | EVENT_OUT));
+    return 0;
 }
 
 int32_t connector_stop(struct connector_t* con)

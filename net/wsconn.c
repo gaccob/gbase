@@ -7,6 +7,7 @@ typedef struct wsconn_t
     struct handler_t h;
     struct reactor_t* r;
     struct connbuffer_t* read_buf;
+    struct connbuffer_t* real_read_buf;
     struct connbuffer_t* write_buf;
     wsconn_build_func build_cb;
     wsconn_read_func read_cb;
@@ -73,7 +74,7 @@ const char* const WS_FIELD_SEC_ACCEPT = "sec-websocket-accept";
 const char* const WS_FIELD_SEC_LOCATION = "sec-websocket-location";
 const char* const WS_FIELD_SEC_PROTOCOL = "sec-websocket-protocol";
 
-typedef struct _wsconn_frame_t
+typedef struct wsconn_request_t
 {
     int32_t flag;
     int32_t version;
@@ -84,22 +85,22 @@ typedef struct _wsconn_frame_t
     char protocol[64];
     char host[64];
     char location[64];
-}_wsconn_frame_t;
+}wsconn_request_t;
 
 // return 0, parse success
 // return -1, parse fail
-int32_t _wsconn_parse_request(struct _wsconn_frame_t* frame, const char* data, int32_t sz)
+int32_t _wsconn_parse_request(struct wsconn_request_t* request, const char* data, int32_t sz)
 {
-    if(!frame || !data || sz < 0 || sz >= WS_FRAME_MAX_SIZE)
+    if(!request || !data || sz < 0 || sz >= WS_FRAME_MAX_SIZE)
         return -1;
-    char frame_data[WS_FRAME_MAX_SIZE];
-    memcpy(frame_data, data, sz);
+    char request_data[WS_FRAME_MAX_SIZE];
+    memcpy(request_data, data, sz);
     char* delim = "\r\n";
     char head_delim = head_delim;
     char field_delim = ':';
     char* p = NULL, *q = NULL;
-    memset(frame, 0, sizeof(*frame));
-    p = strtok(frame_data, delim);
+    memset(request, 0, sizeof(*request));
+    p = strtok(request_data, delim);
 
     // GET location HTTP/1,1
     if (!p)
@@ -108,7 +109,7 @@ int32_t _wsconn_parse_request(struct _wsconn_frame_t* frame, const char* data, i
         return -1;
     while (*q++ == head_delim);
     int32_t i = 0;
-    while ((frame->location[i++] = *q++) != head_delim && i < sizeof(frame->location));
+    while ((request->location[i++] = *q++) != head_delim && i < sizeof(request->location));
 
     // head field
     while ((p = strtok(NULL, delim)) != NULL)
@@ -118,71 +119,71 @@ int32_t _wsconn_parse_request(struct _wsconn_frame_t* frame, const char* data, i
             *q = '\0';
             if (0 == strcasecmp(p, WS_FIELD_CONNECTION))
             {
-                frame->flag |= WS_FLAG_CONNECTION;
+                request->flag |= WS_FLAG_CONNECTION;
                 while (*++q == head_delim);
                 if (strcasecmp(q, "upgrade"))
                     goto PROTOCOL_FAIL;
             }
             else if (0 == strcasecmp(p, WS_FIELD_UPGRADE))
             {
-                frame->flag |= WS_FLAG_UPGRAGE;
+                request->flag |= WS_FLAG_UPGRAGE;
                 while (*++q == head_delim);
                 if (strcasecmp(q, "websocket"))
                     goto PROTOCOL_FAIL;
             }
             else if (0 == strcasecmp(p, WS_FIELD_HOST))
             {
-                frame->flag |= WS_FLAG_HOST;
+                request->flag |= WS_FLAG_HOST;
                 while (*++q == head_delim);
-                snprintf(frame->host, sizeof(frame->host), "%s", q);
+                snprintf(request->host, sizeof(request->host), "%s", q);
             }
             else if (0 == strcasecmp(p, WS_FIELD_ORIGIN))
             {
-                frame->flag |= WS_FLAG_ORIGIN;
+                request->flag |= WS_FLAG_ORIGIN;
                 while (*++q == head_delim);
-                snprintf(frame->origin, sizeof(frame->origin), "%s", q);
+                snprintf(request->origin, sizeof(request->origin), "%s", q);
             }
             else if (0 == strcasecmp(p, WS_FIELD_SEC_ORIGIN))
             {
-                frame->flag |= WS_FLAG_SEC_ORIGIN;
+                request->flag |= WS_FLAG_SEC_ORIGIN;
                 while (*++q == head_delim);
-                snprintf(frame->origin, sizeof(frame->origin), "%s", q);
+                snprintf(request->origin, sizeof(request->origin), "%s", q);
             }
             else if (0 == strcasecmp(p, WS_FIELD_SEC_KEY))
             {
-                frame->flag |= WS_FLAG_SEC_KEY;
+                request->flag |= WS_FLAG_SEC_KEY;
                 while (*++q == head_delim);
-                snprintf(frame->key, sizeof(frame->key), "%s", q);
+                snprintf(request->key, sizeof(request->key), "%s", q);
             }
             else if (0 == strcasecmp(p, WS_FIELD_SEC_VERSION))
             {
-                frame->flag |= WS_FLAG_SEC_VERSION;
+                request->flag |= WS_FLAG_SEC_VERSION;
                 while (*q++ == head_delim);
-                frame->version = atoi(q);
+                request->version = atoi(q);
             }
             else if (0 == strcasecmp(p, WS_FIELD_SEC_KEY1))
             {
-                frame->flag |= WS_FLAG_SEC_KEY1;
+                request->flag |= WS_FLAG_SEC_KEY1;
                 while (*++q == head_delim);
-                snprintf(frame->key1, sizeof(frame->key1), "%s", q);
+                snprintf(request->key1, sizeof(request->key1), "%s", q);
             }
             else if (0 == strcasecmp(p, WS_FIELD_SEC_KEY2))
             {
-                frame->flag |= WS_FLAG_SEC_KEY1;
+                request->flag |= WS_FLAG_SEC_KEY1;
                 while (*++q == head_delim);
-                snprintf(frame->key2, sizeof(frame->key2), "%s", q);
+                snprintf(request->key2, sizeof(request->key2), "%s", q);
             }
             else if (0 == strcasecmp(p, WS_FIELD_SEC_PROTOCOL))
             {
-                frame->flag |= WS_FLAG_SEC_PROTOCOL;
+                request->flag |= WS_FLAG_SEC_PROTOCOL;
                 while (*++q == head_delim);
-                snprintf(frame->protocol, sizeof(frame->protocol), "%s", q);
+                snprintf(request->protocol, sizeof(request->protocol), "%s", q);
             }
         }
         else
         {
             while (*++p == head_delim);
-            snprintf(frame->key, sizeof(frame->key), "%s", q);
+            snprintf(request->key, sizeof(request->key), "%s", q);
         }
     }
     return 0;
@@ -207,9 +208,9 @@ websocket handshake for flash
         WebSocket-Origin: http://www.xx.com
         WebSocket-Location: ws://www.xx.com/ls
 */
-int32_t _wsconn_proc_flash_req(struct wsconn_t* con, struct _wsconn_frame_t* frame)
+int32_t _wsconn_proc_flash_req(struct wsconn_t* con, struct wsconn_request_t* request)
 {
-    if (!con || !frame)
+    if (!con || !request)
         return -1;
     char res[WS_FRAME_MAX_SIZE];
     snprintf(res, sizeof(res), "HTTP/1.1 101 Web Socket Protocol Handshake\r\n"
@@ -217,7 +218,7 @@ int32_t _wsconn_proc_flash_req(struct wsconn_t* con, struct _wsconn_frame_t* fra
              "Connection: Upgrade\r\n"
              "WebSocket-Origin: %s\r\n"
              "WebSocket-Location: ws://%s%s\r\n\r\n",
-             frame->origin, frame->host, frame->location);
+             request->origin, request->host, request->location);
     if(wsconn_send(con, res, strlen(res)) < 0)
         return -1;
     return 0;
@@ -239,13 +240,13 @@ websocket handshake for version > 13: sha1 + base64 encrypt
         Connection: Upgrade
         Sec-WebSocket-Accept: mLDKNeBNWz6T9SxU+o0Fy/HgeSw=
 */
-int32_t _wsconn_proc_sha1_req(struct wsconn_t* con, struct _wsconn_frame_t* frame)
+int32_t _wsconn_proc_sha1_req(struct wsconn_t* con, struct wsconn_request_t* request)
 {
-    if (!con || !frame)
+    if (!con || !request)
         return -1;
     char res[WS_FRAME_MAX_SIZE];
     char key[128], sha[128], base64[128];
-    snprintf(key, sizeof(key), "%s258EAFA5-E914-47DA-95CA-C5AB0DC85B11", frame->key);
+    snprintf(key, sizeof(key), "%s258EAFA5-E914-47DA-95CA-C5AB0DC85B11", request->key);
     sha1(sha, key, strnlen(key, sizeof(key)));
     util_base64_encode(base64, sha, strlen(sha));
     snprintf(res, sizeof(res), "HTTP/1.1 101 Switching Protocols\r\n"
@@ -278,36 +279,38 @@ websocket handshake for no version: md5 encrypt
         Sec-WebSocket-Protocol: sample
         8jKS’y:G*Co,Wxa-
 */
-int32_t _wsconn_proc_md5_req(struct wsconn_t* con, struct _wsconn_frame_t* frame)
+int32_t _wsconn_proc_md5_req(struct wsconn_t* con, struct wsconn_request_t* request)
 {
     // TODO:
     return -1;
 }
 
-int32_t _wsconn_handshake(struct wsconn_t* con, const char* data, int32_t sz)
+// return processed bytes
+// return < 0 means processed fail, reactor will close connection
+int32_t _wsconn_handshake(struct wsconn_t* con, char* data, int32_t sz)
 {
-    _wsconn_frame_t frame;
+    wsconn_request_t request;
     int32_t ret;
 
-    ret = _wsconn_parse_request(&frame, data, sz);
+    ret = _wsconn_parse_request(&request, data, sz);
     if (ret < 0)
         return -1;
 
-    if (frame.flag & WS_FLASH)
+    if (request.flag & WS_FLASH)
     {
-        ret = _wsconn_proc_flash_req(con, &frame);
+        ret = _wsconn_proc_flash_req(con, &request);
     }
-    else if (frame.flag & WS_SHA1)
+    else if (request.flag & WS_SHA1)
     {
-        ret = _wsconn_proc_sha1_req(con, &frame);
+        ret = _wsconn_proc_sha1_req(con, &request);
     }
-    else if (frame.flag & WS_MD5)
+    else if (request.flag & WS_MD5)
     {
-        ret = _wsconn_proc_md5_req(con, &frame);
+        ret = _wsconn_proc_md5_req(con, &request);
     }
     else
     {
-        printf("invalid frame flag=%d\n", frame.flag);
+        printf("invalid request flag=%d\n", request.flag);
         return -1;
     }
 
@@ -315,14 +318,161 @@ int32_t _wsconn_handshake(struct wsconn_t* con, const char* data, int32_t sz)
     if (0 == ret)
     {
         con->build_cb(wsconn_fd(con));
+        return sz;
     }
-    return ret;
+    return -1;
 }
 
-int32_t _wsconn_frame(struct wsconn_t* ws, const char* data, int32_t sz)
+typedef struct wsconn_frame_t
 {
-    // TODO: callback connector-read
-    return -1;
+    int8_t is_fin;
+    int8_t is_masked;
+    int8_t opcode;
+    int8_t mask_shift;
+    int8_t mask[4];
+    int8_t payload_shift;
+    uint64_t payload_len;
+}wsconn_frame_t;
+
+/*
+   0                   1                   2                   3
+   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-------+-+-------------+-------------------------------+
+   |F|R|R|R| opcode|M| Payload len |    Extended payload length    |
+   |I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |
+   |N|V|V|V|       |S|             |   (if payload len==126/127)   |
+   | |1|2|3|       |K|             |                               |
+   +-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
+   |     Extended payload length continued, if payload len == 127  |
+   + - - - - - - - - - - - - - - - +-------------------------------+
+   |                               |Masking-key, if MASK set to 1  |
+   +-------------------------------+-------------------------------+
+   | Masking-key (continued)       |          Payload Data         |
+   +-------------------------------- - - - - - - - - - - - - - - - +
+   :                     Payload Data continued ...                :
+   + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
+   |                     Payload Data continued ...                |
+   +---------------------------------------------------------------+
+
+    opcode:
+         *  %x0 denotes a continuation frame
+         *  %x1 denotes a text frame
+         *  %x2 denotes a binary frame
+         *  %x3-7 are reserved for further non-control frames
+         *  %x8 denotes a connection close
+         *  %x9 denotes a ping
+         *  %xA denotes a pong
+         *  %xB-F are reserved for further control frames
+
+   Payload length:  7 bits, 7+16 bits, or 7+64 bits
+
+   Masking-key:  0 or 4 bytes
+
+*/
+// return processed bytes
+// return < 0 means fail, reactor will close connection
+int32_t _wsconn_frame(struct wsconn_t* con, char* data, int32_t sz)
+{
+    if (sz < 2)
+        return 0;
+
+    int32_t i, res, nread;
+    char* buffer;
+    wsconn_frame_t frame;
+    memset(&frame, 0, sizeof(frame));
+    frame.is_fin = data[0] & 0x80;
+    frame.opcode = data[0] & 0x0f;
+
+    /* only support text mode now */
+    if (frame.opcode != 0x01)
+        return -1;
+
+    frame.is_masked = data[1] & 0x80;
+    frame.payload_len = data[1] & 0x7f;
+    frame.mask_shift = 2;
+    if (frame.payload_len == 126)
+    {
+        /* not enough data */
+        if (sz < 2 + 2) return 0;
+        /* change byte order */
+        uint16_t b1, b2;
+        b1 = (uint8_t)data[2];
+        b2 = (uint8_t)data[3];
+#if defined(OS_LITTLE_ENDIAN)
+        frame.payload_len = ((b1 << 8) | b2);
+#elif defined(OS_BIG_ENDIAN)
+        frame.payload_len = ((b2 << 8) | b1);
+#endif
+        frame.mask_shift = 4;
+    }
+    else if (frame.payload_len == 127)
+    {
+        /* not enough data */
+        if (sz < 2 + 8) return 0;
+        /* change byte order */
+        uint64_t b1,b2,b3,b4,b5,b6,b7,b8;
+        b1 = (uint8_t)data[2];
+        b2 = (uint8_t)data[3];
+        b3 = (uint8_t)data[4];
+        b4 = (uint8_t)data[5];
+        b5 = (uint8_t)data[6];
+        b6 = (uint8_t)data[7];
+        b7 = (uint8_t)data[8];
+        b8 = (uint8_t)data[9];
+#if defined(OS_LITTLE_ENDIAN)
+        frame.payload_len = (b1 << 56 | b2 << 48 | b3 << 40 | b4 << 32 | b5 << 24 | b6 << 16 | b7 << 8 | b8);
+#elif defined(OS_BIG_ENDIAN)
+        frame.payload_len = (b1 | b2 << 8 | b3 << 16 | b4 << 24 | b5 << 32 | b6 << 40 | b7 << 48 | b8 << 56);
+#endif
+        frame.mask_shift = 10;
+    }
+
+    /*
+       from RFC6455 (http://tools.ietf.org/html/rfc6455):
+       The payload length is the length of the "Extension data" + the length of the "Application data"
+    */
+    if (sz < frame.payload_len + 2)
+        return 0;
+
+    if (frame.is_masked)
+    {
+        frame.mask[0] = data[frame.mask_shift];
+        frame.mask[1] = data[frame.mask_shift + 1];
+        frame.mask[2] = data[frame.mask_shift + 2];
+        frame.mask[3] = data[frame.mask_shift + 3];
+    }
+
+    if (frame.is_masked)
+        frame.payload_shift = frame.mask_shift + 4;
+    else
+        frame.payload_shift = frame.mask_shift;
+
+    /* masked release */
+    if (frame.is_masked)
+    {
+        for (i=frame.payload_shift; i<2+frame.payload_len; i++)
+            data[i] = data[i] ^ frame.mask[(i-frame.payload_shift) % 4];
+    }
+
+    /* write to buffer */
+    res = connbuffer_write(con->real_read_buf,
+                                   &data[frame.payload_shift],
+                                   frame.payload_len + 2 - frame.payload_shift);
+    if (res < 0)
+        return -1;
+
+    /* read callback */
+    buffer = connbuffer_read_buffer(con->real_read_buf);
+    nread = connbuffer_read_len(con->real_read_buf);
+    assert(buffer && nread);
+    res = con->read_cb(con->h.fd, buffer, nread);
+    if (res > 0)
+        connbuffer_read_nocopy(con->real_read_buf, res);
+    else
+        return res;
+
+    /* return processed bytes */
+    return frame.payload_len + 2;
 }
 
 
@@ -381,23 +531,31 @@ int32_t _wsconn_read(struct handler_t* h)
         buffer = connbuffer_read_buffer(con->read_buf);
         nread = connbuffer_read_len(con->read_buf);
         assert(buffer && nread);
-        int32_t from = 0;
-        while(from < nread - 4)
+
+        if (0 != wsconn_established(con))
         {
-            if(buffer[from] == '\r' && buffer[from + 1] == '\n'
-               && buffer[from + 2] == '\r'&& buffer[from + 3] == '\n')
+            int32_t from = 0;
+            while(from < nread - 4)
             {
-                if (0 == wsconn_established(con))
-                    res = _wsconn_frame(con, buffer, from + 4);
-                else
+                if(buffer[from] == '\r'
+                    && buffer[from + 1] == '\n'
+                    && buffer[from + 2] == '\r'
+                    && buffer[from + 3] == '\n')
+                {
                     res = _wsconn_handshake(con, buffer, from + 4);
-                break;
+                    break;
+                }
+                from ++;
             }
-            from ++;
+
+        }
+        else
+        {
+            res = _wsconn_handshake(con, buffer, nread);
         }
         if (res < 0)
             return res;
-        connbuffer_read_nocopy(con->read_buf, from + 4);
+        connbuffer_read_nocopy(con->read_buf, res);
     }
     return 0;
 }
@@ -440,6 +598,12 @@ int32_t _wsconn_write(struct handler_t* h)
 int32_t _wsconn_close(struct handler_t* h)
 {
     struct wsconn_t* con = (struct wsconn_t*)h;
+    int8_t finish_data[4];
+    finish_data[0] = 0x08;
+    finish_data[1] = 0x02;
+    finish_data[2] = 0x03;
+    finish_data[3] = 0xF1;
+    wsconn_send(con, (char*)finish_data, 4);
     if(con->close_cb)
         con->close_cb(con->h.fd);
     return 0;
@@ -450,6 +614,7 @@ struct wsconn_t* wsconn_init(struct reactor_t* r,
                              wsconn_read_func read_cb,
                              wsconn_close_func close_cb,
                              struct connbuffer_t* read_buf,
+                             struct connbuffer_t* real_read_buf,
                              struct connbuffer_t* write_buf,
                              int32_t fd)
 {
@@ -465,6 +630,7 @@ struct wsconn_t* wsconn_init(struct reactor_t* r,
     con->h.close_func = _wsconn_close;
     con->r = r;
     con->read_buf = read_buf;
+    con->real_read_buf = real_read_buf;
     con->write_buf = write_buf;
     con->build_cb = build_cb;
     con->read_cb = read_cb;
@@ -499,21 +665,46 @@ int32_t wsconn_start(struct wsconn_t* con)
 }
 
 /*
-*    return < 0 success
-*    return >=0, send bytes, maybe < buflen, some bytes full discard
+*    return = 0 success
+*    return < 0, fail maybe full
 */
 int32_t wsconn_send(struct wsconn_t* con, const char* buffer, int32_t buflen)
 {
     int32_t nwrite, res;
+    int8_t head, sz;
     if(!con || !buffer || buflen < 0)
         return -1;
+
+    if (0 != wsconn_established(con))
+        return -1;
+
     nwrite = connbuffer_write_len(con->write_buf);
-    res = connbuffer_write(con->write_buf, buffer, buflen);
+    head = 0x81; /*text mode*/
+    if (buflen < 126)
+    {
+        if (nwrite < buflen + 2)
+            return -1;
+        connbuffer_write(con->write_buf, &head, 1);
+        sz = buflen;
+        connbuffer_write(con->write_buf, &sz, 1);
+        connbuffer_write(con->write_buf, buffer, buflen);
+    }
+    else if (buflen <= 65535)
+    {
+        if (nwrite < buflen + 4)
+            return -1;
+        // TODO:
+    }
+    else
+    {
+        if (nwrite < buflen + 10)
+            return -1;
+        // TODO:
+    }
 
     /* add out events (no buffer before send) */
-    if (res == connbuffer_read_len(con->write_buf))
-        reactor_modify(con->r, &con->h, (EVENT_IN | EVENT_OUT));
-    return res;
+    reactor_modify(con->r, &con->h, (EVENT_IN | EVENT_OUT));
+    return 0;
 }
 
 int32_t wsconn_stop(struct wsconn_t* con)

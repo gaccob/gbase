@@ -29,8 +29,8 @@ int32_t connector_start(struct connector_t* con);
 int32_t connector_stop(struct connector_t* con);
 
 /*
-*    return < 0 success
-*    return >=0, send bytes, maybe < buflen, some bytes full discard
+*    return = 0 success
+*    return < 0, fail, maybe full
 */
 int32_t connector_send(struct connector_t* con, const char* buffer, int buflen);
 

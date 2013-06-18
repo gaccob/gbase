@@ -23,6 +23,7 @@ struct wsconn_t* wsconn_init(struct reactor_t* r,
                              wsconn_read_func read_cb,
                              wsconn_close_func close_cb,
                              struct connbuffer_t* read_buf,
+                             struct connbuffer_t* real_read_buf,
                              struct connbuffer_t* write_buf,
                              int32_t fd);
 int32_t wsconn_release(struct wsconn_t* con);
@@ -32,8 +33,8 @@ int32_t wsconn_stop(struct wsconn_t* con);
 int32_t wsconn_established(struct wsconn_t* con);
 
 /*
-*    return < 0 success
-*    return >=0, send bytes, maybe < buflen, some bytes full discard
+*    return = 0 success
+*    return < 0 fail, maybe full
 */
 int32_t wsconn_send(struct wsconn_t* con, const char* buffer, int buflen);
 
