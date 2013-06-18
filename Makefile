@@ -28,8 +28,9 @@ SRCS = os/atom.c \
 	ds/rqueue.c \
 	ds/rbuffer.c \
 	ds/sha1.c \
+	ds/md5.c \
 	ds/slist.c
-OBJS = $(patsubst %.c, %.o, $(SRCS))  
+OBJS = $(patsubst %.c, %.o, $(SRCS))
 TARGET = gbase.a
 
 TEST = test/atom_test \
@@ -45,7 +46,7 @@ TEST = test/atom_test \
 
 .PHONY: all clean
 
-all : $(TARGET) test    
+all : $(TARGET) test
 
 $(TARGET) : $(OBJS)
 	ar -r -s $@ $^

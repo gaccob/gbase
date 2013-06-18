@@ -175,10 +175,9 @@ int32_t connector_start(struct connector_t* con)
 */
 int32_t connector_send(struct connector_t* con, const char* buffer, int32_t buflen)
 {
-    int32_t nwrite, res;
+    int32_t nwrite;
     if(!con || !buffer || buflen < 0)
         return -1;
-
     nwrite = connbuffer_write_len(con->write_buf);
     if (buflen > nwrite)
         return -1;

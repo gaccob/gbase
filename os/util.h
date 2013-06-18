@@ -34,6 +34,8 @@ int32_t util_is_file(const char* path);
 int32_t util_base64_encode(char* dst, const char* src, size_t sz);
 int32_t util_base64_decode(char* dst, const char* src, size_t sz);
 
+uint32_t util_str2int(const char* key);
+
 #ifdef __cplusplus
 }
 #endif
