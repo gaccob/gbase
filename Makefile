@@ -15,6 +15,7 @@ SRCS = os/atom.c \
 	net/acceptor.c \
 	net/connector.c \
 	net/serialize.c \
+	net/wsconn.c \
 	ds/array.c \
 	ds/buddy.c \
 	ds/connbuffer.c \
@@ -26,6 +27,7 @@ SRCS = os/atom.c \
 	ds/rbtree.c \
 	ds/rqueue.c \
 	ds/rbuffer.c \
+	ds/sha1.c \
 	ds/slist.c
 OBJS = $(patsubst %.c, %.o, $(SRCS))  
 TARGET = gbase.a

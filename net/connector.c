@@ -10,10 +10,10 @@ typedef struct connector_t
     connector_close_func close_cb;
 }connector_t;
 
-int _connector_read(struct handler_t* h)
+int32_t _connector_read(struct handler_t* h)
 {
     char* buffer;
-    int nread, nwrite, res;
+    int32_t nread, nwrite, res;
     struct connector_t* con = (struct connector_t*)h;
 
     nwrite = connbuffer_write_len(con->read_buf);
@@ -74,10 +74,10 @@ int _connector_read(struct handler_t* h)
     return 0;
 }
 
-int _connector_write(struct handler_t* h)
+int32_t _connector_write(struct handler_t* h)
 {
     char* buffer;
-    int nwrite, res;
+    int32_t nwrite, res;
     struct connector_t* con = (struct connector_t*)h;
 
     nwrite = connbuffer_read_len(con->write_buf);
@@ -110,7 +110,7 @@ int _connector_write(struct handler_t* h)
     return 0;
 }
 
-int _connector_close(struct handler_t* h)
+int32_t _connector_close(struct handler_t* h)
 {
     struct connector_t* con = (struct connector_t*)h;
     if(con->close_cb)
@@ -119,14 +119,14 @@ int _connector_close(struct handler_t* h)
 }
 
 struct connector_t* connector_init(struct reactor_t* r,
-        connector_read_func read_cb,
-        connector_close_func close_cb,
-        struct connbuffer_t* read_buf,
-        struct connbuffer_t* write_buf,
-        int fd)
+                                   connector_read_func read_cb,
+                                   connector_close_func close_cb,
+                                   struct connbuffer_t* read_buf,
+                                   struct connbuffer_t* write_buf,
+                                   int32_t fd)
 {
     struct connector_t* con;
-    if(!r || !fd || !read_buf || !write_buf)
+    if(!r || !read_buf || !write_buf || fd < 0)
         return NULL;
     con = (struct connector_t*)MALLOC(sizeof(struct connector_t));
     if(!con)
@@ -143,7 +143,7 @@ struct connector_t* connector_init(struct reactor_t* r,
     return con;
 }
 
-int connector_release(struct connector_t* con)
+int32_t connector_release(struct connector_t* con)
 {
     if(con)
     {
@@ -153,14 +153,14 @@ int connector_release(struct connector_t* con)
     return 0;
 }
 
-int connector_fd(struct connector_t* con)
+int32_t connector_fd(struct connector_t* con)
 {
     if(con)
         return con->h.fd;
     return -1;
 }
 
-int connector_start(struct connector_t* con)
+int32_t connector_start(struct connector_t* con)
 {
     if(!con || con->h.fd < 0)
         return -1;
@@ -173,9 +173,9 @@ int connector_start(struct connector_t* con)
 *    return < 0 success
 *    return >=0, send bytes, maybe < buflen, some bytes full discard
 */
-int connector_send(struct connector_t* con, const char* buffer, int buflen)
+int32_t connector_send(struct connector_t* con, const char* buffer, int32_t buflen)
 {
-    int nwrite, res;
+    int32_t nwrite, res;
     if(!con || !buffer || buflen < 0)
         return -1;
     nwrite = connbuffer_write_len(con->write_buf);
@@ -187,7 +187,7 @@ int connector_send(struct connector_t* con, const char* buffer, int buflen)
     return res;
 }
 
-int connector_stop(struct connector_t* con)
+int32_t connector_stop(struct connector_t* con)
 {
     if(!con || con->h.fd < 0)
         return -1;
