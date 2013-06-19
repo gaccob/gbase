@@ -3,6 +3,7 @@
 #include <assert.h>
 #include "os/os_def.h"
 #include "os/util.h"
+#include "ds/sha1.h"
 
 int32_t test_base64()
 {
@@ -27,9 +28,23 @@ int32_t test_base64()
 }
 
 
+int32_t test_ws()
+{
+    char* req = "2SCVXUeP9cTjV+0mWB8J6A=="; //"dGhlIHNhbXBsZSBub25jZQ==";
+    char key[64], sha[128], base64[128];
+    memset(sha, 0, sizeof(sha));
+    snprintf(key, sizeof(key), "%s258EAFA5-E914-47DA-95CA-C5AB0DC85B11", req);
+    sha1(sha, key, strlen(key) * 8);
+    util_base64_encode(base64, sha, strlen(sha));
+    printf("%s\n", base64);
+    return 0;
+}
+
+
 int main()
 {
-    test_base64();
+    //test_base64();
+    test_ws();
     return 0;
 }
 

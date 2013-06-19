@@ -42,6 +42,7 @@ TEST = test/atom_test \
 	test/timer_test \
 	test/slist_test \
 	test/tcp_test \
+	test/wsconn_test \
 	test/test
 
 .PHONY: all clean

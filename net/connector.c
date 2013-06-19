@@ -19,21 +19,11 @@ int32_t _connector_read(struct handler_t* h)
     nwrite = connbuffer_write_len(con->read_buf);
     assert(nwrite >= 0);
 
-    /* read buffer full, read callback again */
+    /* read buffer full fail */
     if(0 == nwrite)
     {
-        if(con->read_cb)
-        {
-            buffer = connbuffer_read_buffer(con->read_buf);
-            nread = connbuffer_read_len(con->read_buf);
-            assert(buffer && nread);
-            res = con->read_cb(con->h.fd, buffer, nread);
-            if(res > 0)
-                connbuffer_read_nocopy(con->read_buf, res);
-            else if(res < 0)
-                return res;
-            nwrite = connbuffer_write_len(con->read_buf);
-        }
+        printf("fd[%d] read buffer full.\n", con->h.fd);
+        return -1;
     }
 
     /* still full, read fail, reactor will close connector */

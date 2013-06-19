@@ -45,12 +45,21 @@ enum {
                  | WS_FLAG_CONNECTION \
                  | WS_FLAG_HOST \
                  | WS_FLAG_ORIGIN)
+
 #define WS_SHA1 (WS_FLAG_UPGRAGE \
                 | WS_FLAG_CONNECTION \
                 | WS_FLAG_HOST \
                 | WS_FLAG_SEC_ORIGIN \
                 | WS_FLAG_SEC_KEY \
                 | WS_FLAG_SEC_VERSION)
+
+#define WS_SHA1_EX (WS_FLAG_UPGRAGE \
+                   | WS_FLAG_CONNECTION \
+                   | WS_FLAG_HOST \
+                   | WS_FLAG_ORIGIN \
+                   | WS_FLAG_SEC_KEY \
+                   | WS_FLAG_SEC_VERSION)
+
 #define WS_MD5 (WS_FLAG_HOST \
                | WS_FLAG_CONNECTION \
                | WS_FLAG_SEC_KEY1 \
@@ -97,96 +106,113 @@ int32_t _wsconn_parse_request(struct wsconn_request_t* request, const char* data
     char request_data[WS_HANDSHAKE_MAX_SIZE];
     memcpy(request_data, data, sz);
     char* delim = "\r\n";
-    char head_delim = head_delim;
-    char field_delim = ':';
+    char* head_delim = " ";
+    char* field_delim = ":";
     char* p = NULL, *q = NULL;
     memset(request, 0, sizeof(*request));
     p = strtok(request_data, delim);
 
     // GET location HTTP/1,1
-    if (!p)
-        return -1;
-    if ((q = strstr(p, &head_delim)) == NULL)
-        return -1;
-    while (*q++ == head_delim);
+    if (!p) return -1;
+    if ((q = strstr(p, head_delim)) == NULL) return -1;
     int32_t i = 0;
-    while ((request->location[i++] = *q++) != head_delim && i < sizeof(request->location));
+    q++;
+    while ((request->location[i++] = *q++) != *head_delim && i < sizeof(request->location));
+    request->location[i-1] = '\0';
 
     // head field
     while ((p = strtok(NULL, delim)) != NULL)
     {
-        if ((q = strstr(p, &field_delim)) != NULL)
+        if ((q = strstr(p, field_delim)) != NULL)
         {
             *q = '\0';
             if (0 == strcasecmp(p, WS_FIELD_CONNECTION))
             {
                 request->flag |= WS_FLAG_CONNECTION;
-                while (*++q == head_delim);
+                while (*++q == *head_delim);
                 if (strcasecmp(q, "upgrade"))
                     goto PROTOCOL_FAIL;
             }
             else if (0 == strcasecmp(p, WS_FIELD_UPGRADE))
             {
                 request->flag |= WS_FLAG_UPGRAGE;
-                while (*++q == head_delim);
+                while (*++q == *head_delim);
                 if (strcasecmp(q, "websocket"))
                     goto PROTOCOL_FAIL;
             }
             else if (0 == strcasecmp(p, WS_FIELD_HOST))
             {
                 request->flag |= WS_FLAG_HOST;
-                while (*++q == head_delim);
+                while (*++q == *head_delim);
                 snprintf(request->host, sizeof(request->host), "%s", q);
             }
             else if (0 == strcasecmp(p, WS_FIELD_ORIGIN))
             {
                 request->flag |= WS_FLAG_ORIGIN;
-                while (*++q == head_delim);
+                while (*++q == *head_delim);
                 snprintf(request->origin, sizeof(request->origin), "%s", q);
             }
             else if (0 == strcasecmp(p, WS_FIELD_SEC_ORIGIN))
             {
                 request->flag |= WS_FLAG_SEC_ORIGIN;
-                while (*++q == head_delim);
+                while (*++q == *head_delim);
                 snprintf(request->origin, sizeof(request->origin), "%s", q);
             }
             else if (0 == strcasecmp(p, WS_FIELD_SEC_KEY))
             {
                 request->flag |= WS_FLAG_SEC_KEY;
-                while (*++q == head_delim);
+                while (*++q == *head_delim);
                 snprintf(request->key, sizeof(request->key), "%s", q);
             }
             else if (0 == strcasecmp(p, WS_FIELD_SEC_VERSION))
             {
                 request->flag |= WS_FLAG_SEC_VERSION;
-                while (*q++ == head_delim);
+                while (*q++ == *head_delim);
                 request->version = atoi(q);
             }
             else if (0 == strcasecmp(p, WS_FIELD_SEC_KEY1))
             {
                 request->flag |= WS_FLAG_SEC_KEY1;
-                while (*++q == head_delim);
+                while (*++q == *head_delim);
                 snprintf(request->key1, sizeof(request->key1), "%s", q);
             }
             else if (0 == strcasecmp(p, WS_FIELD_SEC_KEY2))
             {
                 request->flag |= WS_FLAG_SEC_KEY1;
-                while (*++q == head_delim);
+                while (*++q == *head_delim);
                 snprintf(request->key2, sizeof(request->key2), "%s", q);
             }
             else if (0 == strcasecmp(p, WS_FIELD_SEC_PROTOCOL))
             {
                 request->flag |= WS_FLAG_SEC_PROTOCOL;
-                while (*++q == head_delim);
+                while (*++q == *head_delim);
                 snprintf(request->protocol, sizeof(request->protocol), "%s", q);
             }
         }
-        else
+        else if (request->key[0] == 0)
         {
-            while (*++p == head_delim);
+            while (*++p == *head_delim);
             snprintf(request->key, sizeof(request->key), "%s", q);
         }
     }
+
+    printf("websocket handshake request:\n"
+            "   version: %d\n"
+            "   key: %s\n"
+            "   key1: %s\n"
+            "   key2: %s\n"
+            "   origin: %s\n"
+            "   protocol: %s\n"
+            "   host: %s\n"
+            "   location: %s\n",
+            request->version,
+            request->key,
+            request->key1,
+            request->key2,
+            request->origin,
+            request->protocol,
+            request->host,
+            request->location);
     return 0;
 
 PROTOCOL_FAIL:
@@ -250,14 +276,15 @@ int32_t _wsconn_proc_sha1_req(struct wsconn_t* con, struct wsconn_request_t* req
     if (!con || !request)
         return -1;
     char res[WS_HANDSHAKE_MAX_SIZE];
-    char key[128], sha[128], base64[128];
+    char key[64], sha[128], base64_encode[128];
     snprintf(key, sizeof(key), "%s258EAFA5-E914-47DA-95CA-C5AB0DC85B11", request->key);
-    sha1(sha, key, strnlen(key, sizeof(key)));
-    util_base64_encode(base64, sha, strlen(sha));
+    memset(sha, 0, sizeof(sha));
+    sha1(sha, key, strnlen(key, sizeof(key)) * 8);
+    util_base64_encode(base64_encode, sha, strlen(sha));
     snprintf(res, sizeof(res), "HTTP/1.1 101 Switching Protocols\r\n"
             "Upgrade: websocket\r\n"
             "Connection: Upgrade\r\n"
-            "Sec-WebSocket-Accept: %s\r\n\r\n", res);
+            "Sec-WebSocket-Accept: %s\r\n\r\n", base64_encode);
     int32_t nwrite = connbuffer_write_len(con->write_buf);
     int32_t nres = (int32_t)strlen(res);
     if (nwrite < nres)
@@ -339,17 +366,18 @@ int32_t _wsconn_handshake(struct wsconn_t* con, char* data, int32_t sz)
     if (ret < 0)
         return -1;
 
-    if (request.flag & WS_FLASH)
+    if ((request.flag & WS_MD5) == WS_MD5)
     {
-        ret = _wsconn_proc_flash_req(con, &request);
+        ret = _wsconn_proc_md5_req(con, &request);
     }
-    else if (request.flag & WS_SHA1)
+    else if (((request.flag & WS_SHA1) == WS_SHA1)
+        || ((request.flag & WS_SHA1_EX) == WS_SHA1_EX))
     {
         ret = _wsconn_proc_sha1_req(con, &request);
     }
-    else if (request.flag & WS_MD5)
+    else if ((request.flag & WS_FLASH) == WS_FLASH)
     {
-        ret = _wsconn_proc_md5_req(con, &request);
+        ret = _wsconn_proc_flash_req(con, &request);
     }
     else
     {
@@ -360,6 +388,7 @@ int32_t _wsconn_handshake(struct wsconn_t* con, char* data, int32_t sz)
     // handshake callback
     if (0 == ret)
     {
+        con->status = WS_ESTABLISHED;
         con->build_cb(wsconn_fd(con));
         return sz;
     }
@@ -528,21 +557,11 @@ int32_t _wsconn_read(struct handler_t* h)
     nwrite = connbuffer_write_len(con->read_buf);
     assert(nwrite >= 0);
 
-    /* read buffer full, read callback again */
+    /* read buffer, fail */
     if(0 == nwrite)
     {
-        if(con->read_cb)
-        {
-            buffer = connbuffer_read_buffer(con->read_buf);
-            nread = connbuffer_read_len(con->read_buf);
-            assert(buffer && nread);
-            res = con->read_cb(con->h.fd, buffer, nread);
-            if(res > 0)
-                connbuffer_read_nocopy(con->read_buf, res);
-            else if(res < 0)
-                return res;
-            nwrite = connbuffer_write_len(con->read_buf);
-        }
+        printf("fd[%d] read buffer full fail\n", con->h.fd);
+        return -1;
     }
 
     /* still full, read fail, reactor will close connector */
@@ -574,11 +593,10 @@ int32_t _wsconn_read(struct handler_t* h)
         buffer = connbuffer_read_buffer(con->read_buf);
         nread = connbuffer_read_len(con->read_buf);
         assert(buffer && nread);
-
         if (0 != wsconn_established(con))
         {
             int32_t from = 0;
-            while(from < nread - 4)
+            while(from <= nread - 4)
             {
                 if(buffer[from] == '\r'
                     && buffer[from + 1] == '\n'
@@ -594,7 +612,7 @@ int32_t _wsconn_read(struct handler_t* h)
         }
         else
         {
-            res = _wsconn_handshake(con, buffer, nread);
+            res = _wsconn_frame(con, buffer, nread);
         }
         if (res < 0)
             return res;

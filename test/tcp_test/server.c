@@ -30,8 +30,13 @@ int conn_read(int fd, const char* buffer, int buflen)
 	}
 
 	res = connector_send(ctx->con, buffer, buflen);
-	printf("fd[%d] write %d bytes\n", fd, res);
-	return res;
+    if (res < 0)
+    {
+        printf("fd[%d] write %d bytes fail.\n", fd, buflen);
+        return -1;
+    }
+	printf("fd[%d] write %d bytes\n", fd, buflen);
+	return buflen;
 }
 
 void conn_close(int fd)
