@@ -659,12 +659,15 @@ int32_t _wsconn_write(struct handler_t* h)
 int32_t _wsconn_close(struct handler_t* h)
 {
     struct wsconn_t* con = (struct wsconn_t*)h;
+/*
     int8_t finish_data[4];
     finish_data[0] = 0x08;
     finish_data[1] = 0x02;
     finish_data[2] = 0x03;
     finish_data[3] = 0xF1;
-    wsconn_send(con, (char*)finish_data, 4);
+    connbuffer_write(con->write_buf, (char*)finish_data, 4);
+    reactor_modify(con->r, &con->h, (EVENT_IN | EVENT_OUT));
+*/
     if(con->close_cb)
         con->close_cb(con->h.fd);
     return 0;
@@ -696,6 +699,7 @@ struct wsconn_t* wsconn_init(struct reactor_t* r,
     con->build_cb = build_cb;
     con->read_cb = read_cb;
     con->close_cb = close_cb;
+    con->status = WS_INIT;
     return con;
 }
 
