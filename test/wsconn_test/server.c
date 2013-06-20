@@ -8,6 +8,8 @@
 const char* server_addr = "10.0.253.112";
 int server_port = 8000;
 
+#define TEST_BUFF_SIZE (1024 * 1024)
+
 int stop_flag;
 struct reactor_t* r;
 struct idtable_t* con_table;
@@ -29,12 +31,14 @@ int wscon_read(int fd, const char* buffer, int buflen)
 	if(!ctx)
 		return -1;
 
-	printf("fd[%d] read %d bytes: ", fd, buflen);
+	printf("fd[%d] read %d bytes\n", fd, buflen);
+/*
     int32_t i = 0;
     while (i < buflen)
         printf("%c", buffer[i++]);
     printf("\n");
-	return buflen;
+*/
+    return buflen;
 }
 
 void wscon_build(int fd)
@@ -62,9 +66,9 @@ int accept_read(int fd)
 	struct WSCtx* ctx = (struct WSCtx*)MALLOC(sizeof(struct WSCtx));
 	assert(ctx);
 
-	ctx->read_buf = connbuffer_init(4096, MALLOC, FREE);
-    ctx->real_read_buf = connbuffer_init(4096, MALLOC, FREE);
-	ctx->write_buf = connbuffer_init(4096, MALLOC, FREE);
+	ctx->read_buf = connbuffer_init(TEST_BUFF_SIZE, MALLOC, FREE);
+    ctx->real_read_buf = connbuffer_init(TEST_BUFF_SIZE, MALLOC, FREE);
+	ctx->write_buf = connbuffer_init(TEST_BUFF_SIZE, MALLOC, FREE);
 	assert(ctx->read_buf && ctx->write_buf && ctx->real_read_buf);
 
 	ctx->con = wsconn_init(r, wscon_build, wscon_read, wscon_close, ctx->read_buf,

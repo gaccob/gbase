@@ -38,7 +38,10 @@
             });
                         
             $(document).mousedown(function() {
-                ws.send("0");
+				var data = "";
+				for (var i=0; i<541; i++)
+					data += (i % 10);
+                ws.send(data);
             });             
                 
             $(document).mouseup(function() {
