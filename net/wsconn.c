@@ -742,11 +742,11 @@ int32_t wsconn_send(struct wsconn_t* con, const char* buffer, int32_t buflen)
 
     nwrite = connbuffer_write_len(con->write_buf);
     head = 0x81; /*text mode*/
+    connbuffer_write(con->write_buf, (char*)&head, 1);
     if (buflen < 126)
     {
         if (nwrite < buflen + 2)
             return -1;
-        connbuffer_write(con->write_buf, (char*)&head, 1);
         sz = buflen;
         connbuffer_write(con->write_buf, (char*)&sz, 1);
         connbuffer_write(con->write_buf, buffer, buflen);
@@ -757,7 +757,7 @@ int32_t wsconn_send(struct wsconn_t* con, const char* buffer, int32_t buflen)
             return -1;
         int8_t c = 126;
         connbuffer_write(con->write_buf, (char*)&c, 1);
-        int16_t len = 2 + buflen;
+        int16_t len = buflen;
 #if defined(OS_LITTLE_ENDIAN)
         connbuffer_write(con->write_buf, (char*)&len + 1, 1);
         connbuffer_write(con->write_buf, (char*)&len, 1);
@@ -772,7 +772,7 @@ int32_t wsconn_send(struct wsconn_t* con, const char* buffer, int32_t buflen)
             return -1;
         int8_t c = 127;
         connbuffer_write(con->write_buf, (char*)&c, 1);
-        int64_t len = 10 + buflen;
+        int64_t len = buflen;
 #if defined(OS_LITTLE_ENDIAN)
         connbuffer_write(con->write_buf, (char*)&len + 7, 1);
         connbuffer_write(con->write_buf, (char*)&len + 6, 1);

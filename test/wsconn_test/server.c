@@ -32,6 +32,12 @@ int wscon_read(int fd, const char* buffer, int buflen)
 		return -1;
 
 	printf("fd[%d] read %d bytes\n", fd, buflen);
+
+    if (wsconn_send(ctx->con, buffer, buflen) < 0)
+    {
+        printf("send back fail\n");
+        return -1;
+    }
 /*
     int32_t i = 0;
     while (i < buflen)
