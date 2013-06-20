@@ -29,7 +29,11 @@ int wscon_read(int fd, const char* buffer, int buflen)
 	if(!ctx)
 		return -1;
 
-	printf("fd[%d] read %d bytes: %s\n", fd, buflen, buffer);
+	printf("fd[%d] read %d bytes: ", fd, buflen);
+    int32_t i = 0;
+    while (i < buflen)
+        printf("%c", buffer[i++]);
+    printf("\n");
 	return buflen;
 }
 

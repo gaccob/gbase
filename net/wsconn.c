@@ -499,19 +499,18 @@ int32_t _wsconn_frame(struct wsconn_t* con, char* data, int32_t sz)
         frame.mask_shift = 10;
     }
 
-    /*
-       from RFC6455 (http://tools.ietf.org/html/rfc6455):
-       The payload length is the length of the "Extension data" + the length of the "Application data"
-    */
-    if (sz < frame.payload_len + 2)
-        return 0;
-
     if (frame.is_masked)
     {
+        if (sz < frame.payload_len + frame.mask_shift + 4)
+            return 0;
         frame.mask[0] = data[frame.mask_shift];
         frame.mask[1] = data[frame.mask_shift + 1];
         frame.mask[2] = data[frame.mask_shift + 2];
         frame.mask[3] = data[frame.mask_shift + 3];
+    }
+    else if (sz < frame.payload_len + frame.mask_shift)
+    {
+        return 0;
     }
 
     if (frame.is_masked)
@@ -522,14 +521,12 @@ int32_t _wsconn_frame(struct wsconn_t* con, char* data, int32_t sz)
     /* masked release */
     if (frame.is_masked)
     {
-        for (i=frame.payload_shift; i<2+frame.payload_len; i++)
-            data[i] = data[i] ^ frame.mask[(i-frame.payload_shift) % 4];
+        for (i = 0; i < frame.payload_len; i++)
+            data[i + frame.payload_shift] = data[i + frame.payload_shift] ^ frame.mask[i % 4];
     }
 
     /* write to buffer */
-    res = connbuffer_write(con->real_read_buf,
-                                   &data[frame.payload_shift],
-                                   frame.payload_len + 2 - frame.payload_shift);
+    res = connbuffer_write(con->real_read_buf, &data[frame.payload_shift], frame.payload_len);
     if (res < 0)
         return -1;
 
@@ -544,7 +541,7 @@ int32_t _wsconn_frame(struct wsconn_t* con, char* data, int32_t sz)
         return res;
 
     /* return processed bytes */
-    return frame.payload_len + 2;
+    return frame.payload_len + frame.mask_shift + (frame.is_masked ? 4 : 0);
 }
 
 
