@@ -29,6 +29,7 @@ SRCS = os/atom.c \
 	ds/rbuffer.c \
 	ds/sha1.c \
 	ds/md5.c \
+	ds/con_hash.c \
 	ds/slist.c
 OBJS = $(patsubst %.c, %.o, $(SRCS))
 TARGET = gbase.a

@@ -10,14 +10,14 @@ typedef struct hash_node_t
 
 typedef struct hash_t
 {
-    int m_size;
-    int m_count;
+    int32_t m_size;
+    int32_t m_count;
     hash_func m_hash_func;
     cmp_func m_cmp_func;
     struct hash_node_t** m_table;
 }hash_t;
 
-struct hash_t* hash_init(hash_func hash, cmp_func cmp, int hint_size)
+struct hash_t* hash_init(hash_func hash, cmp_func cmp, int32_t hint_size)
 {
     struct hash_t* htable;
     if (!hash || !cmp || hint_size <= 0)
@@ -45,7 +45,7 @@ HASH_FAIL:
     return NULL;
 }
 
-int hash_release(struct hash_t* htable)
+int32_t hash_release(struct hash_t* htable)
 {
     if (!htable) return -1;
     hash_clean(htable);
@@ -54,9 +54,9 @@ int hash_release(struct hash_t* htable)
     return 0;
 }
 
-int hash_clean(struct hash_t* htable)
+int32_t hash_clean(struct hash_t* htable)
 {
-    int i;
+    int32_t i;
     hash_node_t* bak;
     hash_node_t* node;
 
@@ -80,9 +80,9 @@ int hash_clean(struct hash_t* htable)
     return 0;
 }
 
-int hash_insert(struct hash_t* htable, void* data)
+int32_t hash_insert(struct hash_t* htable, void* data)
 {
-    int hash_key, index;
+    int32_t hash_key, index;
     hash_node_t* node;
     hash_node_t* prev;
 
@@ -115,9 +115,9 @@ int hash_insert(struct hash_t* htable, void* data)
     return 0;
 }
 
-int hash_remove(struct hash_t* htable, void* data)
+int32_t hash_remove(struct hash_t* htable, void* data)
 {
-    int hash_key, index;
+    int32_t hash_key, index;
     hash_node_t* node;
     hash_node_t* prev;
 
@@ -146,7 +146,7 @@ int hash_remove(struct hash_t* htable, void* data)
     return -1;
 }
 
-int hash_count(struct hash_t* htable)
+int32_t hash_count(struct hash_t* htable)
 {
     if(!htable) return -1;
     return htable->m_count;
@@ -155,7 +155,7 @@ int hash_count(struct hash_t* htable)
 
 void* hash_find(struct hash_t* htable, void* data)
 {
-    int hash_key;
+    int32_t hash_key;
     struct hash_node_t* node;
 
     if (!htable || !data) return NULL;
