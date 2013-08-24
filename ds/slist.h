@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "os/os_def.h"
+#include "core/os_def.h"
 
 struct slist_t;
 struct slist_t* slist_init();

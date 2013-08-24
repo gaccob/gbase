@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "os/os_def.h"
+#include "core/os_def.h"
 
 struct array_t;
 typedef void (*array_fn)(void* data, void* args);

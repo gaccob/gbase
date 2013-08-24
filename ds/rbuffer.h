@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#include "os/os_def.h"
+#include "core/os_def.h"
 
 struct rbuffer_t;
 struct rbuffer_t* rbuffer_init(uint32_t size);

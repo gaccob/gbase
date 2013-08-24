@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #include <assert.h>
-#include "os/os_def.h"
+#include "core/os_def.h"
 
 struct connbuffer_t;
 typedef void* (*connbuffer_malloc)(size_t);

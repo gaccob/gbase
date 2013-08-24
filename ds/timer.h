@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "os/os_def.h"
+#include "core/os_def.h"
 
 /*
 *    return < 0 means to erase timer

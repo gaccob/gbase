@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "os/os_def.h"
+#include "core/os_def.h"
 
 struct rbtree_t;
 typedef int (*rbtree_cmp)(void*, void*);

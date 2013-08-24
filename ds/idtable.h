@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "os/os_def.h"
+#include "core/os_def.h"
 
 struct idtable_t;
 struct idtable_t* idtable_init(int32_t max_count);

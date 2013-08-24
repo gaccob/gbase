@@ -28,7 +28,7 @@
 #include <string.h> /* memcpy & co */
 #include <stdint.h>
 #include "sha1.h"
-#include "os/os_def.h"
+#include "core/os_def.h"
 
 /********************************************************************************************************/
 
