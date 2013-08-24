@@ -1,12 +1,13 @@
 .PHONY : all test clean
 
 CFLAGS = -pg -ggdb -Wall
-LDFLAGS = -lpthread -ldl -lrt -Wl -E
-SRCS = os/atom.c \
-	os/log.c \
-	os/spin.c \
-	os/thread.c \
-	os/util.c \
+LDFLAGS = -lpthread -ldl -lrt -Wl -E -lm
+SRCS = core/atom.c \
+	core/log.c \
+	core/spin.c \
+	core/thread.c \
+	core/util.c \
+	core/cjson.c \
 	net/sock.c \
 	net/reactor.c \
 	net/reactor_kqueue.c \
@@ -18,6 +19,7 @@ SRCS = os/atom.c \
 	net/wsconn.c \
 	ds/array.c \
 	ds/buddy.c \
+	ds/bevtree.c \
 	ds/connbuffer.c \
 	ds/hash.c \
 	ds/idtable.c \
@@ -29,7 +31,7 @@ SRCS = os/atom.c \
 	ds/rbuffer.c \
 	ds/sha1.c \
 	ds/md5.c \
-	ds/con_hash.c \
+	ds/conhash.c \
 	ds/slist.c
 OBJS = $(patsubst %.c, %.o, $(SRCS))
 TARGET = gbase.a
@@ -44,6 +46,7 @@ TEST = test/atom_test \
 	test/slist_test \
 	test/tcp_test \
 	test/wsconn_test \
+	test/json_test \
 	test/test
 
 .PHONY: all clean
