@@ -1,0 +1,15 @@
+
+node name: 最长64字节,包括结束\0
+
+node callback id: 非负，因为是数组，所以避免用太大的id
+
+node type: 目前支持下面的类型
+    1. "SEQ" : sequence
+    2. "SEL" : selector (default normal)
+            "SEL_NORM" : normal selector
+            "SEL_PRI" : priority selector
+    3. "COND" : condition
+    4. "ACT" : action
+    5. "PAR" : parallel (default all)
+            "PAR_ALL" : parallel all ok is ok
+            "PAR_ONE" : parallel one ok is ok
