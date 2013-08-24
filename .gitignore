@@ -1,7 +1,7 @@
 tags
-ds/*.o
+core/*.o
 net/*.o
-os/*.o
+ds/*.o
 test/*/*.o
 test/*/test
 test/*/client
