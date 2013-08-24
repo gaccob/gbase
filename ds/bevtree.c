@@ -40,7 +40,7 @@ typedef struct bvt_callback_table
 
 typedef struct bvt_t
 {
-    char node_name[MAX_BVT_NAME_LEN];
+    char name[MAX_BVT_NAME_LEN];
     enum BVTStatus status;
     enum bvt_tType type;
 
