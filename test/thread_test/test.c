@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "os/os_def.h"
-#include "os/thread.h"
+#include "core/os_def.h"
+#include "core/thread.h"
 
 int val = 0;
 

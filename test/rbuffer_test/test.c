@@ -1,5 +1,5 @@
 #include "ds/rbuffer.h"
-#include "os/thread.h"
+#include "core/thread.h"
 #include <assert.h>
 
 #define BYTES_SIZE 10240

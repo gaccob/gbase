@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "os/os_def.h"
+#include "core/os_def.h"
 
 /* win32 */
 #if defined(OS_WIN)

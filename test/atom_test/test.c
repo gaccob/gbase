@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "os/os_def.h"
-#include "os/thread.h"
-#include "os/atom.h"
-#include "os/util.h"
+#include "core/os_def.h"
+#include "core/thread.h"
+#include "core/atom.h"
+#include "core/util.h"
 
 atom_t flag;
 uint32_t cmp;

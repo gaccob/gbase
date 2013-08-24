@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "os/os_def.h"
+#include "core/os_def.h"
 #include "net/sock.h"
 #include "net/reactor.h"
 

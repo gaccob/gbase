@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "os/os_def.h"
-#include "os/util.h"
+#include "core/os_def.h"
+#include "core/util.h"
 #include "ds/sha1.h"
-#include "ds/con_hash.h"
+#include "ds/conhash.h"
 
 int32_t test_base64()
 {

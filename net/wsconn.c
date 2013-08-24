@@ -1,7 +1,7 @@
 #include "net/wsconn.h"
 #include "ds/sha1.h"
 #include "ds/md5.h"
-#include "os/util.h"
+#include "core/util.h"
 
 typedef struct wsconn_t
 {
