@@ -47,6 +47,7 @@ TEST = test/atom_test \
 	test/tcp_test \
 	test/wsconn_test \
 	test/json_test \
+	test/bevtree_test \
 	test/test
 
 .PHONY: all clean

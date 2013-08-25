@@ -9,21 +9,20 @@
                 {
                     "name" : "篮协包场",
                     "type" : "COND",
-                    "condition" : 301
+                    "condition" : 300
                 },
                 {
                     "name" : "去球场",
                     "type" : "ACT",
-                    "action" : 401
+                    "action" : 400
                 },
                 {
                     "name" : "打球",
                     "type" : "ACT",
-                    "action" : 402
+                    "action" : 401
                 }
             ]
         },
-
         {
             "name" : "找点活动",
             "type" : "SEL",
@@ -31,7 +30,7 @@
                 {
                     "name" : "篮协没包场",
                     "type" : "COND",
-                    "condition" : 302
+                    "condition" : 301
                 },
                 {
                     "name" : "找妹纸",
@@ -40,17 +39,17 @@
                         {
                             "name" : "有妹纸",
                             "type" : "COND",
-                            "condition" : 302
+                            "condition" : 310
                         },
                         {
                             "name" : "和妹纸吃饭",
                             "type" : "ACT",
-                            "action" : 403,
+                            "action" : 402
                         },
                         {
                             "name" : "回家滚床单",
                             "type" : "ACT",
-                            "action" : 404
+                            "action" : 403
                         }
                     ]
                 },
@@ -61,16 +60,16 @@
                         {
                             "name" : "回去撸一把",
                             "type" : "ACT",
-                            "action" : 405
+                            "action" : 404
                         },
                         {
                             "name" : "没有妹纸",
                             "type" : "COND",
-                            "condition" : 303
+                            "condition" : 311
                         }
                     ]
                 }
             ]
-        },
+        }
     ]
 }
