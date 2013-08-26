@@ -459,17 +459,17 @@ int32_t _bvt_load_gliffy_parse_name(bvt_t* node, char* name) {
     return BVT_SUCCESS;
 }
 
-bvt_t* _bvt_load_gliffy_graph_node(int32_t id, bvt_graph_node_t* list)
+bvt_t* _bvt_load_gliffy_graph_node(int32_t id, bvt_graph_node_t** list)
 {
-    if (!list) return NULL;
+    if (!list || !*list) return NULL;
 
     // find and split a node
-    bvt_graph_node_t* node = list;
+    bvt_graph_node_t* node = *list;
     bvt_graph_node_t* prev = 0;
     while (node) {
         if (node->t == BVT_GRAPH_NODE_SHAPE && node->id == id) {
             if (prev) prev->next = node->next;
-            else list = list->next;
+            else *list = (*list)->next;
             break;
         }
         prev = node;
@@ -490,12 +490,12 @@ bvt_t* _bvt_load_gliffy_graph_node(int32_t id, bvt_graph_node_t* list)
 
     // find its children
     while (1) {
-        bvt_graph_node_t* line = list;
+        bvt_graph_node_t* line = *list;
         prev = 0;
         while (line) {
             if (line->t == BVT_GRAPH_NODE_LINE && line->line.from == id) {
                 if (prev) prev->next = line->next;
-                else list = list->next;
+                else *list = (*list)->next;
                 break;
             }
             prev = line;
@@ -526,7 +526,11 @@ bvt_t* _bvt_load_gliffy_graph_node(int32_t id, bvt_graph_node_t* list)
 void _bvt_debug(bvt_t* b, int32_t indent)
 {
     int32_t i = indent;
-    while (i --) { printf("——"); }
+    while (i --) {
+        if (i == 2) printf("|");
+        else if (i < 2) printf("-");
+        else printf(" ");
+    }
     switch (b->type) {
         case BVT_NODE_CONDITION:
             printf("condition: %s %d\n", b->name, b->con_args.callback_id);
@@ -546,12 +550,12 @@ void _bvt_debug(bvt_t* b, int32_t indent)
     }
     bvt_t* c = b->condition;
     while (c) {
-        _bvt_debug(c, indent + 1);
+        _bvt_debug(c, indent + 3);
         c = c->next;
     }
     c = b->child;
     while (c) {
-        _bvt_debug(c, indent + 1);
+        _bvt_debug(c, indent + 3);
         c = c->next;
     }
 }
@@ -596,11 +600,12 @@ bvt_t* _bvt_load_gliffy_graph(bvt_graph_t* g)
             b = b->next;
         }
         if (!b) break;
+        n = n->next;
     }
     assert(n);
     printf("root id:%d\n", n->id);
 
-    return _bvt_load_gliffy_graph_node(n->id, g->head);
+    return _bvt_load_gliffy_graph_node(n->id, &g->head);
 }
 
 // gliffy is also json format, but with lots of view info
