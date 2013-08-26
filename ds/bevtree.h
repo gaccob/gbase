@@ -26,16 +26,20 @@ enum
     BVT_CONFIG_ERROR = -108,
     BVT_CONFIG_NAME_ERROR = -109,
     BVT_CONFIG_TYPE_ERROR = -110,
+    BVT_GLIFFY_ERROR = -111,
 };
+
+#define BVT_GLIFFY_SPLIT "|"
 
 // return BVT error code
 typedef int32_t (*bvt_callback)(void* input);
 
 struct bvt_t;
-struct bvt_t* bvt_init(const char* json_cfg_path);
+struct bvt_t* bvt_load_gliffy(const char* gliffy_path);
 int32_t bvt_register_callback(struct bvt_t* b, bvt_callback cb, int32_t id);
 int32_t bvt_run(struct bvt_t* b, void* input);
 void bvt_release(struct bvt_t* b);
+void bvt_debug(struct bvt_t* b);
 
 #ifdef __cplusplus
 }

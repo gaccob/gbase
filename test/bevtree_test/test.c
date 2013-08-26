@@ -67,12 +67,13 @@ int32_t action_404_cb(void* input)
 
 void test_bvt(const char* cfg)
 {
-    struct bvt_t* bvt = bvt_init(cfg);
+    struct bvt_t* bvt = bvt_load_gliffy(cfg);
     if (!bvt)
     {
         printf("bvt init fail\n");
         return;
     }
+    bvt_debug(bvt);
 
     int32_t ret = -1;
     ret = bvt_register_callback(bvt, action_400_cb, 400);

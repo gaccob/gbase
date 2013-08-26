@@ -1,13 +1,20 @@
 
-node name: 最长64字节,包括结束\0
+使用chrome gliffy diagrams绘制
 
-node callback id: 非负，因为是数组，所以避免用太大的id
+绘制规则：
+1. 基本shape代表一个节点
+2. 基本line代表关联关系
 
-node type: 目前支持下面的类型
-    1. "SEQ" : sequence
-    2. "SEL" : selector
-    3. "COND" : condition
-    4. "ACT" : action
-    5. "PAR" : parallel (default all)
-            "PAR_ALL" : parallel all ok is ok
-            "PAR_ONE" : parallel one ok is ok
+节点的命名规范：
+1. 最长64字节,包括结束\0
+2. 命名分三段：类型|描述|回调ID 如果没有回调分两段即可
+    类型说明:
+        "SEQ" : sequence
+        "SEL" : selector
+        "COND" : condition
+        "ACT" : action
+        "PAR" : parallel (default all)
+        "PAR_ALL" : parallel all ok is ok
+        "PAR_ONE" : parallel one ok is ok
+    回调ID：需要在代码中注册实现
+

@@ -1,5 +1,7 @@
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
+#include <assert.h>
 #include "ds/bevtree.h"
 #include "core/cjson.h"
 
@@ -227,125 +229,422 @@ void bvt_release(struct bvt_t* n)
     }
 }
 
-static const char* const BVT_CFG_STR_NAME = "name";
-static const char* const BVT_CFG_STR_TYPE = "type";
-static const char* const BVT_CFG_STR_CHILD = "child";
-static const char* const BVT_CFG_STR_COND = "condition";
-static const char* const BVT_CFG_STR_ACT = "action";
+static const char* const BVT_GLIFFY_TYPE_STAGE = "stage";
+static const char* const BVT_GLIFFY_TYPE_OBJECTS = "objects";
+static const char* const BVT_GLIFFY_TYPE_ID = "id";
+static const char* const BVT_GLIFFY_TYPE_GRAPHIC = "graphic";
+static const char* const BVT_GLIFFY_TYPE_TYPE = "type";
+static const char* const BVT_GLIFFY_TYPE_CHILDREN = "children";
+static const char* const BVT_GLIFFY_TYPE_HTML = "html";
+static const char* const BVT_GLIFFY_TYPE_TEXT = "Text";
+static const char* const BVT_GLIFFY_TYPE_CONSTRAINTS = "constraints";
+static const char* const BVT_GLIFFY_TYPE_CONSTRAINTS_START = "startConstraint";
+static const char* const BVT_GLIFFY_TYPE_CONSTRAINTS_END = "endConstraint";
+static const char* const BVT_GLIFFY_TYPE_CONSTRAINTS_START_POS = "StartPositionConstraint";
+static const char* const BVT_GLIFFY_TYPE_CONSTRAINTS_END_POS = "EndPositionConstraint";
+static const char* const BVT_GLIFFY_TYPE_NODEID = "nodeId";
 
-static const char* const BVT_CFG_TYPE_STR_SEL = "SEL";
-static const char* const BVT_CFG_TYPE_STR_SEQ = "SEQ";
-static const char* const BVT_CFG_TYPE_STR_PAR = "PAR";
-static const char* const BVT_CFG_TYPE_STR_PAR_ALL = "PAR_ALL";
-static const char* const BVT_CFG_TYPE_STR_PAR_ONE = "PAR_ONE";
-static const char* const BVT_CFG_TYPE_STR_COND = "COND";
-static const char* const BVT_CFG_TYPE_STR_ACT = "ACT";
+static const char* const BVT_GLIFFY_VALUE_SHAPE = "Shape";
+static const char* const BVT_GLIFFY_VALUE_LINE = "Line";
+static const char* const BVT_GLIFFY_VALUE_TEXT = "Text";
 
-int32_t _bvt_init_node(struct bvt_t* n, cJSON* js)
+#define BVT_MAX_GRAPH_DESC_LEN 32
+enum {
+    BVT_GRAPH_NODE_SHAPE,
+    BVT_GRAPH_NODE_LINE,
+};
+typedef struct bvt_graph_node_t
 {
-    #define BVT_TYPE_CHECK_ASSIGN(node, t) \
-        if (node->type != 0 && node->type != t) return BVT_CONFIG_TYPE_ERROR; \
-        node->type = t
+    int32_t t;
+    int32_t id;
+    union {
+        struct {
+            char desc[BVT_MAX_GRAPH_DESC_LEN];
+        } shape;
+        struct {
+            int32_t from;
+            int32_t to;
+        } line;
+    };
+    struct bvt_graph_node_t* next;
+} bvt_graph_node_t;
 
-    // object
-    if (js->type == cJSON_Object) {
-        if (js->child)
-            return _bvt_init_node(n, js->child);
+typedef struct bvt_graph_t {
+    struct bvt_graph_node_t* head;
+} bvt_graph_t;
+
+// trim html tags
+void _bvt_load_gliffy_html(const char* html, char* dst, size_t dstlen)
+{
+    assert(html);
+    int32_t flag = 0;
+    int32_t trans = 0;
+    size_t dlen = 0;
+    while (html) {
+        if (dlen >= dstlen - 1) break;
+        if (trans == 1) { trans = 0; ++ html; continue; }
+        if (*html == '<') { ++ flag; ++ html; continue; }
+        if (*html == '\\') { trans = 1; ++ html; continue; }
+        if (*html == '>' && flag > 0) { -- flag; ++ html; continue; }
+        if (flag == 0) { dst[dlen++] = *html; }
+        ++html;
+    }
+    dst[dlen] = 0;
+}
+
+#undef BVT_JSON_GO_DOWN
+#define BVT_JSON_GO_DOWN(js, jt, name) \
+    do { \
+        (js) = (js)->child; \
+        while (js) { \
+            if ((js)->type == (jt) && 0 == strcmp((js)->string, (name))) \
+                break; \
+            (js) = (js)->next; \
+        } \
+    } while (0)
+
+bvt_graph_node_t* _bvt_load_gliffy_node(cJSON* js)
+{
+    cJSON* js_id = js;
+    BVT_JSON_GO_DOWN(js_id, cJSON_Number, BVT_GLIFFY_TYPE_ID);
+    if (!js_id) return NULL;
+
+    cJSON* js_graphic = js;
+    BVT_JSON_GO_DOWN(js_graphic, cJSON_Object, BVT_GLIFFY_TYPE_GRAPHIC);
+    if (!js_graphic) return NULL;
+
+    cJSON* js_type = js_graphic;
+    BVT_JSON_GO_DOWN(js_type, cJSON_String, BVT_GLIFFY_TYPE_TYPE);
+    if (!js_type) return NULL;
+
+    bvt_graph_node_t* node = (bvt_graph_node_t*)malloc(sizeof(bvt_graph_node_t));
+    node->id = js_id->valueint;
+    node->next = NULL;
+
+    // load shape desc
+    if (0 == strcmp(js_type->valuestring, BVT_GLIFFY_VALUE_SHAPE)) {
+        node->t = BVT_GRAPH_NODE_SHAPE;
+
+        // children list
+        cJSON* js_children = js;
+        BVT_JSON_GO_DOWN(js_children, cJSON_Array, BVT_GLIFFY_TYPE_CHILDREN);
+        if (!js_children) goto GLIFFY_FAIL;
+
+        // child object
+        cJSON* c = js_children->child;
+        if (!c) goto GLIFFY_FAIL;
+
+        while (c) {
+            // child graphic
+            cJSON* js_child_graphic = c;
+            BVT_JSON_GO_DOWN(js_child_graphic, cJSON_Object, BVT_GLIFFY_TYPE_GRAPHIC);
+            if (!js_child_graphic) goto GLIFFY_FAIL;
+
+            // child graphic type
+            cJSON* js_child_type = js_child_graphic;
+            BVT_JSON_GO_DOWN(js_child_type, cJSON_String, BVT_GLIFFY_TYPE_TYPE);
+            if (!js_child_type) goto GLIFFY_FAIL;
+            if (strcmp(js_child_type->valuestring, BVT_GLIFFY_VALUE_TEXT)) {
+                c = c->next;
+                continue;
+            }
+
+            // child graphic text
+            cJSON* js_child_text = js_child_graphic;
+            BVT_JSON_GO_DOWN(js_child_text, cJSON_Object, BVT_GLIFFY_TYPE_TEXT);
+            if (!js_child_text) goto GLIFFY_FAIL;
+
+            // child graphic text html
+            cJSON* js_child_text_html = js_child_text;
+            BVT_JSON_GO_DOWN(js_child_text_html, cJSON_String, BVT_GLIFFY_TYPE_HTML);
+            if (!js_child_text_html) goto GLIFFY_FAIL;
+
+            // set shape value
+            _bvt_load_gliffy_html(js_child_text_html->valuestring, node->shape.desc,
+                sizeof(node->shape.desc));
+            break;
+        }
+        if (!c) goto GLIFFY_FAIL;
+    }
+
+    // load line end points
+    else if (0 == strcmp(js_type->valuestring, BVT_GLIFFY_VALUE_LINE)) {
+
+        node->t = BVT_GRAPH_NODE_LINE;
+
+        // child constraints
+        cJSON* js_cst = js;
+        BVT_JSON_GO_DOWN(js_cst, cJSON_Object, BVT_GLIFFY_TYPE_CONSTRAINTS);
+        if (!js_cst) goto GLIFFY_FAIL;
+
+        // child constraints start
+        cJSON* js_cst_start = js_cst;
+        BVT_JSON_GO_DOWN(js_cst_start, cJSON_Object, BVT_GLIFFY_TYPE_CONSTRAINTS_START);
+        if (!js_cst_start) goto GLIFFY_FAIL;
+        cJSON* js_cst_start_pos = js_cst_start;
+        BVT_JSON_GO_DOWN(js_cst_start_pos, cJSON_Object, BVT_GLIFFY_TYPE_CONSTRAINTS_START_POS);
+        if (!js_cst_start_pos) goto GLIFFY_FAIL;
+        cJSON* js_cst_start_id = js_cst_start_pos;
+        BVT_JSON_GO_DOWN(js_cst_start_id, cJSON_Number, BVT_GLIFFY_TYPE_NODEID);
+        if (!js_cst_start_id) goto GLIFFY_FAIL;
+        node->line.from = js_cst_start_id->valueint;
+
+        // child constaints end
+        cJSON* js_cst_end = js_cst;
+        BVT_JSON_GO_DOWN(js_cst_end, cJSON_Object, BVT_GLIFFY_TYPE_CONSTRAINTS_END);
+        if (!js_cst_end) goto GLIFFY_FAIL;
+        cJSON* js_cst_end_pos = js_cst_end;
+        BVT_JSON_GO_DOWN(js_cst_end_pos, cJSON_Object, BVT_GLIFFY_TYPE_CONSTRAINTS_END_POS);
+        if (!js_cst_end_pos) goto GLIFFY_FAIL;
+        cJSON* js_cst_end_id = js_cst_end_pos;
+        BVT_JSON_GO_DOWN(js_cst_end_id, cJSON_Number, BVT_GLIFFY_TYPE_NODEID);
+        if (!js_cst_end_id) goto GLIFFY_FAIL;
+        node->line.to = js_cst_end_id->valueint;
+    }
+
+    // unrecognized gliffy type
+    else {
+        goto GLIFFY_FAIL;
+    }
+
+    return node;
+
+GLIFFY_FAIL:
+    free(node);
+    return NULL;
+}
+
+int32_t _bvt_load_gliffy_parse_name(bvt_t* node, char* name) {
+    if (!node || !name) return BVT_ERROR;
+    const char* split = BVT_GLIFFY_SPLIT;
+
+    // type
+    char* p = strtok(name, split);
+    if (!p) return BVT_ERROR;
+    if (0 == strcmp(p, "SEQ")) {
+        node->type = BVT_NODE_SEQUENCE;
+    } else if (0 == strcmp(p, "SEL")) {
+        node->type = BVT_NODE_SELECTOR;
+    } else if (0 == strcmp(p, "PAR")) {
+        node->type = BVT_NODE_PARALLEL;
+    } else if (0 == strcmp(p, "ACT")) {
+        node->type = BVT_NODE_ACTION;
+    } else if (0 == strcmp(p, "COND")) {
+        node->type = BVT_NODE_CONDITION;
+    } else if (0 == strcmp(p, "PAR_ALL")) {
+        node->type = BVT_NODE_PARALLEL;
+        node->par_args.type = BVT_PARALLEL_ALL;
+    } else if (0 == strcmp(p, "PAR_ONE")) {
+        node->type = BVT_NODE_PARALLEL;
+        node->par_args.type = BVT_PARALLEL_ONE;
+    } else {
         return BVT_ERROR;
     }
 
-    // name
-    else if (js->type == cJSON_String && 0 == strcmp(js->string, BVT_CFG_STR_NAME)) {
-        snprintf(n->name, sizeof(n->name), "%s", js->valuestring);
+    // desc
+    p = strtok(NULL, split);
+    snprintf(node->name, sizeof(node->name), "%s", p);
+
+    // callback id
+    p = strtok(NULL, split);
+    if (p) {
+        if (node->type == BVT_NODE_ACTION)
+            node->act_args.callback_id = atoi(p);
+        else if (node->type == BVT_NODE_CONDITION)
+            node->con_args.callback_id = atoi(p);
+        else
+            return BVT_ERROR;
     }
 
-    // type
-    else if (js->type == cJSON_String && 0 == strcmp(js->string, BVT_CFG_STR_TYPE)) {
-        if (0 == strcmp(js->valuestring, BVT_CFG_TYPE_STR_SEL)) {
-            BVT_TYPE_CHECK_ASSIGN(n, BVT_NODE_SELECTOR);
-        } else if (0 == strcmp(js->valuestring, BVT_CFG_TYPE_STR_SEQ)) {
-            BVT_TYPE_CHECK_ASSIGN(n, BVT_NODE_SEQUENCE);
-        } else if (0 == strcmp(js->valuestring, BVT_CFG_TYPE_STR_PAR)) {
-            BVT_TYPE_CHECK_ASSIGN(n, BVT_NODE_PARALLEL);
-            n->par_args.type = BVT_PARALLEL_ALL;
-        } else if (0 == strcmp(js->valuestring, BVT_CFG_TYPE_STR_PAR_ALL)) {
-            BVT_TYPE_CHECK_ASSIGN(n, BVT_NODE_PARALLEL);
-            n->par_args.type = BVT_PARALLEL_ALL;
-        } else if (0 == strcmp(js->valuestring, BVT_CFG_TYPE_STR_PAR_ONE)) {
-            BVT_TYPE_CHECK_ASSIGN(n, BVT_NODE_PARALLEL);
-            n->par_args.type = BVT_PARALLEL_ONE;
-        } else if (0 == strcmp(js->valuestring, BVT_CFG_TYPE_STR_COND)) {
-            BVT_TYPE_CHECK_ASSIGN(n, BVT_NODE_CONDITION);
-        } else if (0 == strcmp(js->valuestring, BVT_CFG_TYPE_STR_ACT)) {
-            BVT_TYPE_CHECK_ASSIGN(n, BVT_NODE_ACTION);
-        }
-    }
-
-    // condition
-    else if (js->type == cJSON_Number && 0 == strcmp(js->string, BVT_CFG_STR_COND)) {
-         BVT_TYPE_CHECK_ASSIGN(n, BVT_NODE_CONDITION);
-         n->con_args.callback_id = js->valueint;
-    }
-
-    // action
-    else if (js->type == cJSON_Number && 0 == strcmp(js->string, BVT_CFG_STR_ACT)) {
-        BVT_TYPE_CHECK_ASSIGN(n, BVT_NODE_ACTION);
-        n->act_args.callback_id = js->valueint;
-    }
-
-    // child
-    else if ((js->type == cJSON_Array || js->type == cJSON_Object)
-        && 0 == strcmp(js->string, BVT_CFG_STR_CHILD)) {
-        cJSON* c = js->child;
-        if (!c) return BVT_CONFIG_ERROR;
-        cJSON* start = c;
-        bvt_t* last_child = NULL;
-        bvt_t* last_condition = NULL;
-        do {
-            bvt_t* child = (bvt_t*)malloc(sizeof(bvt_t));
-            memset(child, 0, sizeof(bvt_t));
-
-            // recursive loop load
-            int32_t ret = _bvt_init_node(child, c);
-
-            // node link
-            if (child->type != BVT_NODE_CONDITION) {
-                if (!n->child)
-                    n->child = child;
-                if (last_child)
-                    last_child->next = child;
-                last_child = child;
-            } else {
-                if (!n->condition)
-                    n->condition = child;
-                if (last_condition)
-                    last_condition->next = child;
-                last_condition = child;
-            }
-
-            if (ret != BVT_SUCCESS)
-                return ret;
-            c = c->next;
-        } while (c && c != start);
-    }
-
-    // error
-    else {
-        printf("unrecognized json node[%s]\n", js->string);
-        return BVT_CONFIG_NAME_ERROR;
-    }
-
-    #undef BVT_TYPE_CHECK_ASSIGN
-
-    // go next
-    if (js->next) {
-        return _bvt_init_node(n, js->next);
-    }
     return BVT_SUCCESS;
 }
 
-// json config file
-struct bvt_t* bvt_init(const char* cfg)
+bvt_t* _bvt_load_gliffy_graph_node(int32_t id, bvt_graph_node_t* list)
+{
+    if (!list) return NULL;
+
+    // find and split a node
+    bvt_graph_node_t* node = list;
+    bvt_graph_node_t* prev = 0;
+    while (node) {
+        if (node->t == BVT_GRAPH_NODE_SHAPE && node->id == id) {
+            if (prev) prev->next = node->next;
+            else list = list->next;
+            break;
+        }
+        prev = node;
+        node = node->next;
+    }
+    if (!node) return NULL;
+
+    // set node data
+    bvt_t* b = (bvt_t*)malloc(sizeof(bvt_t));
+    memset(b, 0, sizeof(bvt_t));
+    int32_t ret = _bvt_load_gliffy_parse_name(b, node->shape.desc);
+    if (ret != BVT_SUCCESS) {
+        printf("%s error\n", node->shape.desc);
+        assert(0);
+    }
+    // release graph nodes
+    free(node);
+
+    // find its children
+    while (1) {
+        bvt_graph_node_t* line = list;
+        prev = 0;
+        while (line) {
+            if (line->t == BVT_GRAPH_NODE_LINE && line->line.from == id) {
+                if (prev) prev->next = line->next;
+                else list = list->next;
+                break;
+            }
+            prev = line;
+            line = line->next;
+        }
+        if (!line) break;
+
+        bvt_t* child = _bvt_load_gliffy_graph_node(line->line.to, list);
+        assert(child);
+        if (child->type == BVT_NODE_CONDITION) {
+            if (b->condition) {
+                child->next = b->condition;
+            }
+            b->condition = child;
+        } else {
+            if (b->child) {
+                child->next = b->child;
+            }
+            b->child = child;
+        }
+
+        // release graph nodes
+        free(line);
+    }
+    return b;
+}
+
+void _bvt_debug(bvt_t* b, int32_t indent)
+{
+    int32_t i = indent;
+    while (i --) { printf("——"); }
+    switch (b->type) {
+        case BVT_NODE_CONDITION:
+            printf("condition: %s %d\n", b->name, b->con_args.callback_id);
+            break;
+        case BVT_NODE_SELECTOR:
+            printf("selector: %s\n", b->name);
+            break;
+        case BVT_NODE_SEQUENCE:
+            printf("sequence: %s\n", b->name);
+            break;
+        case BVT_NODE_ACTION:
+            printf("action: %s %d\n", b->name, b->act_args.callback_id);
+            break;
+        case BVT_NODE_PARALLEL:
+            printf("parallel: %s\n", b->name);
+            break;
+    }
+    bvt_t* c = b->condition;
+    while (c) {
+        _bvt_debug(c, indent + 1);
+        c = c->next;
+    }
+    c = b->child;
+    while (c) {
+        _bvt_debug(c, indent + 1);
+        c = c->next;
+    }
+}
+
+void bvt_debug(bvt_t* b) {
+    if (b) {
+        printf("\n================\n");
+        _bvt_debug(b, 0);
+        printf("\n\n");
+    }
+}
+
+void _bvt_debug_graph(bvt_graph_t* g)
+{
+    // printf debug
+    bvt_graph_node_t* n = g->head;
+    while (n) {
+        if (n->t == BVT_GRAPH_NODE_SHAPE) {
+            printf("shape[%d]: %s\n", n->id, n->shape.desc);
+        } else if (n->t == BVT_GRAPH_NODE_LINE) {
+            printf("line[%d->%d]\n", n->line.from, n->line.to);
+        }
+        n = n->next;
+    }
+}
+
+// init bvt by graph
+bvt_t* _bvt_load_gliffy_graph(bvt_graph_t* g)
+{
+    // get root id
+    bvt_graph_node_t* n = g->head;
+    while (n) {
+        if (n->t == BVT_GRAPH_NODE_LINE) {
+            n = n->next;
+            continue;
+        }
+        bvt_graph_node_t* b = g->head;
+        while (b) {
+            if (b->t == BVT_GRAPH_NODE_LINE && b->line.to == n->id) {
+                break;
+            }
+            b = b->next;
+        }
+        if (!b) break;
+    }
+    assert(n);
+    printf("root id:%d\n", n->id);
+
+    return _bvt_load_gliffy_graph_node(n->id, g->head);
+}
+
+// gliffy is also json format, but with lots of view info
+// we need to get what we need
+bvt_t* _bvt_load_gliffy(cJSON* js)
+{
+    if (js->type != cJSON_Object)
+        return NULL;
+
+    // stage node
+    BVT_JSON_GO_DOWN(js, cJSON_Object, BVT_GLIFFY_TYPE_STAGE);
+    if (!js) return NULL;
+
+    // objects node
+    BVT_JSON_GO_DOWN(js, cJSON_Array, BVT_GLIFFY_TYPE_OBJECTS);
+    if (!js) return NULL;
+
+    // load temporary graph
+    bvt_graph_t g;
+    memset(&g, 0, sizeof(g));
+    bvt_graph_node_t* head = g.head;
+    cJSON* c = js->child;
+    while (c) {
+        if (c->type == cJSON_Object) {
+            bvt_graph_node_t* node = _bvt_load_gliffy_node(c);
+            if (node) {
+                if (head) {
+                    head->next = node;
+                    head = node;
+                } else {
+                    g.head = node;
+                    head = node;
+                }
+            }
+        }
+        c = c->next;
+    }
+
+    // init bvt by graph
+    return _bvt_load_gliffy_graph(&g);
+}
+
+// init by gliffy file (also json format, but with lots of vision info)
+struct bvt_t* bvt_load_gliffy(const char* cfg)
 {
     if (!cfg) return NULL;
     int fd = open(cfg, O_RDONLY);
@@ -359,18 +658,11 @@ struct bvt_t* bvt_init(const char* cfg)
     // read json config
     cJSON* js = cJSON_Parse(src);
     if (!js) {
-        printf("json config %s error\n", cfg);
+        printf("gliffy config %s error\n", cfg);
         return NULL;
     }
-    // printf("%s", cJSON_Print(js));
 
-    bvt_t* root = (bvt_t*)malloc(sizeof(bvt_t));
-    memset(root, 0, sizeof(bvt_t));
-    int32_t ret = _bvt_init_node(root, js->child);
-    if (ret != BVT_SUCCESS) {
-        _bvt_release_node(root);
-        root = NULL;
-    }
+    bvt_t* root = _bvt_load_gliffy(js);
     cJSON_Delete(js);
     free(src);
     return root;
