@@ -8,3 +8,4 @@ test/*/client
 test/*/server
 gbase.a
 *.swp
+.*
