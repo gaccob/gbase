@@ -5,10 +5,10 @@
 extern "C" {
 #endif
 
-#include "core/os_def.h"
+#include <stdint.h>
 
-#ifndef BVT_DEBUG
-#define BVT_DEBUG
+#ifdef BVT_DEBUG
+#undef BVT_DEBUG
 #endif
 
 enum

@@ -1,20 +1,26 @@
 
-ä½¿ç”¨chrome gliffy diagramsç»˜åˆ¶
+¹ØÓÚ»úÆ÷ÈËµÄÐÐÎªÊ÷ÅäÖÃ£º
 
-ç»˜åˆ¶è§„åˆ™ï¼š
-1. åŸºæœ¬shapeä»£è¡¨ä¸€ä¸ªèŠ‚ç‚¹
-2. åŸºæœ¬lineä»£è¡¨å…³è”å…³ç³»
+1. Ä¿Ç°µÄÌõ¼þ¹ØÏµÍ¨¹ýgliffy¹¤¾ß»æÖÆ£¬±ØÐëÊÇÒ»¿ÃÊ÷£¬ÔÚ³õÊ¼»¯Ê±»á×ö¼ì²é
 
-èŠ‚ç‚¹çš„å‘½åè§„èŒƒï¼š
-1. æœ€é•¿64å­—èŠ‚,åŒ…æ‹¬ç»“æŸ\0
-2. å‘½ååˆ†ä¸‰æ®µï¼šç±»åž‹|æè¿°|å›žè°ƒID å¦‚æžœæ²¡æœ‰å›žè°ƒåˆ†ä¸¤æ®µå³å¯
-    ç±»åž‹è¯´æ˜Ž:
-        "SEQ" : sequence
-        "SEL" : selector
-        "COND" : condition
-        "ACT" : action
-        "PAR" : parallel (default all)
-        "PAR_ALL" : parallel all ok is ok
-        "PAR_ONE" : parallel one ok is ok
-    å›žè°ƒIDï¼šéœ€è¦åœ¨ä»£ç ä¸­æ³¨å†Œå®žçŽ°
+2. Ä¿Ç°Ö§³ÖµÄ½ÚµãÀàÐÍ£º
+    (1) condition£¬Ìõ¼þ½Úµã£¬Ò¶×Ó½Úµã
+    (2) action£¬ÐÐÎª½Úµã£¬Ò¶×Ó½Úµã
+    (3) sequence£¬Ë³Ðò½Úµã£¬¿ØÖÆ½Úµã
+    (4) selector£¬Ñ¡Ôñ½Úµã£¬¿ØÖÆ½Úµã, ÓÐcondºÍweightÁ½ÖÖÀàÐÍ
+    (5) parallel£¬²¢·¢½Úµã£¬¿ØÖÆ½Úµã£¬ÓÐallºÍoneÁ½ÖÖÀàÐÍ
 
+3. Èç¹ûÔÚgliffyÍ¼ÖÐÃèÊö½Úµã£º
+    (1) Í¨¹ýlineÃèÊöÁ÷×ª¹ØÏµ£¬×¢Òâ±ðÖ¸·´ÁË¡£
+    (2) Í¨¹ýshapeµÄÃû³ÆÀ´ÃèÊö½ÚµãÀàÐÍºÍÊý¾Ý:
+            ·Ö¸î·ûºÅ£º¡®|¡¯
+            <type> | <description> | [callback_id] | [weight]
+            type: COND, ACT, SEQ, SEL(SEL_WEIGHT, SEL_COND), PAR(PAR_ALL, PAR_ONE)
+            description: ½ÚµãÃèÊö
+            callback_id: ´úÂë»Øµ÷id£¬ÐèÒªÔÚÔËÐÐÐÐÎªÊ÷Ö®Ç°×¢²á
+            weight: W100£¬W200£¬ÀàËÆ£¬ÒÔ´óÐ´×ÖÄ¸W¿ªÍ·ÒÔÇø·Ö»Øµ÷id
+        Ê¾Àý:
+            ACT|Ö´ÐÐµÇÂ¼²Ù×÷|1001|W100
+            COND|¼ì²éÊÇ·ñµÇÂ¼|2001
+
+4. ÔÚ³ÌÐòÖÐÐèÒª×öµÄÊÂÇé£ºÔÚ³õÊ¼»¯ÐÐÎªÊ÷Ö®ºó£¬×¢²á»Øµ÷º¯Êý£¨¶ÔÓ¦Æäid£©

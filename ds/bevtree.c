@@ -1,8 +1,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
-#include "ds/bevtree.h"
+#include "bevtree.h"
 #include "core/cjson.h"
 
 enum bvt_tType
@@ -20,6 +22,12 @@ enum BVTParallelType
     BVT_PARALLEL_ONE, // one ok, then ok
 };
 
+enum BVTSelectorType
+{
+    BVT_SELECTOR_COND, // condition selector
+    BVT_SELECTOR_WEIGHT, // selector by weight
+};
+
 #define BVT_DEFAULT_TABLE_SIZE 1024
 typedef struct bvt_callback_table
 {
@@ -27,11 +35,12 @@ typedef struct bvt_callback_table
     bvt_callback* table;
 } bvt_callback_table;
 
-#define BVT_MAX_NAME_LEN 64
+#define BVT_MAX_NAME_LEN 128
 typedef struct bvt_t
 {
     char name[BVT_MAX_NAME_LEN];
     enum bvt_tType type;
+    int32_t weight;
 
     union {
         struct {
@@ -45,6 +54,10 @@ typedef struct bvt_t
         struct {
             enum BVTParallelType type;
         } par_args;
+
+        struct {
+            enum BVTSelectorType type;
+        } sel_args;
     };
 
     struct bvt_t* next;
@@ -82,18 +95,17 @@ typedef struct bvt_t
     #define BVT_DEBUG_LOG(node) (void)(node)
 #endif
 
-int32_t _bvt_run(bvt_t* n, bvt_callback_table* t, void* input) ;
+int32_t _bvt_run(bvt_t* n, bvt_callback_table* t, void* input);
 
 int32_t _bvt_run_select(bvt_t* n, bvt_callback_table* t, void* input)
 {
     BVT_DEBUG_LOG(n);
-
     // condition node
     bvt_t* c = n->condition;
     while (c) {
         int32_t ret = _bvt_run(c, t, input);
         if (ret != BVT_SUCCESS)
-            return ret;
+            return BVT_BACKTRACK;
         c = c->next;
     }
 
@@ -101,15 +113,39 @@ int32_t _bvt_run_select(bvt_t* n, bvt_callback_table* t, void* input)
     c = n->child;
     if (!c)
         return BVT_ERROR;
-    while (c) {
-        int32_t ret = _bvt_run(c, t, input);
-        // condition check fail, go next
-        if (ret == BVT_BACKTRACK) {
-            c = c->next;
-            continue;
+
+    // condition selector
+    if (n->sel_args.type == BVT_SELECTOR_COND) {
+        while (c) {
+            int32_t ret = _bvt_run(c, t, input);
+            // condition check fail, go next
+            if (ret == BVT_BACKTRACK) {
+                c = c->next;
+                continue;
+            }
+            return ret;
         }
-        return ret;
     }
+    // weight selector
+    else if (n->sel_args.type == BVT_SELECTOR_WEIGHT) {
+        int32_t sum = 0;
+        c = n->child;
+        while (c) {
+            sum += c->weight;
+            c = c->next;
+        }
+        int32_t res = rand() % sum;
+        c = n->child;
+        while (c) {
+            if (res > c->weight) {
+                res -= c->weight;
+                c = c->next;
+                continue;
+            }
+            return _bvt_run(c, t, input);
+        }
+    }
+
     return BVT_ERROR;
 }
 
@@ -127,7 +163,6 @@ int32_t _bvt_run_condition(bvt_t* n, bvt_callback_table* t, void* input)
 int32_t _bvt_run_sequence(bvt_t* n, bvt_callback_table* t, void* input)
 {
     BVT_DEBUG_LOG(n);
-
     bvt_t* c = n->condition;
     while (c) {
         if (_bvt_run(c, t, input) != BVT_SUCCESS)
@@ -150,7 +185,6 @@ int32_t _bvt_run_sequence(bvt_t* n, bvt_callback_table* t, void* input)
 int32_t _bvt_run_parallel(bvt_t* n, bvt_callback_table* t, void* input)
 {
     BVT_DEBUG_LOG(n);
-
     bvt_t* c = n->condition;
     while (c) {
         if (_bvt_run(c, t, input) != BVT_SUCCESS)
@@ -184,13 +218,16 @@ int32_t _bvt_run_parallel(bvt_t* n, bvt_callback_table* t, void* input)
 int32_t _bvt_run_action(bvt_t* n, bvt_callback_table* t, void* input)
 {
     BVT_DEBUG_LOG(n);
-
     if (n->act_args.callback_id < 0 ||
         n->act_args.callback_id >= t->size)
         return BVT_ACTION_ERROR;
 
     bvt_callback action = t->table[n->act_args.callback_id];
-    return (*action)(input);
+    int32_t ret = (*action)(input);
+    if (ret == BVT_SUCCESS) {
+        printf("action [%s] success\n", n->name);
+    }
+    return ret;
 }
 
 void _bvt_release_node(struct bvt_t* n)
@@ -248,7 +285,6 @@ static const char* const BVT_GLIFFY_VALUE_SHAPE = "Shape";
 static const char* const BVT_GLIFFY_VALUE_LINE = "Line";
 static const char* const BVT_GLIFFY_VALUE_TEXT = "Text";
 
-#define BVT_MAX_GRAPH_DESC_LEN 32
 enum {
     BVT_GRAPH_NODE_SHAPE,
     BVT_GRAPH_NODE_LINE,
@@ -259,7 +295,7 @@ typedef struct bvt_graph_node_t
     int32_t id;
     union {
         struct {
-            char desc[BVT_MAX_GRAPH_DESC_LEN];
+            char desc[BVT_MAX_NAME_LEN];
         } shape;
         struct {
             int32_t from;
@@ -280,7 +316,7 @@ void _bvt_load_gliffy_html(const char* html, char* dst, size_t dstlen)
     int32_t flag = 0;
     int32_t trans = 0;
     size_t dlen = 0;
-    while (html) {
+    while (*html) {
         if (dlen >= dstlen - 1) break;
         if (trans == 1) { trans = 0; ++ html; continue; }
         if (*html == '<') { ++ flag; ++ html; continue; }
@@ -425,6 +461,13 @@ int32_t _bvt_load_gliffy_parse_name(bvt_t* node, char* name) {
         node->type = BVT_NODE_SEQUENCE;
     } else if (0 == strcmp(p, "SEL")) {
         node->type = BVT_NODE_SELECTOR;
+        node->sel_args.type = BVT_SELECTOR_COND;
+    } else if (0 == strcmp(p, "SEL_WEIGHT")) {
+        node->type = BVT_NODE_SELECTOR;
+        node->sel_args.type = BVT_SELECTOR_WEIGHT;
+    } else if (0 == strcmp(p, "SEL_COND")) {
+        node->type = BVT_NODE_SELECTOR;
+        node->sel_args.type = BVT_SELECTOR_COND;
     } else if (0 == strcmp(p, "PAR")) {
         node->type = BVT_NODE_PARALLEL;
     } else if (0 == strcmp(p, "ACT")) {
@@ -448,6 +491,8 @@ int32_t _bvt_load_gliffy_parse_name(bvt_t* node, char* name) {
     // callback id
     p = strtok(NULL, split);
     if (p) {
+        if (p[0] == 'W' || p[0] == 'w')
+            goto BVT_PARSE_WEIGHT;
         if (node->type == BVT_NODE_ACTION)
             node->act_args.callback_id = atoi(p);
         else if (node->type == BVT_NODE_CONDITION)
@@ -456,6 +501,13 @@ int32_t _bvt_load_gliffy_parse_name(bvt_t* node, char* name) {
             return BVT_ERROR;
     }
 
+    // weight;
+    p = strtok(NULL, split);
+    if (!p) return BVT_SUCCESS;
+    if (p[0] != 'W' && p[0] != 'w') return BVT_ERROR;
+
+BVT_PARSE_WEIGHT:
+    node->weight = atoi(p + 1);
     return BVT_SUCCESS;
 }
 
@@ -587,6 +639,7 @@ bvt_t* _bvt_load_gliffy_graph(bvt_graph_t* g)
 {
     // get root id
     bvt_graph_node_t* n = g->head;
+    bvt_graph_node_t* find = NULL;
     while (n) {
         if (n->t == BVT_GRAPH_NODE_LINE) {
             n = n->next;
@@ -599,13 +652,18 @@ bvt_t* _bvt_load_gliffy_graph(bvt_graph_t* g)
             }
             b = b->next;
         }
-        if (!b) break;
+        if (!b && find) {
+            printf("duplicate root found: [%s], [%s] \n", n->shape.desc, find->shape.desc);
+            return NULL;
+        }
+        if (!b) { find = n; }
         n = n->next;
     }
-    assert(n);
-    printf("root id:%d\n", n->id);
-
-    return _bvt_load_gliffy_graph_node(n->id, &g->head);
+    if (!find) {
+        printf("no root node found!\n");
+        return NULL;
+    }
+    return _bvt_load_gliffy_graph_node(find->id, &g->head);
 }
 
 // gliffy is also json format, but with lots of view info
@@ -660,13 +718,14 @@ struct bvt_t* bvt_load_gliffy(const char* cfg)
     read(fd, src, size);
     src[size] = 0;
 
-    // read json config
+    // read gliffy config
     cJSON* js = cJSON_Parse(src);
     if (!js) {
         printf("gliffy config %s error\n", cfg);
         return NULL;
     }
 
+    // load gliffy relation to bvt and check
     bvt_t* root = _bvt_load_gliffy(js);
     cJSON_Delete(js);
     free(src);
