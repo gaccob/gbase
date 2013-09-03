@@ -2,9 +2,10 @@
 #include <assert.h>
 #include <time.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <ds/bevtree.h>
 
-#define TEST_LOOP 3 
+#define TEST_LOOP 300000 
 
 typedef struct input_t {
     int32_t ratio;
@@ -79,6 +80,7 @@ void test_bvt(const char* cfg)
         ret = bvt_run(bvt, (void*)&i);
         assert(BVT_SUCCESS == ret);
         printf("============\n\n");
+        usleep(100000);
     }
 
     bvt_release(bvt);
