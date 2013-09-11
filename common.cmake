@@ -24,26 +24,6 @@ set(CMAKE_CXX_FLAGS_RELEASE "${COMMON_RELEASE}")
 set(CMAKE_C_FLAGS_DEBUG "${COMMON_DEBUG}")
 set(CMAKE_C_FLAGS_RELEASE "${COMMON_RELEASE}")
 
-# 链接选项
-set (SYSTEM_LIB_LINK z dl pthread rt m)
-
-# 递归包含头文件 *.h *.hpp文件
-macro(COMMON_INCLUDE)
-    foreach(basedir ${ARGV})
-        file(GLOB_RECURSE COMMON_INCLUDE_FILES "${basedir}/*.h" "${basedir}/*.hpp")
-        set(LAST_INCLUDE_FILE_DIR "")
-        foreach(src ${COMMON_INCLUDE_FILES})
-            # 获取路径
-            string(REGEX REPLACE "(.+)[/\\].+\\.h(pp)?$" "\\1" CURR_INCLUDE_FILE_DIR ${src})
-            if (NOT "${CURR_INCLUDE_FILE_DIR}" STREQUAL "${LAST_INCLUDE_FILE_DIR}")
-                include_directories(${CURR_INCLUDE_FILE_DIR})
-                set(LAST_INCLUDE_FILE_DIR "${CURR_INCLUDE_FILE_DIR}")
-                message(STATUS "recursive include -- ${LAST_INCLUDE_FILE_DIR}")
-            endif()
-        endforeach()
-    endforeach()
-endmacro(COMMON_INCLUDE)
-
 # 递归包含工程定义 *.cmake文件
 macro(COMMON_PROJECT)
     set(COMMON_PROJECT_FILTER "*.cmake")

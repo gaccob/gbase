@@ -182,7 +182,7 @@ int main()
 	spin_release(spinlock);
 	thread_lock_free(threadlock);
 
-	printf("\n按任意键继续...");
+	printf("\npress any key to continue...");
 	getchar();
 	return 0;
 }

@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 2.8.10)
+set(TEST_NAME "bevtree_test")
+project("${TEST_NAME}")
+aux_source_directory(. TEST_SOURCES)
+add_executable("${TEST_NAME}" "${TEST_SOURCES}")
+target_link_libraries("${TEST_NAME}" gbase)
