@@ -11,7 +11,7 @@ typedef struct connbuffer_t
     connbuffer_free buffer_free;
 }connbuffer_t;
 
-/* buffer_size hint: 4 * max pkg size */
+// buffer_size hint: 4 * max pkg size
 struct connbuffer_t* connbuffer_init(int buffer_size, connbuffer_malloc buffer_malloc, connbuffer_free buffer_free)
 {
     struct connbuffer_t* connbuffer;
@@ -49,10 +49,8 @@ int connbuffer_release(struct connbuffer_t* connbuffer)
     return 0;
 }
 
-/*
-* read data in buffer to dest
-* return: read bytes
-*/
+// read data in buffer to dest
+// return: read bytes
 int connbuffer_read(struct connbuffer_t* connbuffer, char* dest, int len)
 {
     if(!connbuffer || !dest || len < 0)
@@ -78,11 +76,11 @@ int connbuffer_read_nocopy(struct connbuffer_t* connbuffer, int len)
     connbuffer->read_pos += len;
     assert(connbuffer->write_pos >= connbuffer->read_pos);
 
-    /* check drift threshold */
+    // check drift threshold
     if(connbuffer->read_pos > connbuffer->drift_threshold)
     {
         const char* shift = connbuffer_read_buffer(connbuffer);
-        /* threshold is half size, so memcpy src & dst will never overlap to escape memmove */
+        // threshold is half size, so memcpy src & dst will never overlap to escape memmove
         memcpy(connbuffer->buffer, shift, connbuffer->write_pos - connbuffer->read_pos);
         connbuffer->write_pos -= connbuffer->read_pos;
         connbuffer->read_pos = 0;
@@ -91,10 +89,8 @@ int connbuffer_read_nocopy(struct connbuffer_t* connbuffer, int len)
     return len;
 }
 
-/*
-* only read and not pick out
-* return: read bytes
-*/
+// only read and not pick out
+// return: read bytes
 int connbuffer_peek(struct connbuffer_t* connbuffer, char* dest, int len)
 {
     if(!connbuffer || len < 0 || !dest)
@@ -107,10 +103,8 @@ int connbuffer_peek(struct connbuffer_t* connbuffer, char* dest, int len)
     return len;
 }
 
-/*
-* write data from src to connbuffer
-* return: write bytes
-*/
+// write data from src to connbuffer
+// return: write bytes
 int connbuffer_write(struct connbuffer_t* connbuffer, const char* src, int len)
 {
     if(!connbuffer || !src || len < 0)

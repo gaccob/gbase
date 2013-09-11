@@ -1,9 +1,7 @@
 #include "ds/heap.h"
 #include <assert.h>
 
-/*
-* minimum heap
-*/
+// minimum heap
 typedef struct heap_node_t
 {
     void* data;

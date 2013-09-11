@@ -5,7 +5,7 @@
     #error  windows but not MSC
     #endif
 #elif defined(OS_LINUX) || defined(OS_MAC)
-    /* from 4.1.2 */
+    // from 4.1.2
     #if (GCC_VERSION < 40102)
     #error linux or mac but gcc version less than 4.1.2
     #endif
@@ -29,7 +29,7 @@ atom_t atom_dec(atom_t volatile* a)
 #endif
 }
 
-/* return old value */
+// return old value
 atom_t atom_set(atom_t volatile* a, uint32_t val)
 {
 #if defined(OS_WIN)

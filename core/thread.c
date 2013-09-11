@@ -211,9 +211,9 @@ int thread_cond_wait(void* cond, void* lock, const struct timeval* tv)
             }
         }
 
-        /* If we make it here, we are still waiting. */
+        // If we make it here, we are still waiting.
         if (thread_cond->n_to_wake == 0) {
-            /* There is nobody else who should wake up; reset the event. */
+            // There is nobody else who should wake up; reset the event.
             ResetEvent(thread_cond->event);
         }
 
@@ -235,7 +235,7 @@ int thread_cond_wait(void* cond, void* lock, const struct timeval* tv)
 
     if(tv)
     {
-        /* calculate end-time */
+        // calculate end-time
         struct timeval now;
         struct timespec ts;
         gettimeofday(&now, NULL);

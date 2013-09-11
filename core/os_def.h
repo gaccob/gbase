@@ -11,7 +11,7 @@ extern "C" {
 #include <stdio.h>
 #include <time.h>
 
-// win32 & msc_ver 
+// win32 & msc_ver
 #if defined(WIN32) || defined(_WIN32)
     #define OS_WIN 1
     #ifndef _MSC_VER

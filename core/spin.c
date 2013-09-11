@@ -9,7 +9,7 @@
         #endif
     #endif
 #elif defined(OS_LINUX) || defined(OS_MAC)
-    /* from 4.1.2 */
+    // from 4.1.2
     #if (GCC_VERSION < 40102)
         #if !defined(SPIN_IMPL_PTHREAD)
         #define SPIN_IMPL_PTHREAD 1

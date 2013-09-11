@@ -5,18 +5,18 @@ typedef struct buddy_t
 {
     int pool_size;
 
-    /* min alloc unit size */
+    // min alloc unit size
     int min_size;
 
-    /* allocate max & min order */
+    // allocate max & min order
     int min_order;
     int max_order;
 
-    /* buddy index */
+    // buddy index
     int8_t* tree;
     int tree_size;
 
-    /* memory pool */
+    // memory pool
     char* pool;
 }buddy_t;
 
@@ -25,15 +25,15 @@ typedef struct buddy_t
 #define BUDDY_SPLIT 2
 #define BUDDY_FULL 3
 
-/* get memory size by index */
+// get memory size by index
 #define BUDDY_SIZE_FROM_INDEX(buddy, index) \
     (buddy->pool_size >> ILOG2(index))
 
-/* get memory shift by index */
+// get memory shift by index
 #define BUDDY_SHIFT_FROM_INDEX(buddy, index) \
     (buddy->pool_size >> ILOG2(index )) * (index - (1 << ILOG2(index)))
 
-/* get memory by index */
+// get memory by index
 #define BUDDY_MEM_FROM_INDEX(buddy, index) \
     buddy->pool + BUDDY_SHIFT_FROM_INDEX(buddy, index)
 
@@ -48,7 +48,7 @@ struct buddy_t* buddy_init(size_t size, size_t min_alloc_size)
     if(min_alloc_size < BUDDY_MIN_SIZE)
         min_alloc_size = BUDDY_MIN_SIZE;
 
-    /* round up size by 2^n */
+    // round up size by 2^n
     real_size = ROUNDUP(size);
     real_min_size = ROUNDUP(min_alloc_size);
 
@@ -64,7 +64,7 @@ struct buddy_t* buddy_init(size_t size, size_t min_alloc_size)
     buddy->max_order = ILOG2(buddy->pool_size) ;
     buddy->min_order = ILOG2(buddy->min_size);
 
-    /* alloc buddy index */
+    // alloc buddy index
     buddy->tree_size = buddy->pool_size * 2 / buddy->min_size;
     buddy->tree = (int8_t*)MALLOC(sizeof(int8_t) * buddy->tree_size);
     if(!buddy->tree)
@@ -73,12 +73,12 @@ struct buddy_t* buddy_init(size_t size, size_t min_alloc_size)
     for(index = 0; index < buddy->tree_size; index ++)
         buddy->tree[index] = BUDDY_UNUSED;
 
-    /* alloc memory pool */
+    // alloc memory pool
     buddy->pool = (char*)MALLOC(buddy->pool_size);
     if(!buddy->pool)
         goto BUDDY_FAIL2;
 
-    /* success */
+    // success
     return buddy;
 
 BUDDY_FAIL2:
@@ -119,7 +119,7 @@ void* buddy_realloc(struct buddy_t* buddy, void* mem, size_t nbytes)
         return NULL;
     }
 
-    /* calculate original size */
+    // calculate original size
 #ifdef __x86_64__
     offset = (int)((uint64_t)mem - (uint64_t)buddy->pool);
 #else
@@ -137,7 +137,7 @@ void* buddy_realloc(struct buddy_t* buddy, void* mem, size_t nbytes)
             mem_size = BUDDY_SIZE_FROM_INDEX(buddy, index);
             break;
         }
-        /* find dest by dichotomy */
+        // find dest by dichotomy
         step/= 2;
         index *= 2;
         if(offset >= current + step)
@@ -147,7 +147,7 @@ void* buddy_realloc(struct buddy_t* buddy, void* mem, size_t nbytes)
         }
     }
 
-    /* alloc new memory */
+    // alloc new memory
     new_mem = buddy_alloc(buddy, nbytes);
     if(new_mem)
     {
@@ -159,16 +159,12 @@ void* buddy_realloc(struct buddy_t* buddy, void* mem, size_t nbytes)
 
 void* buddy_alloc(struct buddy_t* buddy, size_t nbytes)
 {
+    if(!buddy) return NULL;
     size_t malloc_size, mem_size;
     char* mem;
     int index, left, right;
 
-    if(nbytes < 0 || !buddy)
-    {
-        return NULL;
-    }
-
-    /* calculate malloc size */
+    // calculate malloc size
     malloc_size = ROUNDUP(nbytes);
     if((int)nbytes > buddy->pool_size)
     {
@@ -184,7 +180,7 @@ void* buddy_alloc(struct buddy_t* buddy, size_t nbytes)
         return NULL; \
     }
 
-    /* depth first search */
+    // depth first search
     index = 1;
     while(index < buddy->tree_size)
     {
@@ -192,13 +188,13 @@ void* buddy_alloc(struct buddy_t* buddy, size_t nbytes)
         {
             mem_size = BUDDY_SIZE_FROM_INDEX(buddy, index);
 
-            /* mark used */
+            // mark used
             if(mem_size == malloc_size)
             {
                 buddy->tree[index] = BUDDY_USED;
                 mem = BUDDY_MEM_FROM_INDEX(buddy, index);
 
-                /* loop back to set full flag */
+                // loop back to set full flag
                 while(index > 1)
                 {
                     left = ((index >> 1) << 1);
@@ -215,11 +211,11 @@ void* buddy_alloc(struct buddy_t* buddy, size_t nbytes)
                     break;
                 }
 
-                /* return allocated memory */
+                // return allocated memory
                 return mem;
             }
 
-            /* split and going down to get required */
+            // split and going down to get required
             else if(mem_size > malloc_size)
             {
                 buddy->tree[index] = BUDDY_SPLIT;
@@ -227,7 +223,7 @@ void* buddy_alloc(struct buddy_t* buddy, size_t nbytes)
                 continue;
             }
 
-            /* go back to parent's buddy */
+            // go back to parent's buddy
             else
             {
                 do { index /= 2; }
@@ -240,7 +236,7 @@ void* buddy_alloc(struct buddy_t* buddy, size_t nbytes)
         else if(buddy->tree[index] == BUDDY_USED
             || buddy->tree[index] == BUDDY_FULL)
         {
-            /* try self or parent's buddy */
+            // try self or parent's buddy
             while((index & 1) && (index > 1))
             {
                 index /= 2;
@@ -254,7 +250,7 @@ void* buddy_alloc(struct buddy_t* buddy, size_t nbytes)
             mem_size = BUDDY_SIZE_FROM_INDEX(buddy, index);
             if(mem_size <= malloc_size)
             {
-                /* try self or parent's buddy */
+                // try self or parent's buddy
                 while((index & 1) && (index > 1))
                 {
                     index /= 2;
@@ -263,7 +259,7 @@ void* buddy_alloc(struct buddy_t* buddy, size_t nbytes)
                 index ++;
             }
 
-            /* go to child */
+            // go to child
             else
             {
                 index *= 2;
@@ -301,7 +297,7 @@ void buddy_free(struct buddy_t* buddy, void* mem)
             assert(current == offset);
             buddy->tree[index] = BUDDY_UNUSED;
 
-            /* try merge buddy & set parent unused */
+            // try merge buddy & set parent unused
             loop = index;
             while(loop > 1)
             {
@@ -317,7 +313,7 @@ void buddy_free(struct buddy_t* buddy, void* mem)
                 break;
             }
 
-            /* set full parent to split status */
+            // set full parent to split status
             loop = index;
             while(loop > 1)
             {
@@ -333,7 +329,7 @@ void buddy_free(struct buddy_t* buddy, void* mem)
             return;
         }
 
-        /* find dest by dichotomy */
+        // find dest by dichotomy
         step/= 2;
         index *= 2;
         if(offset >= current + step)
