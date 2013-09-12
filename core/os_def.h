@@ -37,7 +37,6 @@ extern "C" {
     #error other platform not support now
 #endif
 
-
 // gcc version
 #if defined(__GNUC__)
     #if !defined GCC_VERSION
@@ -75,6 +74,14 @@ extern "C" {
 
     #include <io.h>
     #include <direct.h>
+    #include <sys/types.h>
+    #pragma warning(disable:4996)
+    #if !defined(__cplusplus)
+        #define inline __inline
+    #endif
+    #ifndef typeof
+        #define typeof typeid;
+    #endif
 
     typedef __int8   int8_t;
     typedef __int16  int16_t;
@@ -93,6 +100,19 @@ extern "C" {
     #define vsnprintf _vsnprintf
     #endif
 
+    inline int strcasecmp(const char *s1, const char *s2)
+    {
+       while  (toupper((unsigned char)*s1) == toupper((unsigned char)*s2++))
+           if (*s1++ == 0) return 0;
+       return(toupper((unsigned char)*s1) - toupper((unsigned char)*--s2));
+    }
+    inline int strncasecmp(const char *s1, const char *s2, register int n)
+    {
+      while (--n >= 0 && toupper((unsigned char)*s1) == toupper((unsigned char)*s2++))
+          if (*s1++ == 0)  return 0;
+      return(n < 0 ? 0 : toupper((unsigned char)*s1) - toupper((unsigned char)*--s2));
+    }
+
 #elif defined(OS_LINUX) || defined(OS_MAC)
     #include <arpa/inet.h>
     #include <unistd.h>
@@ -106,7 +126,6 @@ extern "C" {
     #define SLEEP(ms) usleep(ms * 1000)
 
     #include <stdint.h>
-
 #endif
 
 #if !defined ILOG2
@@ -207,4 +226,3 @@ extern "C" {
 #endif
 
 #endif // OS_DEF_H_
-

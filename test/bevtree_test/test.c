@@ -2,10 +2,10 @@
 #include <assert.h>
 #include <time.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <core/os_def.h>
 #include <ds/bevtree.h>
 
-#define TEST_LOOP 300000 
+#define TEST_LOOP 300000
 
 typedef struct input_t {
     int32_t ratio;
@@ -49,6 +49,9 @@ int32_t action_404_cb(void* input)
 
 void test_bvt(const char* cfg)
 {
+	int32_t ret = -1;
+	int32_t loop = 0;
+	input_t i;
     struct bvt_t* bvt = bvt_load_gliffy(cfg);
     if (!bvt)
     {
@@ -57,7 +60,6 @@ void test_bvt(const char* cfg)
     }
     bvt_debug(bvt);
 
-    int32_t ret = -1;
     ret = bvt_register_callback(bvt, action_400_cb, 400);
     assert(ret == BVT_SUCCESS);
     ret = bvt_register_callback(bvt, action_401_cb, 401);
@@ -73,14 +75,12 @@ void test_bvt(const char* cfg)
     ret = bvt_register_callback(bvt, condition_301_cb, 301);
     assert(ret == BVT_SUCCESS);
 
-    int32_t loop = 0;
     while (loop ++ < TEST_LOOP) {
-        input_t i;
         i.ratio = rand() % 100;
         ret = bvt_run(bvt, (void*)&i);
         assert(BVT_SUCCESS == ret);
         printf("============\n\n");
-        usleep(100000);
+        SLEEP(100);
     }
 
     bvt_release(bvt);
@@ -92,7 +92,7 @@ int main(int argc, char** argv)
         printf("usage: ./test cfg_file_path\n");
         return -1;
     }
-    srand(time(NULL));
+    srand((uint32_t)time(NULL));
     test_bvt(argv[1]);
     return 0;
 }

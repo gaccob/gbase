@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stddef.h>
 #include "ds/buddy.h"
 
 typedef struct buddy_t
@@ -159,11 +160,10 @@ void* buddy_realloc(struct buddy_t* buddy, void* mem, size_t nbytes)
 
 void* buddy_alloc(struct buddy_t* buddy, size_t nbytes)
 {
-    if(!buddy) return NULL;
     size_t malloc_size, mem_size;
     char* mem;
     int index, left, right;
-
+    if(!buddy) return NULL;
     // calculate malloc size
     malloc_size = ROUNDUP(nbytes);
     if((int)nbytes > buddy->pool_size)

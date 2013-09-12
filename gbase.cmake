@@ -11,13 +11,15 @@ set(GBASE_DIR_TEST "${CMAKE_SOURCE_DIR}/test")
 set(GBASE_LIB gbase)
 
 # 链接选项
-set (SYSTEM_LIB_LINK z dl pthread rt m)
+set (GBASE_LIB_LINK ${COMMON_LINK_LIB})
 
 # 编译lib的源文件
 aux_source_directory(${GBASE_DIR_CORE} GBASE_SOURCE)
 aux_source_directory(${GBASE_DIR_DS} GBASE_SOURCE)
 aux_source_directory(${GBASE_DIR_NET} GBASE_SOURCE)
-CommonEcho(COLOR RED "source: ${GBASE_SOURCE}")
+foreach(GBASE_SOURCE_FILE ${GBASE_SOURCE})
+    CommonEcho(COLOR CYAN "===> source: ${GBASE_SOURCE_FILE}")
+endforeach()
 
 # 编译lib
 add_library(${GBASE_LIB} ${GBASE_SOURCE})
@@ -25,6 +27,6 @@ add_library(${GBASE_LIB} ${GBASE_SOURCE})
 # 递归增加test
 file(GLOB GBASE_TEST_DIRS ${GBASE_DIR_TEST}/*test*)
 foreach(GBASE_TEST_DIR ${GBASE_TEST_DIRS})
-    CommonEcho(COLOR RED "dir: ${GBASE_TEST_DIR}")
+    CommonEcho(COLOR CYAN "===> directory: ${GBASE_TEST_DIR}")
     add_subdirectory(${GBASE_TEST_DIR})
 endforeach()

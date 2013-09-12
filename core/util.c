@@ -494,10 +494,10 @@ int32_t util_base64_encode(char* dst, const char* src, size_t sz)
 
 int32_t util_base64_decode(char* dst, const char* src, size_t sz)
 {
-    if (!dst || !src || sz == 0)
-        return -1;
-    size_t i = 0, idx = 0, j;
+	size_t i = 0, idx = 0, j;
     uint8_t a[3], b[4];
+	if (!dst || !src || sz == 0)
+        return -1;
     while (sz-- > 0 && src[idx] != '=')
     {
         if (!_BASE64_C(src[idx]))
@@ -538,7 +538,7 @@ uint32_t util_str2int(const char *key)
             strncat(tail_res++, &key[i], 1);
         if (key[i] == ' ')
             space_count++;
-    } while (key[++i]);    
+    } while (key[++i]);
     return ((uint32_t) strtoul(res_decimals, NULL, 10) / space_count);
 }
 

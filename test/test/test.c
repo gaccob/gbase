@@ -41,7 +41,7 @@ int32_t test_ws()
     return 0;
 }
 
-
+#if !defined OS_WIN
 struct key_t
 {
     char key[32];
@@ -104,13 +104,13 @@ int32_t test_conhash()
     conhash_release(ch);
     return 0;
 }
-
+#endif
 
 int main()
 {
     //test_base64();
     //test_ws();
-    test_conhash();
+    //test_conhash();
     return 0;
 }
 

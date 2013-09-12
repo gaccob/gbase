@@ -27,6 +27,7 @@
 #include <float.h>
 #include <limits.h>
 #include <ctype.h>
+#include "core/os_def.h"
 #include "cjson.h"
 
 static const char *ep;

@@ -1,6 +1,10 @@
 #ifndef LIST_H_
 #define LIST_H_
 
+#include "core/os_def.h"
+
+#if !defined OS_WIN
+
 /* This file is from Linux Kernel (include/linux/list.h)
  * and modified by simply removing hardware prefetching of list items.
  * Here by copyright, credits attributed to wherever they belong.
@@ -36,15 +40,15 @@ struct list_head {
  * This is only for internal list manipulation where we know
  * the prev/next entries already!
  */
-static inline void __list_add(struct list_head *new,
+static inline void __list_add(struct list_head *n,
                   struct list_head *prev,
                   struct list_head *next)
 {
-    next->prev = new;
-    new->next = next;
-    new->prev = prev;
-    prev->next = new;
-}
+    next->prev = n;
+    n->next = next;
+    n->prev = prev;
+    prev->next = n;
+};
 
 /**
  * list_add - add a new entry
@@ -240,6 +244,7 @@ static inline void list_splice_init(struct list_head *list,
          &pos->member != (head);                     \
          pos = n, n = list_entry(n->member.next, typeof(*n), member))
 
+#endif // OS_WIN
 
 #endif // LIST_H_
 
