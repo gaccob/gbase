@@ -12,10 +12,14 @@ else()
 endif()
 
 # 编译选项（仅gcc、vc）
-if ("${CMAKE_CXX_COMPILE_ID}" STREQUAL "GNU")
+message(STATUS "compiler: ${CMAKE_CXX_COMPILER_ID}")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(COMMON_DEBUG "-ggdb -Wall -Werror -pg -O0")
     set(COMMON_RELEASE "-ggdb -Wall -Werror -pg -O1")
-elseif ("${CMAKE_CXX_COMPILE_ID}" STREQUAL "MSVC")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    set(COMMON_DEBUG "-ggdb -Wall -Werror -pg -O0")
+    set(COMMON_RELEASE "-ggdb -Wall -Werror -pg -O1")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     set(COMMON_DEBUG "/Od /MDd")
     set(COMMON_RELEASE "/O2 /MD /D NDEBUG")
 endif()
@@ -23,6 +27,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${COMMON_DEBUG}")
 set(CMAKE_CXX_FLAGS_RELEASE "${COMMON_RELEASE}")
 set(CMAKE_C_FLAGS_DEBUG "${COMMON_DEBUG}")
 set(CMAKE_C_FLAGS_RELEASE "${COMMON_RELEASE}")
+
 
 # 递归包含工程定义 *.cmake文件
 macro(COMMON_PROJECT)
