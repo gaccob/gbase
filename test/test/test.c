@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "core/os_def.h"
-#include "core/util.h"
+#include "util/base64.h"
 #include "ds/sha1.h"
 #include "ds/conhash.h"
 
@@ -13,14 +13,12 @@ int32_t test_base64()
     memset(dst, 0, sizeof(dst));
     memset(src2, 0, sizeof(src2));
     printf("source=%d: %s\n", (int)strlen(src), src);
-    if(util_base64_encode(dst, src, strlen(src)) < 0)
-    {
+    if (base64_encode(dst, src, strlen(src)) < 0) {
         printf("base64 encode fail\n");
         return -1;
     }
     printf("base64 encode=%d: %s\n", (int)strlen(dst), dst);
-    if(util_base64_decode(src2, dst, strlen(dst)) < 0)
-    {
+    if (base64_decode(src2, dst, strlen(dst)) < 0) {
         printf("base64 decode fail\n");
         return -1;
     }
@@ -36,7 +34,7 @@ int32_t test_ws()
     memset(sha, 0, sizeof(sha));
     snprintf(key, sizeof(key), "%s258EAFA5-E914-47DA-95CA-C5AB0DC85B11", req);
     sha1(sha, key, strlen(key) * 8);
-    util_base64_encode(base64, sha, strlen(sha));
+    base64_encode(base64, sha, strlen(sha));
     printf("%s\n", base64);
     return 0;
 }
@@ -67,14 +65,12 @@ int32_t test_conhash()
     struct node_t node[10];
     struct node_t* n;
     int32_t i, ret;
-    for (i=0; i<4; i++)
-    {
+    for (i=0; i<4; i++) {
         snprintf(node[i].name, sizeof(node[i].name), "node_%d", i);
         ret = conhash_add_node(ch, &node[i]);
         assert(0 == ret);
     }
-    for (i=0; i<10; i++)
-    {
+    for (i=0; i<10; i++) {
         struct key_t k;
         snprintf(k.key, sizeof(k.key), "key_%d", i);
         n = conhash_node(ch, &k);
@@ -83,8 +79,7 @@ int32_t test_conhash()
     }
     printf("============\n");
     conhash_erase_node(ch, &node[0]);
-    for (i=0; i<10; i++)
-    {
+    for (i=0; i<10; i++) {
         struct key_t k;
         snprintf(k.key, sizeof(k.key), "key_%d", i);
         n = conhash_node(ch, &k);
@@ -93,8 +88,7 @@ int32_t test_conhash()
     }
     printf("============\n");
     conhash_add_node(ch, &node[0]);
-    for (i=0; i<10; i++)
-    {
+    for (i=0; i<10; i++) {
         struct key_t k;
         snprintf(k.key, sizeof(k.key), "key_%d", i);
         n = conhash_node(ch, &k);

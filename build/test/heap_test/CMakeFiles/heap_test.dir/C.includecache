@@ -1,0 +1,44 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../core/os_def.h
+errno.h
+-
+stdlib.h
+-
+string.h
+-
+stdio.h
+-
+time.h
+-
+winsock2.h
+-
+io.h
+-
+direct.h
+-
+sys/types.h
+-
+arpa/inet.h
+-
+unistd.h
+-
+stdint.h
+-
+
+../ds/heap.h
+core/os_def.h
+../ds/core/os_def.h
+
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/test/heap_test/test.c
+ds/heap.h
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/test/heap_test/ds/heap.h
+assert.h
+-
+

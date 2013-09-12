@@ -2,7 +2,7 @@
 
 #include "ds/timer.h"
 #include "ds/heap.h"
-#include "core/util.h"
+#include "util/util_time.h"
 
 typedef struct timer_node_t
 {

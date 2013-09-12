@@ -198,17 +198,17 @@ extern "C" {
     )
 #endif
 
-/* get 2^n round-up */
+// get 2^n round-up
 #if !defined ROUNDUP
 #define ROUNDUP(n)  ((n == 1) ? 1 : (1 << (ILOG2(n - 1) + 1)))
 #endif
 
-/* get 2^n round-down */
+// get 2^n round-down
 #if !defined ROUNDDOWN
 #define ROUNDDOWN(n) (1 << (ILOG2(n)))
 #endif
 
-/* check is power of 2 */
+// check is power of 2
 #if !defined ROUND2
 #define ROUND2(n) ((n) & ((n)-1))
 #endif

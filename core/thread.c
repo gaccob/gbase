@@ -4,20 +4,18 @@ void* thread_lock_alloc()
 {
 #if defined(OS_WIN)
     CRITICAL_SECTION* lock = (CRITICAL_SECTION*)MALLOC(sizeof(CRITICAL_SECTION));
-    if (!lock)
-        return NULL;
-    if (InitializeCriticalSectionAndSpinCount(lock, THREAD_SPIN_COUNT) == 0)
-    {
+    if (!lock) return NULL;
+
+    if (InitializeCriticalSectionAndSpinCount(lock, THREAD_SPIN_COUNT) == 0) {
         FREE(lock);
         return NULL;
     }
     return lock;
 #elif defined(OS_LINUX) || defined(OS_MAC)
     pthread_mutex_t* lock = (pthread_mutex_t*)MALLOC(sizeof(pthread_mutex_t));
-    if(!lock)
-        return NULL;
-    if(pthread_mutex_init(lock, NULL))
-    {
+    if(!lock) return NULL;
+
+    if(pthread_mutex_init(lock, NULL)) {
         FREE(lock);
         return NULL;
     }
@@ -35,8 +33,7 @@ void thread_lock_free(void* lock)
     FREE(thread_lock);
 #elif defined(OS_LINUX) || defined(OS_MAC)
     pthread_mutex_t* thread_lock = (pthread_mutex_t*)lock;
-    if(thread_lock)
-    {
+    if(thread_lock) {
         pthread_mutex_destroy(thread_lock);
         FREE(thread_lock);
     }
@@ -86,17 +83,15 @@ void* thread_cond_alloc()
     int32_t ret;
     struct Win32ThreadCond* cond;
     cond = (struct Win32ThreadCond*)MALLOC(sizeof(struct Win32ThreadCond));
-    if (!cond)
-        return NULL;
+    if (!cond) return NULL;
+
     ret = InitializeCriticalSectionAndSpinCount(&cond->lock, THREAD_SPIN_COUNT);
-    if (0 == ret)
-    {
+    if (0 == ret) {
         FREE(cond);
         return NULL;
     }
     cond->event = CreateEvent(NULL,TRUE,FALSE,NULL);
-    if (NULL == cond->event)
-    {
+    if (NULL == cond->event) {
         DeleteCriticalSection(&cond->lock);
         FREE(cond);
         return NULL;
@@ -106,10 +101,9 @@ void* thread_cond_alloc()
 
 #elif defined(OS_LINUX) || defined(OS_MAC)
     pthread_cond_t* cond = (pthread_cond_t*)MALLOC(sizeof(pthread_cond_t));
-    if(!cond)
-        return NULL;
-    if(pthread_cond_init(cond, NULL))
-    {
+    if(!cond) return NULL;
+
+    if(pthread_cond_init(cond, NULL)) {
         FREE(cond);
         return NULL;
     }
@@ -175,38 +169,30 @@ int thread_cond_wait(void* cond, void* lock, const struct timeval* tv)
 
     LeaveCriticalSection(thread_lock);
     startTime = GetTickCount();
-    do{
+    do {
         DWORD res;
         res = WaitForSingleObject(thread_cond->event, ms);
         EnterCriticalSection(&thread_cond->lock);
 
-        if(thread_cond->n_to_wake && thread_cond->generation != generation_at_start)
-        {
+        if(thread_cond->n_to_wake && thread_cond->generation != generation_at_start) {
             -- thread_cond->n_to_wake;
             -- thread_cond->n_waiting;
             result = 0;
             waiting = 0;
             goto FINISH;
-        }
-        else if(res != WAIT_OBJECT_0)
-        {
+        } else if(res != WAIT_OBJECT_0) {
             result = (res == WAIT_TIMEOUT) ? 1 : -1;
             --thread_cond->n_waiting;
             waiting = 0;
             goto FINISH;
-        }
-        else if(ms != INFINITE)
-        {
+        } else if(ms != INFINITE) {
             endTime = GetTickCount();
-            if (startTime + ms_orig <= endTime)
-            {
+            if (startTime + ms_orig <= endTime) {
                 result = 1;
                 --thread_cond->n_waiting;
                 waiting = 0;
                 goto FINISH;
-            }
-            else
-            {
+            } else {
                 ms = startTime + ms_orig - endTime;
             }
         }
@@ -233,16 +219,14 @@ int thread_cond_wait(void* cond, void* lock, const struct timeval* tv)
     pthread_cond_t* thread_cond = (pthread_cond_t*)cond;
     pthread_mutex_t* thread_lock = (pthread_mutex_t*)lock;
 
-    if(tv)
-    {
+    if (tv) {
         // calculate end-time
         struct timeval now;
         struct timespec ts;
         gettimeofday(&now, NULL);
         ts.tv_sec = now.tv_sec + tv->tv_sec;
         ts.tv_nsec = (now.tv_usec + tv->tv_usec) * 1000;
-        while(ts.tv_nsec >= 1000000000)
-        {
+        while (ts.tv_nsec >= 1000000000) {
             ts.tv_sec ++;
             ts.tv_nsec -= 1000000000;
         }
@@ -251,9 +235,7 @@ int thread_cond_wait(void* cond, void* lock, const struct timeval* tv)
         if (ETIMEDOUT == ret) return 1;
         else if (ret) return -1;
         else return 0;
-    }
-    else
-    {
+    } else {
         ret = pthread_cond_wait(thread_cond, thread_lock);
         return ret ? -1 : 0;
     }

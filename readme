@@ -3,3 +3,8 @@ HOW TO BUILD
         1. cd build
         2. cmake ..
         3. make
+    for windows
+        1. cmd
+        2. cd build
+        3. cmake ..
+        4. open vs project and build

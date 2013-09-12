@@ -1,7 +1,8 @@
 #include "net/wsconn.h"
 #include "ds/sha1.h"
 #include "ds/md5.h"
-#include "core/util.h"
+#include "util/base64.h"
+#include "util/util_str.h"
 
 typedef struct wsconn_t
 {
@@ -278,18 +279,18 @@ websocket handshake for version > 13: sha1 + base64 encrypt
 int32_t _wsconn_proc_sha1_req(struct wsconn_t* con, struct wsconn_request_t* request)
 {
     char res[WS_HANDSHAKE_MAX_SIZE];
-    char key[64], sha[128], base64_encode[128];
+    char key[64], sha[128], base64_code[128];
     int32_t nwrite, nres;
     if (!con || !request) return -1;
 
     snprintf(key, sizeof(key), "%s258EAFA5-E914-47DA-95CA-C5AB0DC85B11", request->key);
     memset(sha, 0, sizeof(sha));
     sha1(sha, key, strnlen(key, sizeof(key)) * 8);
-    util_base64_encode(base64_encode, sha, strlen(sha));
+    base64_encode(base64_code, sha, strlen(sha));
     snprintf(res, sizeof(res), "HTTP/1.1 101 Switching Protocols\r\n"
             "Upgrade: websocket\r\n"
             "Connection: Upgrade\r\n"
-            "Sec-WebSocket-Accept: %s\r\n\r\n", base64_encode);
+            "Sec-WebSocket-Accept: %s\r\n\r\n", base64_code);
     nwrite = connbuffer_write_len(con->write_buf);
     nres = (int32_t)strlen(res);
     if (nwrite < nres) return -1;

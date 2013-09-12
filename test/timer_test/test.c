@@ -1,5 +1,5 @@
 #include "ds/timer.h"
-#include "core/util.h"
+#include "util/util_time.h"
 
 #define LOOP 3
 

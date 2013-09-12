@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../core/cjson.h
+
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/test/json_test/test.c
+stdio.h
+-
+stdlib.h
+-
+stdint.h
+-
+core/cjson.h
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/test/json_test/core/cjson.h
+

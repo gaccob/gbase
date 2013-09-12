@@ -4,7 +4,6 @@
 #include "core/os_def.h"
 #include "core/thread.h"
 #include "core/atom.h"
-#include "core/util.h"
 
 atom_t flag;
 uint32_t cmp;

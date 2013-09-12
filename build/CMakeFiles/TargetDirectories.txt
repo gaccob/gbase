@@ -1,0 +1,16 @@
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/build/test/atom_test/CMakeFiles/atom_test.dir
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/build/test/bevtree_test/CMakeFiles/bevtree_test.dir
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/build/test/bitset_test/CMakeFiles/bitset_test.dir
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/build/CMakeFiles/gbase.dir
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/build/test/heap_test/CMakeFiles/heap_test.dir
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/build/test/json_test/CMakeFiles/json_test.dir
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/build/test/rbtree_test/CMakeFiles/rbtree_test.dir
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/build/test/rbuffer_test/CMakeFiles/rbuffer_test.dir
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/build/test/slist_test/CMakeFiles/slist_test.dir
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/build/test/spin_test/CMakeFiles/spin_test.dir
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/build/test/tcp_test/CMakeFiles/tcp_client.dir
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/build/test/tcp_test/CMakeFiles/tcp_server.dir
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/build/test/test/CMakeFiles/test.dir
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/build/test/thread_test/CMakeFiles/thread_test.dir
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/build/test/timer_test/CMakeFiles/timer_test.dir
+/Users/zhangweiye/Documents/data/code/gaccob/gbase/build/test/wsconn_test/CMakeFiles/wsconn_test.dir
