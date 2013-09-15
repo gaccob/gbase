@@ -5,7 +5,7 @@
 #include <assert.h>
 #include "bevtree.h"
 #include "core/os_def.h"
-#include "core/cjson.h"
+#include "util/cjson.h"
 
 enum bvt_tType
 {
