@@ -14,7 +14,7 @@ struct reactor_t;
 typedef struct handler_t
 {
     sock_t fd;
-    /* return < 0 means to close handle fd */
+    // return < 0 means to close handle fd
     int (*in_func)(struct handler_t*);
     int (*out_func)(struct handler_t*);
     int (*close_func)(struct handler_t*);

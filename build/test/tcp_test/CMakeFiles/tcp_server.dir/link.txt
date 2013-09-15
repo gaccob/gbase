@@ -1,1 +1,0 @@
-/usr/bin/cc  -ggdb -Wall -Werror -pg -O0 -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/tcp_server.dir/server.c.o  -o tcp_server  ../../libgbase.a -lz -ldl -lpthread -lm 

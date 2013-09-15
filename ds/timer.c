@@ -11,12 +11,12 @@ typedef struct timer_node_t
     struct timeval interval_time;
     void* args;
     timer_callback cb_func;
-}timer_node_t;
+} timer_node_t;
 
 typedef struct heaptimer_t
 {
     struct heap_t* heap;
-}heaptimer_t;
+} heaptimer_t;
 
 int _timer_cmp(void* data1, void* data2)
 {
@@ -30,11 +30,9 @@ int _timer_cmp(void* data1, void* data2)
 struct heaptimer_t* timer_init()
 {
     struct heaptimer_t* timer = (struct heaptimer_t*)MALLOC(sizeof(struct heaptimer_t));
-    if(!timer)
-        goto TIMER_FAIL;
+    if (!timer) goto TIMER_FAIL;
     timer->heap = heap_init(_timer_cmp);
-    if(!timer->heap)
-        goto TIMER_FAIL1;
+    if (!timer->heap) goto TIMER_FAIL1;
     return timer;
 TIMER_FAIL1:
     FREE(timer);
@@ -45,10 +43,8 @@ TIMER_FAIL:
 void timer_release(struct heaptimer_t* timer)
 {
     struct timer_node_t* node;
-    if(!timer)
-        return;
-    while(heap_count(timer->heap) > 0)
-    {
+    if (!timer) return;
+    while (heap_count(timer->heap) > 0) {
         node = (struct timer_node_t*)heap_pop(timer->heap);
         assert(node);
         FREE(node);
@@ -57,31 +53,28 @@ void timer_release(struct heaptimer_t* timer)
     FREE(timer);
 }
 
-/*
-*    interval==NULL means once
-*    return registered timer id
-*/
+//  interval==NULL means once
+//  return registered timer id
 int timer_register(struct heaptimer_t* timer, struct timeval* interval,
-    struct timeval* delay, timer_callback cb, void* args)
+                   struct timeval* delay, timer_callback cb, void* args)
 {
     struct timer_node_t* node;
     struct timeval now;
-    if(!timer || !delay || !cb)
-        return -1;
+    if (!timer || !delay || !cb) return -1;
 
-    node = (struct timer_node_t*)MALLOC(sizeof(struct timer_node_t));
+    node = (struct timer_node_t*)MALLOC(sizeof(*node));
     node->args = args;
     node->cb_func = cb;
-    if(interval)
+    if (interval) {
         memcpy(&node->interval_time, interval, sizeof(struct timeval));
-    else
+    } else {
         memset(&node->interval_time, 0, sizeof(struct timeval));
+    }
     util_gettimeofday(&now, NULL);
     util_time_add(&now, delay, &node->expire_time);
 
     node->timer_id = heap_insert(timer->heap, node);
-    if(node->timer_id < 0)
-    {
+    if (node->timer_id < 0) {
         FREE(node);
         return -1;
     }
@@ -91,11 +84,10 @@ int timer_register(struct heaptimer_t* timer, struct timeval* interval,
 void timer_unregister(struct heaptimer_t* timer, int timer_id)
 {
     struct timer_node_t* node;
-    if(!timer || timer_id < 0)
-        return;
+    if (!timer || timer_id < 0) return;
+
     node = (struct timer_node_t*)heap_erase(timer->heap, timer_id);
-    if(node)
-        FREE(node);
+    if (node) FREE(node);
 }
 
 void timer_poll(struct heaptimer_t* timer, struct timeval* now)
@@ -103,29 +95,22 @@ void timer_poll(struct heaptimer_t* timer, struct timeval* now)
     struct timer_node_t* top;
     struct timeval* next_due_time;
     int ret;
-    if(!timer || !now)
-        return;
-    if(heap_count(timer->heap) <= 0)
-        return;
-    while(1)
-    {
+    if (!timer || !now) return;
+    if (heap_count(timer->heap) <= 0) return;
+    while (1) {
         top = (struct timer_node_t*)heap_top(timer->heap);
-        if(!top)
-            break;
+        if (!top) break;
         next_due_time = &top->expire_time;
-        /* out-of-date*/
-        if(util_time_compare(next_due_time, now) < 0)
-        {
+        // out-of-date
+        if (util_time_compare(next_due_time, now) < 0) {
             ret = top->cb_func(top->args);
-            /* update timer */
-            if(ret >= 0 && (top->interval_time.tv_sec > 0 || top->interval_time.tv_usec > 0))
-            {
+            // update timer
+            if (ret >= 0 && (top->interval_time.tv_sec > 0
+                || top->interval_time.tv_usec > 0)) {
                 util_time_add(now, &top->interval_time, &top->expire_time);
                 heap_update(timer->heap, top->timer_id, top);
-            }
-            /* erase timer */
-            else
-            {
+            } else {
+                // erase timer
                 top = (struct timer_node_t*)heap_pop(timer->heap);
                 FREE(top);
             }

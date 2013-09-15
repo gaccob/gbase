@@ -10,7 +10,7 @@ extern "C" {
 #include "net/reactor.h"
 #include "ds/connbuffer.h"
 
-/* return buffer size processed, return -1 means process fail, reactor will close it */
+// return buffer size processed, return -1 means process fail, reactor will close it
 typedef int32_t (*connector_read_func)(int32_t fd,
                                        const char* buffer,
                                        int32_t buflen);
@@ -28,10 +28,8 @@ int32_t connector_fd(struct connector_t* con);
 int32_t connector_start(struct connector_t* con);
 int32_t connector_stop(struct connector_t* con);
 
-/*
-*    return = 0 success
-*    return < 0, fail, maybe full
-*/
+//  return = 0 success
+//  return < 0, fail, maybe full
 int32_t connector_send(struct connector_t* con, const char* buffer, int buflen);
 
 

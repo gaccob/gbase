@@ -23,28 +23,29 @@ int32_t base64_encode(char* dst, const char* src, size_t sz)
 {
     size_t idx = 0, i = 0, j;
     uint8_t a[4], b[3];
-    if (!dst || !src || sz == 0)
-        return -1;
-    while (sz-- > 0 && src[idx] != 0)
-    {
+    if (!dst || !src || sz == 0) return -1;
+
+    while (sz-- > 0 && src[idx] != 0) {
         b[i++] = src[idx++];
-        if (i == 3)
-        {
+        if (i == 3) {
             _BASE64_ENCODE(a, b);
-            for (j = 0; j < 4; j ++)
+            for (j = 0; j < 4; j ++) {
                 *dst++ = _base64_table[a[j]];
+            }
             i = 0;
         }
     }
-    if (i > 0)
-    {
-        for (j = i; j < 3; j++)
+    if (i > 0) {
+        for (j = i; j < 3; j++) {
             b[j] = '\0';
+        }
         _BASE64_ENCODE(a, b);
-        for (j = 0; j < i + 1; j++)
+        for (j = 0; j < i + 1; j++) {
             *dst++ = _base64_table[a[j]];
-        while (i++ < 3)
+        }
+        while (i++ < 3) {
             *dst++ = '=';
+        }
     }
     *dst++ = 0;
     return 0;
@@ -60,32 +61,33 @@ int32_t base64_decode(char* dst, const char* src, size_t sz)
 {
 	size_t i = 0, idx = 0, j;
     uint8_t a[3], b[4];
-	if (!dst || !src || sz == 0)
-        return -1;
-    while (sz-- > 0 && src[idx] != '=')
-    {
-        if (!_BASE64_C(src[idx]))
-            return -1;
+	if (!dst || !src || sz == 0) return -1;
+
+    while (sz-- > 0 && src[idx] != '=') {
+        if (!_BASE64_C(src[idx])) return -1;
         b[i++] = src[idx++];
-        if (i == 4)
-        {
-            for (j = 0; j < i; j++)
+        if (i == 4) {
+            for (j = 0; j < i; j++) {
                 b[j] = strchr(_base64_table, b[j]) - _base64_table;
+            }
             _BASE64_DECODE(a, b);
-            for (j = 0; j < 3; j++)
+            for (j = 0; j < 3; j++) {
                 *dst++ = a[j];
+            }
             i = 0;
         }
     }
-    if (i > 0)
-    {
-        for (j = i; j < 4; j++)
+    if (i > 0) {
+        for (j = i; j < 4; j++) {
             b[j] = 0;
-        for (j = 0; j < 4; j++)
+        }
+        for (j = 0; j < 4; j++) {
             b[j] = strchr(_base64_table, b[j]) - _base64_table;
+        }
         _BASE64_DECODE(a, b);
-        for (j = 0; j < i - 1; j++)
+        for (j = 0; j < i - 1; j++) {
             *dst++ = a[j];
+        }
     }
     *dst++ = 0;
     return 0;

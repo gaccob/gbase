@@ -39,21 +39,17 @@ int _handle_cmp(const void* data1, const void* data2)
 int select_init(struct reactor_t* reactor)
 {
     struct select_t* s;
-    if(!reactor || reactor->data)
-        goto SELECT_FAIL;
+    if (!reactor || reactor->data) goto SELECT_FAIL;
 
     s = (struct select_t*)MALLOC(sizeof(struct select_t));
-    if(!s)
-        goto SELECT_FAIL;
+    if (!s) goto SELECT_FAIL;
     memset(s, 0, sizeof(struct select_t));
 
     s->handler_table = hash_init(_handle_hash, _handle_cmp, SELECT_SIZE * 3);
-    if(!s->handler_table)
-        goto SELECT_FAIL1;
+    if (!s->handler_table) goto SELECT_FAIL1;
 
     s->expired = slist_init();
-    if(!s->expired)
-        goto SELECT_FAIL2;
+    if (!s->expired) goto SELECT_FAIL2;
 
     printf("select support max fd=%d\n", (int)SELECT_SIZE);
     reactor->name = SELECT_NAME;
@@ -71,33 +67,30 @@ SELECT_FAIL:
 int select_register(struct reactor_t* reactor, struct handler_t* h, int events)
 {
     struct select_t* s;
-    if(!reactor || !reactor->data || !h || h->fd < 0)
-        return -1;
+    if (!reactor || !reactor->data || !h || h->fd < 0) return -1;
 
-    /* exceeds fd max */
-    if(h->fd > (int)sizeof(fd_set)  * 8)
-        return -1;
+    // exceeds fd max
+    if (h->fd > (int)sizeof(fd_set)  * 8) return -1;
 
-    /* add handle fd */
+    // add handle fd
     s = (struct select_t*)reactor->data;
-    if(s->nfds < (int)h->fd)
+    if (s->nfds < (int)h->fd)
         s->nfds = h->fd;
-    if(EVENT_IN & events)
+    if (EVENT_IN & events)
         FD_SET(h->fd, &s->in_prepare);
-    if(EVENT_OUT & events)
+    if (EVENT_OUT & events)
         FD_SET(h->fd, &s->out_prepare);
 
-    /* add to hash table, ignore fail case(duplicate) */
+    // add to hash table, ignore fail case(duplicate)
     hash_insert(s->handler_table, h);
-
     return -1;
 }
 
 int select_unregister(struct reactor_t* reactor, struct handler_t* h)
 {
     struct select_t* s;
-    if(!reactor || !reactor->data || !h)
-        return -1;
+    if (!reactor || !reactor->data || !h) return -1;
+
     s = (struct select_t*)reactor->data;
     FD_CLR(h->fd, &s->in_prepare);
     FD_CLR(h->fd, &s->out_prepare);
@@ -109,14 +102,14 @@ int select_unregister(struct reactor_t* reactor, struct handler_t* h)
 int select_modify(struct reactor_t* reactor, struct handler_t* h, int events)
 {
     struct select_t* s;
-    if(!reactor || !reactor->data || !h)
-        return -1;
+    if (!reactor || !reactor->data || !h) return -1;
+
     s = (struct select_t*)reactor->data;
-    if(EVENT_IN & events)
+    if (EVENT_IN & events)
         FD_SET(h->fd, &s->in_prepare);
-    if(EVENT_OUT & events)
+    if (EVENT_OUT & events)
         FD_SET(h->fd, &s->out_prepare);
-    /* add to hash table, ignore fail case(duplicate) */
+    // add to hash table, ignore fail case(duplicate)
     hash_insert(s->handler_table, (void*)h);
     return 0;
 }
@@ -128,78 +121,62 @@ void _select_callback(struct select_t* s, int fd, int events)
     struct handler_t* h;
     tmp.fd = fd;
     h = (struct handler_t*)hash_find(s->handler_table, (void*)&tmp);
-    if(!h)
-        return;
+    if (!h) return;
 
-    /* expired */
+    // expired
     res = slist_find(s->expired, h);
-    if(0 == res)
-        return;
+    if (0 == res) return;
 
-    if(EVENT_IN & events)
-    {
+    if (EVENT_IN & events) {
         res = h->in_func(h);
-        if(res < 0)
-        {
+        if (res < 0) {
             h->close_func(h);
             return;
         }
     }
-    if(EVENT_OUT & events)
-    {
+    if (EVENT_OUT & events) {
         res = h->out_func(h);
-        if(res < 0)
-        {
+        if (res < 0) {
             h->close_func(h);
             return;
         }
     }
 }
 
-/*
-*    return = 0, success & process
-*    return < 0, fail
-*    return > 0, noting to do
-*/
+//  return = 0, success & process
+//  return < 0, fail
+//  return > 0, noting to do
 int select_dispatch(struct reactor_t* reactor, int ms)
 {
     int i, j, res;
     struct select_t* s;
     struct timeval tv;
-    if(!reactor || !reactor->data)
-        return -1;
+    if (!reactor || !reactor->data) return -1;
 
-    /* select */
+    // select
     s = (struct select_t*)reactor->data;
     memcpy(&s->in_set, &s->in_prepare, sizeof(fd_set));
     memcpy(&s->out_set, &s->out_prepare, sizeof(fd_set));
     tv.tv_sec = ms / 1000;
     tv.tv_usec = (ms % 1000) * 1000;
     res = select(s->nfds, &s->in_set, &s->out_set, NULL, &tv);
-    if(res == -1)
-    {
-        if (errno != EINTR)
-            return -1;
+    if (res == -1) {
+        if (errno != EINTR) return -1;
         return 1;
     }
 
-    /* callback, random for balance efficiency */
+    // callback, random for balance efficiency
     i = rand() % s->nfds;
-    for (j = 0; j < s->nfds; ++j)
-    {
-        if (++i >= s->nfds)
-            i = 0;
+    for (j = 0; j < s->nfds; ++j) {
+        if (++i >= s->nfds) i = 0;
         res = 0;
-        if (FD_ISSET(i, &s->in_set))
-            res |= EVENT_IN;
-        if (FD_ISSET(i, &s->out_set))
-            res |= EVENT_OUT;
-        if (res == 0)
-            continue;
+        if (FD_ISSET(i, &s->in_set)) res |= EVENT_IN;
+        if (FD_ISSET(i, &s->out_set)) res |= EVENT_OUT;
+        if (res == 0) continue;
         _select_callback(s, i, res);
     }
 
-    /* clean expired list */
+    // clean expired list
     slist_clean(s->expired);
 
     return 0;
@@ -208,8 +185,7 @@ int select_dispatch(struct reactor_t* reactor, int ms)
 void select_release(struct reactor_t* reactor)
 {
     struct select_t* s;
-    if(reactor && reactor->data)
-    {
+    if (reactor && reactor->data) {
         s = (struct select_t*)reactor->data;
         hash_release(s->handler_table);
         FREE(s);

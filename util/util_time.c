@@ -71,17 +71,20 @@ void util_gettimeofday(struct timeval* tv, void* tz)
 #endif
 }
 
-/* tv1 and tv2 must be normalized */
+// tv1 and tv2 must be normalized
 int32_t util_time_compare(struct timeval* tv1, struct timeval* tv2)
 {
     assert(tv1 && tv2);
-    if(tv1->tv_sec == tv2->tv_sec && tv1->tv_usec == tv2->tv_usec)
+    if (tv1->tv_sec == tv2->tv_sec
+        && tv1->tv_usec == tv2->tv_usec) {
         return 0;
+    }
 
     if(tv1->tv_sec > tv2->tv_sec
         || (tv1->tv_sec == tv2->tv_sec
-        && tv1->tv_usec > tv2->tv_usec))
+        && tv1->tv_usec > tv2->tv_usec)) {
         return 1;
+    }
 
     return -1;
 }

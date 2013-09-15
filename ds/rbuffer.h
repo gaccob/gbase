@@ -1,6 +1,3 @@
-/*
-* for push-pull
-*/
 #ifndef RBUFFER_H_
 #define RBUFFER_H_
 

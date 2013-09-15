@@ -24,24 +24,24 @@ typedef struct log_rotator_t
 
     // rotate function
     int (*check_and_rotate)(struct log_t*);
-}log_rotator_t;
+} log_rotator_t;
 
 typedef struct log_t
 {
     struct log_rotator_t* rotator;
     int log_level;
     char log_name[MAX_LOG_NAME_LEN];
-}log_t;
+} log_t;
 
 int log_do_date_rotate(struct log_t* log)
 {
     time_t now = time(NULL);
     assert(log);
-    if(now >= log->rotator->log_start_time + 60 * 60 * 24) {
+    if (now >= log->rotator->log_start_time + 60 * 60 * 24) {
         log->rotator->log_suffix = util_date_number(now);
         sprintf(log->rotator->log_file, "%s.%u", log->log_name, log->rotator->log_suffix);
         log->rotator->fd = open(log->rotator->log_file, O_CREAT | O_RDWR | O_APPEND, 0666);
-        if(log->rotator->fd < 0) {
+        if (log->rotator->fd < 0) {
             fprintf(stderr, "open log file[%s] fail\n", log->rotator->log_file);
             return -1;
         }
@@ -76,7 +76,7 @@ int log_date_rotator_init(struct log_t* log)
     } else {
         log->rotator->fd = open(log->rotator->log_file, O_CREAT | O_RDWR | O_APPEND, 0666);
     }
-    if(log->rotator->fd < 0) {
+    if (log->rotator->fd < 0) {
         fprintf(stderr, "open log file[%s] fail\n", log->rotator->log_file);
         return -1;
     }
@@ -90,7 +90,7 @@ int log_date_rotator_init(struct log_t* log)
 struct log_t* log_init(int log_level, const char* log_name, int args)
 {
     struct log_t* log;
-    if(!log_name) return NULL;
+    if (!log_name) return NULL;
     log = (struct log_t*)MALLOC(sizeof(struct log_t));
     assert(log);
 
@@ -99,7 +99,7 @@ struct log_t* log_init(int log_level, const char* log_name, int args)
     log->rotator = (struct log_rotator_t*)MALLOC(sizeof(struct log_rotator_t));
     assert(log->rotator);
 
-    if(log_date_rotator_init(log) < 0)
+    if (log_date_rotator_init(log) < 0)
         goto FAIL;
     return log;
 
@@ -111,7 +111,7 @@ FAIL:
 
 int log_release(struct log_t* log)
 {
-    if(log) {
+    if (log) {
         FREE(log->rotator);
         FREE(log);
     }
@@ -126,7 +126,7 @@ int log_write(struct log_t* log, int level, struct timeval* now,
     size_t content_len;
     va_list ap;
 
-    if(level <= log->log_level) {
+    if (level <= log->log_level) {
         // timestamp & file line function tag
         util_timestamp(now, buffer);
         snprintf(buffer + strlen(buffer), MAX_LOG_BUFFER_LEN - 1 - strlen(buffer),
@@ -142,7 +142,7 @@ int log_write(struct log_t* log, int level, struct timeval* now,
         content_len = strlen(buffer);
 
         // write log
-        if(write(log->rotator->fd, buffer, content_len)==-1) {
+        if (write(log->rotator->fd, buffer, content_len)==-1) {
             fprintf(stderr, "write log[%s] fail. %s\n", buffer, strerror(errno));
             return -1;
         }
@@ -150,13 +150,12 @@ int log_write(struct log_t* log, int level, struct timeval* now,
         // rotate check
         log->rotator->check_and_rotate(log);
     }
-
     return 0;
 }
 
 int log_set_level(struct log_t* log, int log_level)
 {
-    if(log) {
+    if (log) {
         log->log_level = log_level;
         return 0;
     }

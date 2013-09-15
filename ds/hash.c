@@ -20,23 +20,24 @@ typedef struct hash_t
 struct hash_t* hash_init(hash_func hash, cmp_func cmp, int32_t hint_size)
 {
     struct hash_t* htable;
-    if (!hash || !cmp || hint_size <= 0)
+    if (!hash || !cmp || hint_size <= 0) {
         return NULL;
+    }
 
     htable = (struct hash_t*)MALLOC(sizeof(struct hash_t));
-    if(!htable)
+    if (!htable) {
         goto HASH_FAIL;
-
+    }
     memset(htable, 0, sizeof(*htable));
     htable->m_size = hint_size;
     htable->m_cmp_func = cmp;
     htable->m_hash_func = hash;
 
     htable->m_table = (hash_node_t**)MALLOC(sizeof(hash_node_t*) * htable->m_size);
-    if(!htable->m_table)
+    if (!htable->m_table) {
         goto HASH_FAIL1;
-       memset(htable->m_table, 0, sizeof(hash_node_t*) * htable->m_size);
-
+    }
+    memset(htable->m_table, 0, sizeof(hash_node_t*) * htable->m_size);
     return htable;
 
 HASH_FAIL1:
@@ -61,13 +62,11 @@ int32_t hash_clean(struct hash_t* htable)
     hash_node_t* node;
 
     if (!htable) return -1;
-    for (i = 0; i < htable->m_size; i++)
-    {
-        /* free list node */
+    for (i = 0; i < htable->m_size; i++) {
+        // free list node
         node = htable->m_table[i];
         bak = 0;
-        while (node)
-        {
+        while (node) {
             bak = node;
             node->m_data = 0;
             node = node->m_next;
@@ -91,26 +90,24 @@ int32_t hash_insert(struct hash_t* htable, void* data)
     index = hash_key % htable->m_size;
     node = htable->m_table[index];
     prev = 0;
-    while (node)
-    {
-        /* exist items */
-        if (0 == htable->m_cmp_func(node->m_data, data))
+    while (node) {
+        // exist items
+        if (0 == htable->m_cmp_func(node->m_data, data)) {
             return -1;
+        }
         prev = node;
         node = node->m_next;
     }
 
     node = (hash_node_t*)MALLOC(sizeof(struct hash_node_t));
-    if(!node)
-        return -1;
-
+    if (!node) return -1;
     node->m_data = data;
     node->m_next = 0;
-    if (prev)
+    if (prev) {
         prev->m_next = node;
-    else
+    } else {
         htable->m_table[index] = node;
-
+    }
     htable->m_count ++;
     return 0;
 }
@@ -127,14 +124,13 @@ int32_t hash_remove(struct hash_t* htable, void* data)
     node = htable->m_table[index];
     prev = 0;
 
-    while (node)
-    {
-        if (0 == htable->m_cmp_func(node->m_data, data))
-        {
-            if (prev)
+    while (node) {
+        if (0 == htable->m_cmp_func(node->m_data, data)) {
+            if (prev) {
                 prev->m_next = node->m_next;
-            else
+            } else {
                 htable->m_table[index] = 0;
+            }
             FREE(node);
             node = 0;
             htable->m_count --;
@@ -148,7 +144,7 @@ int32_t hash_remove(struct hash_t* htable, void* data)
 
 int32_t hash_count(struct hash_t* htable)
 {
-    if(!htable) return -1;
+    if (!htable) return -1;
     return htable->m_count;
 }
 
@@ -161,17 +157,16 @@ void* hash_find(struct hash_t* htable, void* data)
     if (!htable || !data) return NULL;
     hash_key = htable->m_hash_func(data);
     node = htable->m_table[hash_key % htable->m_size];
-    while (node)
-    {
-        if (0 == htable->m_cmp_func(node->m_data, data))
+    while (node) {
+        if (0 == htable->m_cmp_func(node->m_data, data)) {
             return node->m_data;
+        }
         node = node->m_next;
     }
     return NULL;
 }
 
-
-/* NOTE: Arguments are modified. */
+// NOTE: Arguments are modified.
 #define __jhash_mix(a, b, c) \
     { \
         a -= b; a -= c; a ^= (c>>13); \
@@ -185,13 +180,12 @@ void* hash_find(struct hash_t* htable, void* data)
         c -= a; c -= b; c ^= (b>>15); \
     }
 
-/* The golden ration: an arbitrary value */
+// The golden ration: an arbitrary value
 #define JHASH_GOLDEN_RATIO  0x9e3779b9
 
-/* The most generic version, hashes an arbitrary sequence
- * of bytes.  No alignment or length assumptions are made about
- * the input key.
- */
+// The most generic version, hashes an arbitrary sequence
+// of bytes.  No alignment or length assumptions are made about
+// the input key.
 uint32_t hash_jhash(const void* key, uint32_t length)
 {
     uint32_t a, b, c, len;
@@ -201,8 +195,7 @@ uint32_t hash_jhash(const void* key, uint32_t length)
     a = b = JHASH_GOLDEN_RATIO;
     c = 99989;
 
-    while (len >= 12)
-    {
+    while (len >= 12) {
         a += (k[0] + ((uint32_t) k[1] << 8) + ((uint32_t) k[2] << 16) +
               ((uint32_t) k[3] << 24));
         b += (k[4] + ((uint32_t) k[5] << 8) + ((uint32_t) k[6] << 16) +
@@ -217,8 +210,7 @@ uint32_t hash_jhash(const void* key, uint32_t length)
     }
 
     c += length;
-    switch (len)
-    {
+    switch (len) {
         case 11:
             c += ((uint32_t) k[10] << 24);
         case 10:

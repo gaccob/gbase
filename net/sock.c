@@ -2,11 +2,9 @@
 #include <string.h>
 #include "net/sock.h"
 
-/*
-*    create tcp socket
-*    return >= 0, success
-*    return < 0, fail
-*/
+//  create tcp socket
+//  return >= 0, success
+//  return < 0, fail
 sock_t sock_tcp()
 {
 #if defined(OS_WIN)
@@ -17,25 +15,17 @@ sock_t sock_tcp()
     return -1;
 }
 
-/*
-*    create udp socket
-*    return >= 0, success
-*    return < 0, fail
-*/
+//  create udp socket
+//  return >= 0, success
+//  return < 0, fail
 sock_t sock_udp()
 {
     return socket(AF_INET, SOCK_DGRAM, 0);
 }
 
-/*
-*    connect, timeout default = 1 second
-*
-*    @input: sock, file descriptor
-*    @input: ip_str, eg. "192.168.1.191"
-*    @input: port, eg. 8080
-*    return =0, success
-*    return <0, fail
-*/
+//  connect, timeout default = 1 second
+//  return =0, success
+//  return <0, fail
 int sock_connect(sock_t sock, const char* ip_str, uint16_t port)
 {
     struct sockaddr_in addr;
@@ -45,30 +35,27 @@ int sock_connect(sock_t sock, const char* ip_str, uint16_t port)
     struct timeval tv;
 
     if(sock < 0) return -1;
+    if(sock_set_nonblock(sock) < 0) return -1;
 
-    /* set non-block */
-    if(sock_set_nonblock(sock) < 0)
-        return -1;
-
-    /* set buffer size, before connect */
+    // set buffer size, before connect
     if(sock_set_sndbuf(sock, SOCK_SNDBUF_SIZE) < 0
         || sock_set_rcvbuf(sock, SOCK_RCVBUF_SIZE) < 0)
         return -1;
 
-    /* parse address */
+    // parse address
     addr_len = sizeof(addr);
     if(sock_addr_aton(ip_str, port, &addr) < 0)
         return -1;
 
-    /* try connect */
+    // try connect
     ret = connect(sock, (const struct sockaddr*)&addr, addr_len);
     if(ret < 0)
     {
-        /* connect fail */
+        // connect fail
         if(ERR_EINPROGRESS != ERRNO && ERR_EWOULDBLOCK != ERRNO)
             return ret;
 
-        /* try select */
+        // try select
         FD_ZERO(&read_events);
         FD_SET(sock, &read_events);
         write_events = read_events;
@@ -81,7 +68,7 @@ int sock_connect(sock_t sock, const char* ip_str, uint16_t port)
         if(!FD_ISSET(sock, &read_events) && !FD_ISSET(sock, &write_events))
             return -1;
 
-        /* make sure socket no error */
+        // make sure socket no error
         len = sizeof(err);
         getsockopt(sock, SOL_SOCKET, SO_ERROR, (char*)&err, &len);
         if(0 != err) return -1;
@@ -92,11 +79,11 @@ int sock_connect(sock_t sock, const char* ip_str, uint16_t port)
 
 int sock_listen(sock_t sock, struct sockaddr* addr)
 {
-    /* reuse listen address */
+    // reuse listen address
     if(sock_set_reuseaddr(sock) < 0)
         return -1;
 
-    /* set buffer size, before listen */
+    // set buffer size, before listen
     if(sock_set_sndbuf(sock, SOCK_SNDBUF_SIZE) < 0
         || sock_set_rcvbuf(sock, SOCK_RCVBUF_SIZE) < 0)
         return -1;
@@ -112,10 +99,8 @@ int sock_accept(sock_t sock, struct sockaddr* addr)
     return accept(sock, addr, &addr_len);
 }
 
-/*
-*    return =0, success
-*    return <0, fail
-*/
+//  return =0, success
+//  return <0, fail
 int sock_close(sock_t sock)
 {
     if(sock < 0) return -1;
@@ -132,11 +117,8 @@ int sock_close(sock_t sock)
     return -1;
 }
 
-/*
-*    send data by socket(TCP)
-*    return >0:    success read byts
-*    return <=0:    read fail
-*/
+//  return >0:    success read byts
+//  return <=0:    read fail
 int sock_read(sock_t sock, char* buffer, size_t buffer_len)
 {
 #if defined(OS_WIN)
@@ -147,11 +129,8 @@ int sock_read(sock_t sock, char* buffer, size_t buffer_len)
     return -1;
 }
 
-/*
-*    send data by socket(TCP)
-*    return >0:    success write byts
-*    return <=0:    write fail
-*/
+//  return >0:    success write byts
+//  return <=0:    write fail
 int sock_write(sock_t sock, const char* buffer, size_t buffer_len)
 {
 #if defined(OS_WIN)
@@ -162,30 +141,20 @@ int sock_write(sock_t sock, const char* buffer, size_t buffer_len)
     return -1;
 }
 
-/*
-*    send data by socket(UDP)
-*    return >0:    success recv byts
-*    return <=0:    read fail
-*/
+//  return >0:    success recv byts
+//  return <=0:    read fail
 int sock_recvfrom(sock_t sock, char* buffer, size_t buffer_len, struct sockaddr* addr, socklen_t addrlen)
 {
     return recvfrom(sock, buffer, buffer_len, 0, addr, &addrlen);
 }
 
-/*
-*    send data by socket(UDP)
-*    return >0:    success send byts
-*    return <=0:    write fail
-*/
+//  return >0:    success send byts
+//  return <=0:    write fail
 int sock_sendto(sock_t sock, const char* buffer, size_t buffer_len, struct sockaddr* addr, socklen_t addrlen)
 {
     return sendto(sock, buffer, buffer_len, 0, addr, addrlen);
 }
 
-/*
-*    return =0, success
-*    return <0, fail
-*/
 int sock_set_nonblock(sock_t sock)
 {
     if(sock < 0) return -1;
@@ -210,10 +179,6 @@ int sock_set_nonblock(sock_t sock)
     return -1;
 }
 
-/*
-*    return =0, success
-*    return <0, fail
-*/
 int sock_set_block(sock_t sock)
 {
     if(sock < 0) return -1;
@@ -238,10 +203,6 @@ int sock_set_block(sock_t sock)
     return -1;
 }
 
-/*
-*    return =0, success
-*    return <0, fail
-*/
 int sock_set_reuseaddr(sock_t sock)
 {
     int optval;
@@ -258,10 +219,6 @@ int sock_set_reuseaddr(sock_t sock)
     return -1;
 }
 
-/*
-*    return =0, success
-*    return <0, fail
-*/
 int sock_set_nodelay(sock_t sock)
 {
     int optval;
@@ -301,14 +258,7 @@ int sock_set_rcvbuf(sock_t sock, int size)
 }
 
 
-/*
-*    ipv4 only
-*    @input: ip_str, eg. "192.168.1.191"
-*    @input: port
-*    @ouput: addr
-*    return =0, success
-*    return <0, fail
-*/
+//  ipv4 only
 int sock_addr_aton(const char* ip_str, uint16_t port, struct sockaddr_in* addr)
 {
     if(!ip_str || !addr) return -1;
@@ -321,14 +271,7 @@ int sock_addr_aton(const char* ip_str, uint16_t port, struct sockaddr_in* addr)
     return 0;
 }
 
-/*
-*    ipv4 only
-*    @input:    addr,
-*    @input&output:    addr_str, eg. "192.168.1.191:8000"
-*    @input:    len
-*    return =0, success
-*    return <0, fail
-*/
+//  ipv4 only
 int sock_addr_ntoa(const struct sockaddr_in* addr, char* addr_str, size_t len)
 {
     size_t used;
@@ -345,13 +288,7 @@ int sock_addr_ntoa(const struct sockaddr_in* addr, char* addr_str, size_t len)
     return 0;
 }
 
-/*
-*    ipv4 only
-*    @input:    ip_str, eg. "192.168.1.191"
-*    @output:    addr
-*    return =0, success
-*    return <0, fail
-*/
+//  ipv4 only
 int sock_inet_aton(const char *ip_str, struct in_addr *addr)
 {
     int a, b, c, d;
@@ -368,13 +305,7 @@ int sock_inet_aton(const char *ip_str, struct in_addr *addr)
     return 0;
 }
 
-/*
-*    ipv4 only
-*    @output:    addr
-*    @input:    ip_str, eg. "192.168.1.191"
-*    return =0, success
-*    return <0, fail
-*/
+//  ipv4 only
 int sock_inet_ntoa(const struct in_addr* addr, char* ip_str, size_t len)
 {
     uint32_t a;

@@ -5,8 +5,7 @@ struct reactor_t* reactor_init()
 {
     int ret;
     struct reactor_t* reactor = (struct reactor_t*)MALLOC(sizeof(struct reactor_t));
-    if(!reactor)
-        return NULL;
+    if (!reactor) return NULL;
 
     reactor->name = NULL;
     reactor->impl = 0;
@@ -20,8 +19,7 @@ struct reactor_t* reactor_init()
     reactor->impl = &reactor_select;
 #endif
     ret = reactor->impl->init(reactor);
-    if(ret < 0)
-    {
+    if (ret < 0) {
         FREE(reactor);
         return NULL;
     }
@@ -30,8 +28,7 @@ struct reactor_t* reactor_init()
 
 void reactor_release(struct reactor_t* reactor)
 {
-    if(reactor)
-    {
+    if (reactor) {
         reactor->impl->release(reactor);
         FREE(reactor);
     }

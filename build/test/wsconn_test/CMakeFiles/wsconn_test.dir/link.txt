@@ -1,1 +1,0 @@
-/usr/bin/cc  -ggdb -Wall -Werror -pg -O0 -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/wsconn_test.dir/server.c.o  -o wsconn_test  ../../libgbase.a -lz -ldl -lpthread -lm 

@@ -7,19 +7,15 @@ extern "C" {
 
 #include "core/os_def.h"
 
-/*
-* minimum heap
-*/
+// minimum heap
 struct heap_t;
 typedef int (*heap_cmp)(void*, void*);
 
 struct heap_t* heap_init(heap_cmp cmp);
 void heap_release(struct heap_t* heap);
 
-/*
-*    return >= 0, success, return key which used to erase data
-*    return < 0, fail
-*/
+//  return >= 0, success, return key which used to erase data
+//  return < 0, fail
 int heap_insert(struct heap_t* heap, void* data);
 void* heap_erase(struct heap_t* heap, int key);
 void heap_update(struct heap_t* heap, int key, void* data);

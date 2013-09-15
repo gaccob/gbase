@@ -18,21 +18,17 @@ static const char* KQUEUE_NAME = "kqueue";
 
 int kqueue_init(struct reactor_t* reactor)
 {
-    if(!reactor || reactor->data)
-        return -1;
+    if (!reactor || reactor->data) return -1;
 
     struct kqueue_t* kq = (struct kqueue_t*)MALLOC(sizeof(struct kqueue_t));
-    if(!kq)
-        goto KQ_FAIL;
+    if (!kq) goto KQ_FAIL;
 
     kq->kqueue_fd = kqueue();
-    if(kq->kqueue_fd < 0)
-        goto KQ_FAIL1;
+    if (kq->kqueue_fd < 0) goto KQ_FAIL1;
     memset(kq->events, 0, sizeof(kq->events));
 
     kq->expired = slist_init();
-    if(!kq->expired)
-        goto KQ_FAIL2;
+    if (!kq->expired) goto KQ_FAIL2;
 
     reactor->data = (void*)kq;
     reactor->name = KQUEUE_NAME;
@@ -50,8 +46,8 @@ int kqueue_register(struct reactor_t* reactor, struct handler_t* h, int events)
 {
     struct kevent ke_read, ke_write;
     struct kqueue_t* kq;
-    if(!reactor || !reactor->data || !h)
-        return -1;
+    if (!reactor || !reactor->data || !h) return -1;
+
     kq = (struct kqueue_t*)reactor->data;
     if (EVENT_IN & events)
         EV_SET(&ke_read, h->fd, EVFILT_READ, EV_ADD, 0, 0, h);
@@ -70,8 +66,8 @@ int kqueue_unregister(struct reactor_t* reactor, struct handler_t* h)
 {
     struct kqueue_t* kq;
     struct kevent ke;
-    if(!reactor || !reactor->data || !h)
-        return -1;
+    if (!reactor || !reactor->data || !h) return -1;
+
     kq = (struct kqueue_t*)reactor->data;
     slist_insert(kq->expired, h);
     EV_SET(&ke, h->fd, 0, EV_DELETE, 0, 0, h);
@@ -82,8 +78,8 @@ int kqueue_modify(struct reactor_t* reactor, struct handler_t* h, int events)
 {
     struct kqueue_t* kq;
     struct kevent ke;
-    if(!reactor || !reactor->data || !h)
-        return -1;
+    if (!reactor || !reactor->data || !h) return -1;
+
     kq = (struct kqueue_t*)reactor->data;
     if (EVENT_OUT & events)
         EV_SET(&ke, h->fd, EVFILT_WRITE, EV_ENABLE, 0, 0, h);
@@ -98,83 +94,67 @@ int kqueue_modify(struct reactor_t* reactor, struct handler_t* h, int events)
     return 0;
 }
 
-/*
-*    return = 0, success & process
-*    return < 0, fail
-*    return > 0, noting to do
-*/
+//  return = 0, success & process
+//  return < 0, fail
+//  return > 0, noting to do
 int kqueue_dispatch(struct reactor_t* reactor, int ms)
 {
     int res, i, type;
     struct handler_t* h;
     struct kqueue_t* kq;
     struct timespec ts;
-    if(!reactor || !reactor->data)
-        return -1;
+    if (!reactor || !reactor->data) return -1;
 
     kq = (struct kqueue_t*)(reactor->data);
     ts.tv_sec = ms / 1000;
     ts.tv_nsec = (ms % 1000) * 1000000;
     res = kevent(kq->kqueue_fd, NULL, 0, kq->events, KQUEUE_SIZE, &ts);
-    if(res < 0)
-    {
-        /* get error */
-        if(EINTR != errno)
-            return -errno;
+    if (res < 0) {
+        if (EINTR != errno) return -errno;
         return 0;
     }
 
-    /* nothing to do */
-    if(0 == res)
-        return 1;
+    // nothing to do
+    if (0 == res) return 1;
 
-    /* get events */
-    for(i = 0; i < res; i++)
-    {
+    // get events
+    for (i = 0; i < res; ++ i) {
         type = kq->events[i].filter;
         h = (struct handler_t*)kq->events[i].udata;
 
-        /* check if expired */
-        if(0 == slist_find(kq->expired, h))
-            continue;
+        // check if expired
+        if (0 == slist_find(kq->expired, h)) continue;
 
-        if(kq->events[i].flags & EV_ERROR)
-        {
+        if (kq->events[i].flags & EV_ERROR) {
             printf("kqueue error flag=%d\n", kq->events[i].flags);
             h->close_func(h);
             continue;
         }
 
-        /* IO callback */
-        if(EVFILT_READ == type)
-        {
+        // IO callback
+        if (EVFILT_READ == type) {
             res = h->in_func(h);
-            if(res < 0)
-            {
+            if (res < 0) {
                 h->close_func(h);
                 continue;
             }
-        }
-        else if(EVFILT_WRITE == type)
-        {
+        } else if (EVFILT_WRITE == type) {
             res = h->out_func(h);
-            if(res < 0)
-            {
+            if (res < 0) {
                 h->close_func(h);
                 continue;
             }
         }
     }
 
-    /* clean expired list */
+    // clean expired list
     slist_clean(kq->expired);
     return 0;
 }
 
 void kqueue_release(struct reactor_t* reactor)
 {
-    if(reactor && reactor->data)
-    {
+    if (reactor && reactor->data) {
         struct kqueue_t* kq = (struct kqueue_t*)(reactor->data);
         slist_release(kq->expired);
         close(kq->kqueue_fd);

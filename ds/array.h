@@ -1,3 +1,6 @@
+//
+// nearly same as single list
+//
 #ifndef ARRAY_H_
 #define ARRAY_H_
 

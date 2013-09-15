@@ -27,8 +27,9 @@ struct log_t;
 //  args: when ELogRotator_Size, max file size
 struct log_t* log_init(int log_level, const char* log_name, int args);
 int log_release(struct log_t* log);
-int log_write(struct log_t* log, int level, struct timeval* now, const char* file_name,
-        int line_number, const char* function_name, char* fmt, ...);
+int log_write(struct log_t* log, int level, struct timeval* now,
+              const char* file_name, int line_number, const char* function_name,
+              char* fmt, ...);
 int log_set_level(struct log_t* log, int log_level);
 
 // not thread safe
@@ -37,12 +38,12 @@ int log_set_level(struct log_t* log, int log_level);
     do { log_write(log, level, now, __FILE__, __LINE__, __FUNCTION__, fmt, ##__VA_ARGS__);  } while(0)
 
 #define LOG_IMPLE(log, loglevel, fmt, ...) \
-    do{ if(log) \
+    do { if (log) \
     { \
         struct timeval now; \
         gettimeofday(&now, NULL); \
         LOG(log, loglevel, &now, fmt, ##__VA_ARGS__); \
-    } }while(0)
+    } } while(0)
 
 #define LOG_FATAL(log, fmt, ...) LOG_IMPLE(log, ELogLevel_Fatal, fmt, ##__VA_ARGS__)
 #define LOG_ERROR(log, fmt, ...) LOG_IMPLE(log, ELogLevel_Error, fmt, ##__VA_ARGS__)

@@ -52,12 +52,12 @@ int32_t tea_encrypt(const char* src, size_t src_len, int32_t key,
     align_add = 0;
     src_floor = src_len / 8 * 8;
     src_mod = src_len - src_floor;
-    if(src_mod > 0) {
+    if (src_mod > 0) {
         memcpy((char*)&align_add, &src[src_floor], src_mod);
     }
 
     // check dst len
-    if(*dst_len < src_mod + src_len + 8)
+    if (*dst_len < src_mod + src_len + 8)
         return -1;
 
     // encrypt: 8bytes head(pad) + tea encrypt
@@ -69,9 +69,9 @@ int32_t tea_encrypt(const char* src, size_t src_len, int32_t key,
     *(uint32_t*)(key_str + 8) = (key ^ (key >> 2));
     *(uint32_t*)(key_str + 12) = (key ^ (key >> 3));
 
-    for(i=0; i<src_floor; i+=8)
+    for (i=0; i<src_floor; i+=8)
         _tea_encrypt_unit(src + i, dst + i + 8, key_str);
-    if(align_add > 0) {
+    if (align_add > 0) {
         _tea_encrypt_unit((char*)&align_add, dst + src_floor + 8, key_str);
         *dst_len = src_floor + 8 + 8;
     } else {
@@ -90,8 +90,7 @@ int32_t tea_descrypt(const char* src, size_t src_len, int32_t key, char* dst, si
     assert(src && dst && dst_len);
     assert((src_len % 8 == 0) && (src_len > 8));
 
-    if(*dst_len < src_len - 8)
-        return -1;
+    if (*dst_len < src_len - 8) return -1;
 
     // gen 16 bytes key
     *(uint32_t*)key_str = key;
@@ -103,7 +102,7 @@ int32_t tea_descrypt(const char* src, size_t src_len, int32_t key, char* dst, si
     pad = *(uint32_t*)src;
 
     // descrypt by unit
-    for(i=8; i<src_len; i+=8)
+    for (i=8; i<src_len; i+=8)
         _tea_decrypt_unit(src + i, dst + i - 8, key_str);
     *dst_len = src_len - 8 - pad;
 

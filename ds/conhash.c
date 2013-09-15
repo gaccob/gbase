@@ -21,8 +21,7 @@ struct conhash_node_t
 struct conhash_t* conhash_init(hash_func key_hash, hash_func node_hash)
 {
     struct conhash_t* ch = NULL;
-    if (!key_hash || !node_hash)
-        return NULL;
+    if (!key_hash || !node_hash) return NULL;
     ch = (struct conhash_t*)MALLOC(sizeof(struct conhash_t));
     if (!ch) return NULL;
     INIT_LIST_HEAD(&ch->node_list);
@@ -34,10 +33,10 @@ struct conhash_t* conhash_init(hash_func key_hash, hash_func node_hash)
 void conhash_release(struct conhash_t* ch)
 {
     struct conhash_node_t* p, *n;
-    if (ch)
-    {
-        list_for_each_entry_safe(p, n, &ch->node_list, link)
+    if (ch) {
+        list_for_each_entry_safe(p, n, &ch->node_list, link) {
             FREE(p);
+        }
         FREE(ch);
     }
 }
@@ -51,8 +50,7 @@ int32_t conhash_add_node(struct conhash_t* ch, void* node)
     new_node->hash_value = ch->node_hash(node);
     INIT_LIST_HEAD(&new_node->link);
     list_for_each_entry(n, &ch->node_list, link) {
-        if (n->hash_value == new_node->hash_value)
-        {
+        if (n->hash_value == new_node->hash_value) {
             FREE(new_node);
             return -1;
         } else if (n->hash_value > new_node->hash_value) {
@@ -72,8 +70,7 @@ void conhash_erase_node(struct conhash_t* ch, void* node)
 
     val = ch->node_hash(node);
     list_for_each_entry(n, &ch->node_list, link) {
-        if (n->hash_value == val)
-        {
+        if (n->hash_value == val) {
             list_del(&n->link);
             FREE(n);
             return;
@@ -90,8 +87,7 @@ void* conhash_node(struct conhash_t* ch, void* key)
     if (list_empty(&ch->node_list)) return NULL;
 
     val = ch->key_hash(key);
-    list_for_each_entry(n, &ch->node_list, link)
-    {
+    list_for_each_entry(n, &ch->node_list, link) {
         if (n->hash_value >= val) return n->data;
     }
     l = ch->node_list.next;

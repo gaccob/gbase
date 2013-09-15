@@ -26,12 +26,12 @@ const char* util_dirname(char* filepath)
 #if defined(OS_WIN)
     static char dir[256];
     size_t len, index;
-    if(!filepath) return NULL;
+    if (!filepath) return NULL;
 
     strncpy(dir, filepath, sizeof(dir));
     len = strnlen(dir, sizeof(dir));
     for (index = len-1; index >= 0; -- index) {
-        if(dir[index] == '/') {
+        if (dir[index] == '/') {
             dir[index] = 0;
             return dir;
         }
@@ -64,7 +64,7 @@ int32_t util_is_dir(const char* path)
 {
 #if defined(OS_LINUX) || defined(OS_MAC)
     struct stat st;
-    if(stat(path,&st)) return -1;
+    if (stat(path,&st)) return -1;
     return S_ISDIR(st.st_mode);
 
 #elif defined(OS_WIN)
@@ -74,7 +74,7 @@ int32_t util_is_dir(const char* path)
     HANDLE handle;
 
     // root
-    if((strlen(path) == 2 && path[1] == ':')
+    if ((strlen(path) == 2 && path[1] == ':')
         ||(strlen(path) == 3 && path[1] == ':' && path[2] == '\\')) {
         snprintf(tmp, sizeof(tmp),"%s\\*",path);
         is_root = 1;
@@ -84,9 +84,9 @@ int32_t util_is_dir(const char* path)
 
     handle = FindFirstFile(tmp,&fd);
     FindClose(handle);
-    if(handle == INVALID_HANDLE_VALUE) return -1;
-    else if(is_root) return 0;
-    else if(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) return 0;
+    if (handle == INVALID_HANDLE_VALUE) return -1;
+    else if (is_root) return 0;
+    else if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) return 0;
     else return 0;
 #endif
     return -1;
@@ -96,15 +96,15 @@ int32_t util_is_file(const char* path)
 {
 #if defined(OS_LINUX) || defined(OS_MAC)
     struct stat st;
-    if(stat(path,&st)) return -1;
+    if (stat(path,&st)) return -1;
     return S_ISREG(st.st_mode);
 
 #elif defined(OS_WIN)
     WIN32_FIND_DATA fd;
     HANDLE handle = FindFirstFile(path, &fd);
     FindClose(handle);
-    if(handle == INVALID_HANDLE_VALUE) return -1;
-    else if(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) return -1;
+    if (handle == INVALID_HANDLE_VALUE) return -1;
+    else if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) return -1;
     else return 0;
 
 #endif

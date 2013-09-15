@@ -1,4 +1,6 @@
+cscope*
 tags
+build/*
 core/*.o
 net/*.o
 ds/*.o

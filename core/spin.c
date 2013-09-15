@@ -35,8 +35,7 @@ typedef struct spin_lock_t
 struct spin_lock_t* spin_init()
 {
     struct spin_lock_t* lock = (struct spin_lock_t*)MALLOC(sizeof(struct spin_lock_t));
-    if(!lock)
-        return NULL;
+    if (!lock) return NULL;
 
 #if defined(SPIN_IMPL_INTLOCK)
     InterlockedExchange(&lock->spin, 0);
@@ -51,8 +50,7 @@ struct spin_lock_t* spin_init()
 
 void spin_release(struct spin_lock_t* lock)
 {
-    if(lock)
-    {
+    if (lock) {
     #if defined(SPIN_IMPL_PTHREAD)
         pthread_spin_destroy(&lock->spin);
     #else

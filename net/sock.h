@@ -7,7 +7,7 @@ extern "C" {
 
 #include "core/os_def.h"
 
-/* win32 */
+// win32
 #if defined(OS_WIN)
     #include <winsock2.h>
     #pragma comment(lib,"WS2_32.lib")
@@ -18,17 +18,17 @@ extern "C" {
     typedef int socklen_t;
 
     #define SOCK_INIT()  \
-        do{ \
+        do { \
             WSADATA wsadata;\
             WSAStartup(MAKEWORD(2, 2), &wsadata);\
-        }while(0)
+        } while(0)
 
     #define SOCK_RELEASE()  \
-        do{ \
+        do { \
             WSACleanup(); \
-        }while(0)
+        } while(0)
 
-/* linux or unix */
+// linux or unix
 #elif defined(OS_LINUX) || defined(OS_MAC)
     #include <unistd.h>
     #include <fcntl.h>
@@ -42,8 +42,8 @@ extern "C" {
     typedef int sock_t;
     #define INVALID_SOCK -1
 
-    #define SOCK_INIT() do{}while(0)
-    #define SOCK_RELEASE() do{}while(0)
+    #define SOCK_INIT() do {} while(0)
+    #define SOCK_RELEASE() do {} while(0)
 
 #endif
 
