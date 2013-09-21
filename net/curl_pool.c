@@ -120,6 +120,7 @@ void curl_pool_release(struct curl_pool_t* cp)
             curl_multi_cleanup(cp->mhandle);
             cp->mhandle = NULL;
         }
+        FREE(cp);
     }
 }
 
