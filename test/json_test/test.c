@@ -1,7 +1,7 @@
 /*
   Copyright (c) 2009 Dave Gamble
 
-  Permission is hereby granted, free of charge, to any person obtaining a copy
+  Permission is hereby granted, FREE of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include "core/os_def.h"
 #include "util/cjson.h"
 
 // Parse text to JSON, then render back to text, and print!
@@ -36,7 +37,7 @@ void doit(char *text)
         out=cJSON_Print(json);
         cJSON_Delete(json);
         printf("%s\n",out);
-        free(out);
+        FREE(out);
     }
 }
 
@@ -49,11 +50,11 @@ void dofile(char *filename)
     fseek(f, 0, SEEK_END);
     len = ftell(f);
     fseek(f, 0, SEEK_SET);
-    data = (char*)malloc(len + 1);
+    data = (char*)MALLOC(len + 1);
     fread(data, 1, len, f);
     fclose(f);
     doit(data);
-    free(data);
+    FREE(data);
 }
 
 /* Used by some code below as an example datatype. */
@@ -83,13 +84,13 @@ void create_objects()
     out=cJSON_Print(root);
     cJSON_Delete(root);
     printf("%s\n",out);
-    free(out);    /* Print to text, Delete the cJSON, print it, release the string. */
+    FREE(out);    /* Print to text, Delete the cJSON, print it, release the string. */
     root=cJSON_CreateStringArray(strings,7);
 
     out=cJSON_Print(root);
     cJSON_Delete(root);
     printf("%s\n",out);
-    free(out);
+    FREE(out);
 
     root=cJSON_CreateArray();
     for (i=0; i<3; i++)
@@ -98,7 +99,7 @@ void create_objects()
     out=cJSON_Print(root);
     cJSON_Delete(root);
     printf("%s\n",out);
-    free(out);
+    FREE(out);
 
     /* Our "gallery" item: */
     root=cJSON_CreateObject();
@@ -112,7 +113,7 @@ void create_objects()
     cJSON_AddStringToObject(thm,"Width","100");
     cJSON_AddItemToObject(img,"IDs", cJSON_CreateIntArray(ids,4));
 
-    out=cJSON_Print(root);    cJSON_Delete(root);    printf("%s\n",out);    free(out);
+    out=cJSON_Print(root);    cJSON_Delete(root);    printf("%s\n",out);    FREE(out);
 
     root=cJSON_CreateArray();
     for (i=0;i<2;i++)
@@ -128,7 +129,7 @@ void create_objects()
         cJSON_AddStringToObject(fld, "Country", fields[i].country);
     }
 
-    out=cJSON_Print(root);    cJSON_Delete(root);    printf("%s\n",out);    free(out);
+    out=cJSON_Print(root);    cJSON_Delete(root);    printf("%s\n",out);    FREE(out);
 }
 
 int main (int argc, const char * argv[]) {

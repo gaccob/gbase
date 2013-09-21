@@ -69,7 +69,7 @@ int kqueue_unregister(struct reactor_t* reactor, struct handler_t* h)
     if (!reactor || !reactor->data || !h) return -1;
 
     kq = (struct kqueue_t*)reactor->data;
-    slist_insert(kq->expired, h);
+    slist_push_front(kq->expired, h);
     EV_SET(&ke, h->fd, 0, EV_DELETE, 0, 0, h);
     return kevent(kq->kqueue_fd, &ke, 1, NULL, 0, NULL);
 }

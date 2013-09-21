@@ -9,7 +9,7 @@ extern "C" {
 
 typedef int32_t (*hash_func)(const void*);
 typedef int32_t (*cmp_func)(const void*, const void*);
-
+typedef void (*loop_func)(void* data, void* args);
 struct hash_t;
 
 struct hash_t* hash_init(hash_func hash, cmp_func cmp, int32_t hint_size);
@@ -18,6 +18,7 @@ int32_t hash_clean(struct hash_t* htable);
 int32_t hash_insert(struct hash_t* htable, void* data);
 int32_t hash_remove(struct hash_t* htable, void* data);
 int32_t hash_count(struct hash_t* htable);
+void hash_loop(struct hash_t* htable, loop_func func, void* args);
 void* hash_find(struct hash_t* htable, void* data);
 
 /* jhash.h: Jenkins hash support.

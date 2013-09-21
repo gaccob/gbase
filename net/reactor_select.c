@@ -95,7 +95,7 @@ int select_unregister(struct reactor_t* reactor, struct handler_t* h)
     FD_CLR(h->fd, &s->in_prepare);
     FD_CLR(h->fd, &s->out_prepare);
     hash_remove(s->handler_table, h);
-    slist_insert(s->expired, h);
+    slist_push_front(s->expired, h);
     return 0;
 }
 

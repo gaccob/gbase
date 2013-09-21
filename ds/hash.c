@@ -62,7 +62,7 @@ int32_t hash_clean(struct hash_t* htable)
     hash_node_t* node;
 
     if (!htable) return -1;
-    for (i = 0; i < htable->m_size; i++) {
+    for (i = 0; i < htable->m_size; ++ i) {
         // free list node
         node = htable->m_table[i];
         bak = 0;
@@ -75,8 +75,24 @@ int32_t hash_clean(struct hash_t* htable)
         }
         htable->m_table[i] = 0;
     }
-
     return 0;
+}
+
+void hash_loop(struct hash_t* htable, loop_func f, void* args)
+{
+    int32_t i;
+    hash_node_t* node;
+    if (!htable || !f) return;
+
+    for (i = 0; i < htable->m_size; ++ i) {
+        node = htable->m_table[i];
+        while (node) {
+            if (node->m_data) {
+                (*f)(node->m_data, args);
+            }
+            node = node->m_next;
+        }
+    }
 }
 
 int32_t hash_insert(struct hash_t* htable, void* data)

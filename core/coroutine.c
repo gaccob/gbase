@@ -34,7 +34,7 @@ struct crt_unit_t {
 
 struct crt_unit_t* _crt_unit_init(struct crt_t* c, crt_func_t func, void* arg)
 {
-    struct crt_unit_t* cu = (struct crt_unit_t*)malloc(sizeof(*cu));
+    struct crt_unit_t* cu = (struct crt_unit_t*)MALLOC(sizeof(*cu));
     assert(cu);
     cu->func = func;
     cu->arg = arg;
@@ -50,19 +50,19 @@ void _crt_unit_release(struct crt_unit_t* cu)
 {
     if (cu) {
         if (cu->stack)
-            free(cu->stack);
-        free(cu);
+            FREE(cu->stack);
+        FREE(cu);
     }
 }
 
 struct crt_t* crt_init()
 {
-    struct crt_t* c = (struct crt_t*)malloc(sizeof(*c));
+    struct crt_t* c = (struct crt_t*)MALLOC(sizeof(*c));
     assert(c);
     c->count = 0;
     c->capacity = CRT_DEFAULT_SIZE;
     c->current = -1;
-    c->units = (struct crt_unit_t**)malloc(sizeof(struct crt_unit_t*) * c->capacity);
+    c->units = (struct crt_unit_t**)MALLOC(sizeof(struct crt_unit_t*) * c->capacity);
     assert(c->units);
     memset(c->units, 0, sizeof(struct crt_unit_t*) * c->capacity);
     return c;
@@ -76,9 +76,9 @@ void crt_release(struct crt_t* c)
             struct crt_unit_t* cu = c->units[i];
             if (cu) _crt_unit_release(cu);
         }
-        free(c->units);
+        FREE(c->units);
         c->units = 0;
-        free(c);
+        FREE(c);
     }
 }
 
@@ -178,9 +178,9 @@ void _crt_save_stack(struct crt_unit_t* cu, char* top)
 {
     char dummy = 0;
     if (cu->capacity < top - &dummy) {
-        free(cu->stack);
+        FREE(cu->stack);
         cu->capacity = top - &dummy;
-        cu->stack = malloc(cu->capacity);
+        cu->stack = MALLOC(cu->capacity);
     }
     cu->size = top - &dummy;
     memcpy(cu->stack, &dummy, cu->size);

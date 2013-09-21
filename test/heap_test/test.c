@@ -20,8 +20,8 @@ int main()
     heap = heap_init(heap_cmp_func);
     assert(heap);
 
-    data = (int*)malloc(sizeof(int) * LOOP);
-    key = (int*)malloc(sizeof(int) * LOOP);
+    data = (int*)MALLOC(sizeof(int) * LOOP);
+    key = (int*)MALLOC(sizeof(int) * LOOP);
     for(i=0; i<LOOP; i++)
     {
         data[i] = rand() % (LOOP * 2);
@@ -47,8 +47,8 @@ int main()
     }
     printf("\n");
 */
-    free(data);
-    free(key);
+    FREE(data);
+    FREE(key);
     heap_release(heap);
 
     getchar();

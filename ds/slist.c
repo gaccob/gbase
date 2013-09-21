@@ -29,13 +29,28 @@ void slist_release(struct slist_t* sl)
     }
 }
 
-int slist_insert(struct slist_t* sl, void* data)
+// more effective than push_back as it's single list
+int slist_push_front(struct slist_t* sl, void* data)
+{
+    struct slist_node_t* new_node;
+    if (!sl || !data) return -1;
+
+    new_node = (struct slist_node_t*)MALLOC(sizeof(*new_node));
+    if (!new_node) return -1;
+    new_node->data = data;
+    new_node->next = sl->node;
+    sl->count ++;
+    sl->node = new_node;
+    return 0;
+}
+
+int slist_push_back(struct slist_t* sl, void* data)
 {
     struct slist_node_t* new_node;
     struct slist_node_t* node;
     if (!sl || !data) return -1;
 
-    new_node = (struct slist_node_t*)MALLOC(sizeof(struct slist_node_t));
+    new_node = (struct slist_node_t*)MALLOC(sizeof(*new_node));
     if (!new_node) return -1;
     new_node->data = data;
     new_node->next = 0;
@@ -51,6 +66,45 @@ int slist_insert(struct slist_t* sl, void* data)
         node->next = new_node;
     }
     return 0;
+}
+
+// more effective than pop_back, as it's single list
+void* slist_pop_front(struct slist_t* sl)
+{
+    struct slist_node_t* n;
+    void* data;
+    if (!sl || !sl->node) {
+        return NULL;
+    }
+    n = sl->node;
+    data = n->data; 
+    sl->node = n->next;
+    FREE(n);
+    return data;
+}
+
+void* slist_pop_back(struct slist_t* sl)
+{
+    struct slist_node_t* prev;
+    struct slist_node_t* n;
+    void* data;
+    if (!sl || !sl->node) {
+        return NULL;
+    }
+    n = sl->node;
+    prev = NULL;
+    while (n->next) {
+        prev = n;
+        n = n->next;
+    }
+    if (!prev) {
+        sl->node = NULL;
+    } else {
+        prev->next = NULL;
+    }
+    data = n->data;
+    FREE(n);
+    return data;
 }
 
 int slist_remove(struct slist_t* sl, void* data)

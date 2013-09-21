@@ -262,7 +262,7 @@ void _bvt_release_node(struct bvt_t* n)
                 c = next;
             }
         }
-        free(n);
+        FREE(n);
     }
 }
 
@@ -271,8 +271,8 @@ void bvt_release(struct bvt_t* n)
     if (n) {
         if (n->cb_table) {
             if (n->cb_table->table)
-                free(n->cb_table->table);
-            free(n->cb_table);
+                FREE(n->cb_table->table);
+            FREE(n->cb_table);
             n->cb_table = NULL;
         }
         _bvt_release_node(n);
@@ -372,7 +372,7 @@ bvt_graph_node_t* _bvt_load_gliffy_node(cJSON* js)
     BVT_JSON_GO_DOWN(js_type, cJSON_String, BVT_GLIFFY_TYPE_TYPE);
     if (!js_type) return NULL;
 
-    node = (bvt_graph_node_t*)malloc(sizeof(bvt_graph_node_t));
+    node = (bvt_graph_node_t*)MALLOC(sizeof(bvt_graph_node_t));
     node->id = js_id->valueint;
     node->next = NULL;
 
@@ -465,7 +465,7 @@ bvt_graph_node_t* _bvt_load_gliffy_node(cJSON* js)
     return node;
 
 GLIFFY_FAIL:
-    free(node);
+    FREE(node);
     return NULL;
 }
 
@@ -555,7 +555,7 @@ bvt_t* _bvt_load_gliffy_graph_node(int32_t id, bvt_graph_node_t** list)
     if (!node) return NULL;
 
     // set node data
-    b = (bvt_t*)malloc(sizeof(bvt_t));
+    b = (bvt_t*)MALLOC(sizeof(bvt_t));
     memset(b, 0, sizeof(bvt_t));
     ret = _bvt_load_gliffy_parse_name(b, node->shape.desc);
     if (ret != BVT_SUCCESS) {
@@ -563,7 +563,7 @@ bvt_t* _bvt_load_gliffy_graph_node(int32_t id, bvt_graph_node_t** list)
         assert(0);
     }
     // release graph nodes
-    free(node);
+    FREE(node);
 
     // find its children
     while (1) {
@@ -595,7 +595,7 @@ bvt_t* _bvt_load_gliffy_graph_node(int32_t id, bvt_graph_node_t** list)
         }
 
         // release graph nodes
-        free(line);
+        FREE(line);
     }
     return b;
 }
@@ -748,7 +748,7 @@ struct bvt_t* bvt_load_gliffy(const char* cfg)
     fd = open(cfg, O_RDONLY);
     if (fd < 0) return NULL;
     size = lseek(fd, 0, SEEK_END);
-    src = (char*)malloc(size + 1);
+    src = (char*)MALLOC(size + 1);
     lseek(fd, 0, SEEK_SET);
     read(fd, src, size);
     src[size] = 0;
@@ -763,7 +763,7 @@ struct bvt_t* bvt_load_gliffy(const char* cfg)
     // load gliffy relation to bvt and check
     root = _bvt_load_gliffy(js);
     cJSON_Delete(js);
-    free(src);
+    FREE(src);
     return root;
 }
 
@@ -773,10 +773,10 @@ int32_t bvt_register_callback(struct bvt_t* n, bvt_callback cb, int32_t id)
         return BVT_ERROR;
 
     if (!n->cb_table) {
-        n->cb_table = (bvt_callback_table*)malloc(sizeof(bvt_callback_table));
+        n->cb_table = (bvt_callback_table*)MALLOC(sizeof(bvt_callback_table));
         memset(n->cb_table, 0, sizeof(bvt_callback_table));
         n->cb_table->size = BVT_DEFAULT_TABLE_SIZE > id ? BVT_DEFAULT_TABLE_SIZE : (id + 1);
-        n->cb_table->table = (bvt_callback*)malloc(sizeof(bvt_callback) * n->cb_table->size);
+        n->cb_table->table = (bvt_callback*)MALLOC(sizeof(bvt_callback) * n->cb_table->size);
         memset(n->cb_table->table, 0, sizeof(bvt_callback) * n->cb_table->size);
     } else if ((int)n->cb_table->size <= id) {
         bvt_callback* c = n->cb_table->table;
@@ -784,7 +784,7 @@ int32_t bvt_register_callback(struct bvt_t* n, bvt_callback cb, int32_t id)
         while ((int)n->cb_table->size <= id) {
             n->cb_table->size *= 2;
         }
-        n->cb_table->table = (bvt_callback*)malloc(sizeof(bvt_callback) * n->cb_table->size);
+        n->cb_table->table = (bvt_callback*)MALLOC(sizeof(bvt_callback) * n->cb_table->size);
         memset(n->cb_table->table, 0, sizeof(bvt_callback) * n->cb_table->size);
         memcpy(n->cb_table->table, c, sizeof(bvt_callback) * oldsize);
     }
