@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <sys/time.h>
+#include <stddef.h>
 #include "core/os_def.h"
 #include "net/curl_pool.h"
 #include "net/curl_client.h"
@@ -15,17 +16,17 @@ typedef struct curl_pool_t
     struct hash_t* clients;
 } curl_pool_t;
 
-int32_t _curl_pool_hash(const void* data)
+uint32_t _curl_pool_hash(const void* data)
 {
     struct curl_client_t* cc = (struct curl_client_t*)(data);
-    return (int32_t)(curl_client_handle(cc));
+    return (ptrdiff_t)(curl_client_handle(cc));
 }
 
 int32_t _curl_pool_cmp(const void* data1, const void* data2)
 {
     CURL* c1 = curl_client_handle((struct curl_client_t*)data1);
     CURL* c2 = curl_client_handle((struct curl_client_t*)data2);
-    return (int32_t)c1 - (int32_t)c2;
+    return (ptrdiff_t)c1 - (ptrdiff_t)c2;
 }
 
 void _curl_loop_release_client(void* data, void* args)
@@ -59,9 +60,10 @@ struct curl_pool_t* curl_pool_init()
     // pre allocate client
     for (i = 0; i < cp->size; ++ i)
     {
-        cc = curl_client_init(i + 1);
+        cc = curl_client_init();
         if (cc) {
             slist_push_front(cp->free_list, cc);
+            hash_insert(cp->clients, cc);
         }
     }
     return cp;
@@ -87,8 +89,10 @@ struct curl_client_t* _curl_pool_client_alloc(struct curl_pool_t* cp)
     }
 
     cp->size ++;
-    cp->size = (cp->size < 0 ? 1 : cp->size);
-    cc = curl_client_init(cp->size);
+    cc = curl_client_init();
+    if (cc) {
+        hash_insert(cp->clients, cc);
+    }
     return cc;
 }
 
@@ -185,26 +189,23 @@ void curl_pool_run(struct curl_pool_t* cp)
     struct curl_client_t* tmp = NULL;
     if (!cp || !cp->mhandle) { return; }
 
-    curl_multi_perform(cp->mhandle, &num);
-    if (num <= 0) { return; }
-
-    msg = curl_multi_info_read(cp->mhandle, &num);
-    while (msg) {
-        if (CURLMSG_DONE == msg->msg) {
-            tmp = curl_client_raw_init();
-            assert(tmp);
-            h = msg->easy_handle;
-            curl_client_set_handle(tmp, h);
-            cc = hash_find(cp->clients, tmp);
-            if (cc) {
-                curl_client_set_err_code(cc, msg->data.result);
-                curl_client_on_res(cc);
-                _curl_pool_client_gc(cp, cc);
-                cp->running --;
+    if (CURLM_OK == curl_multi_perform(cp->mhandle, &num)) {
+        while ((msg = curl_multi_info_read(cp->mhandle, &num)) != NULL) {
+            if (CURLMSG_DONE == msg->msg) {
+                tmp = curl_client_raw_init();
+                assert(tmp);
+                h = msg->easy_handle;
+                curl_client_set_handle(tmp, h);
+                cc = hash_find(cp->clients, tmp);
+                if (cc) {
+                    curl_client_set_err_code(cc, msg->data.result);
+                    curl_client_on_res(cc);
+                    _curl_pool_client_gc(cp, cc);
+                    cp->running --;
+                }
+                curl_client_raw_release(tmp);
             }
-            curl_client_raw_release(tmp);
         }
-        msg = curl_multi_info_read(cp->mhandle, &num);
     }
 }
 

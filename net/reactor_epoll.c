@@ -69,7 +69,7 @@ int epoll_unregister(struct reactor_t* reactor, struct handler_t* h)
     if (!reactor || !reactor->data || !h) return -1;
     struct epoll_t* epoll = (struct epoll_t*)reactor->data;
     // add to expire-list
-    slist_insert(epoll->expired, h);
+    slist_push_front(epoll->expired, h);
     return _epoll_set(epoll, h, EPOLL_CTL_DEL, 0);
 }
 

@@ -48,12 +48,12 @@ struct node_t
 {
     char name[64];
 };
-int32_t conhash_key_hash(const void* key)
+uint32_t conhash_key_hash(const void* key)
 {
     const struct key_t* k = (const struct key_t*)key;
     return hash_jhash(k->key, strlen(k->key));
 }
-int32_t conhash_node_hash(const void* node)
+uint32_t conhash_node_hash(const void* node)
 {
     const struct node_t* n = (const struct node_t*)node;
     return hash_jhash(n->name, strlen(n->name));

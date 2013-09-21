@@ -97,7 +97,7 @@ void hash_loop(struct hash_t* htable, loop_func f, void* args)
 
 int32_t hash_insert(struct hash_t* htable, void* data)
 {
-    int32_t hash_key, index;
+    uint32_t hash_key, index;
     hash_node_t* node;
     hash_node_t* prev;
 
@@ -130,7 +130,7 @@ int32_t hash_insert(struct hash_t* htable, void* data)
 
 int32_t hash_remove(struct hash_t* htable, void* data)
 {
-    int32_t hash_key, index;
+    uint32_t hash_key, index;
     hash_node_t* node;
     hash_node_t* prev;
 
@@ -167,7 +167,7 @@ int32_t hash_count(struct hash_t* htable)
 
 void* hash_find(struct hash_t* htable, void* data)
 {
-    int32_t hash_key;
+    uint32_t hash_key;
     struct hash_node_t* node;
 
     if (!htable || !data) return NULL;

@@ -15,7 +15,7 @@ struct conhash_node_t
 {
     struct list_head link;
     void* data;
-    int32_t hash_value;
+    uint32_t hash_value;
 };
 
 struct conhash_t* conhash_init(hash_func key_hash, hash_func node_hash)
@@ -64,7 +64,7 @@ int32_t conhash_add_node(struct conhash_t* ch, void* node)
 
 void conhash_erase_node(struct conhash_t* ch, void* node)
 {
-    int32_t val;
+    uint32_t val;
     struct conhash_node_t* n;
     if (!ch || !node) return;
 
@@ -80,7 +80,7 @@ void conhash_erase_node(struct conhash_t* ch, void* node)
 
 void* conhash_node(struct conhash_t* ch, void* key)
 {
-    int32_t val;
+    uint32_t val;
     struct conhash_node_t* n;
     struct list_head* l;
     if (!ch || !key) return NULL;

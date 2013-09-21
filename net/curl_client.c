@@ -25,7 +25,7 @@ struct curl_client_t* curl_client_init()
     }
     curl_easy_setopt(cc->handle, CURLOPT_CONNECTTIMEOUT_MS, CURL_CONNECT_TIMEOUT_MS);
     curl_easy_setopt(cc->handle, CURLOPT_TIMEOUT_MS, CURL_TIMEOUT_MS);
-    curl_easy_setopt(cc->handle, CURLOPT_VERBOSE, 1);
+    curl_easy_setopt(cc->handle, CURLOPT_VERBOSE, 0);
     curl_easy_setopt(cc->handle, CURLOPT_DNS_CACHE_TIMEOUT, 0);
     curl_easy_setopt(cc->handle, CURLOPT_FORBID_REUSE, 0);
     return cc;

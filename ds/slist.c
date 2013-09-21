@@ -80,6 +80,7 @@ void* slist_pop_front(struct slist_t* sl)
     data = n->data; 
     sl->node = n->next;
     FREE(n);
+    sl->count --;
     return data;
 }
 
@@ -104,6 +105,7 @@ void* slist_pop_back(struct slist_t* sl)
     }
     data = n->data;
     FREE(n);
+    sl->count --;
     return data;
 }
 

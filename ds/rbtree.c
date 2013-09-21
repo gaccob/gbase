@@ -452,12 +452,14 @@ void _rbtree_delete_node(struct rbtree_t* tree, struct rbtree_node_t* node)
     struct rbtree_node_t *p, *ch, *next;
     if (!tree || !node) return;
 
-    // 1. dest node no child (* means dest node)
-    //              #
-    //            /   \
-    //           #          *
-    //         /    \
-    //        #     #
+    #if 0
+    1. dest node no child (* means dest node)
+                  #
+                /   \
+               #     *
+             /   \
+            #     #
+    #endif
     if (!node->left && !node->right)
     {
         // dest node is root
@@ -481,17 +483,19 @@ void _rbtree_delete_node(struct rbtree_t* tree, struct rbtree_node_t* node)
         }
     }
 
-    // 2. dest node has 2 children, swap node & node's successor and then delete node's successor
-    //               #
-    //            /    \
-    //            #           *
-    //          /        /  \
-    //         #         #    c
-    //                   /
-    //                 a
-    //                  \
-    //                   b
-    //    a->*,  link c & b
+    #if 0
+    2. dest node has 2 children, swap node & node's successor and then delete node's successor
+                  #
+                /   \
+               #     *
+              /     /  \
+             #     #    c
+                  /
+                 a
+                  \
+                   b
+        a->*,  link c & b
+    #endif
     else if (node->left && node->right) {
         next = _rbtree_next_node(node);
         assert(next);
@@ -519,13 +523,15 @@ void _rbtree_delete_node(struct rbtree_t* tree, struct rbtree_node_t* node)
         FREE(next);
     }
 
-    // 3. dest node has one child, then build new relation between n->parent & n->child
-    //               a
-    //             /   \
-    //             #      *
-    //           /    \      \
-    //         #     #       b
-    //    link a & b
+    #if 0
+    3. dest node has one child, then build new relation between n->parent & n->child
+                   a
+                 /   \
+               #      *
+            /    \      \
+           #     #       b
+       link a & b
+    #endif
     else {
         p = node->parent;
         ch = 0;

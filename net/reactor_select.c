@@ -25,12 +25,12 @@ typedef struct select_t
     struct slist_t* expired;
 }select_t;
 
-int _handle_hash(const void* data)
+uint32_t _handle_hash(const void* data)
 {
     return ((const handler_t*)data)->fd;
 }
 
-int _handle_cmp(const void* data1, const void* data2)
+int32_t _handle_cmp(const void* data1, const void* data2)
 {
     return ((const handler_t*)data1)->fd -((const handler_t*)data2)->fd;
 }

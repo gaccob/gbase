@@ -7,7 +7,7 @@ extern "C" {
 
 #include "core/os_def.h"
 
-typedef int32_t (*hash_func)(const void*);
+typedef uint32_t (*hash_func)(const void*);
 typedef int32_t (*cmp_func)(const void*, const void*);
 typedef void (*loop_func)(void* data, void* args);
 struct hash_t;
