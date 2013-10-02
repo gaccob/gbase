@@ -1,4 +1,4 @@
-#include "ds/heap.h"
+#include "core/heap.h"
 #include <assert.h>
 
 int heap_cmp_func(void* data1, void* data2)

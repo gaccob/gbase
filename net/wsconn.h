@@ -8,7 +8,7 @@ extern "C" {
 #include "core/os_def.h"
 #include "net/sock.h"
 #include "net/reactor.h"
-#include "ds/connbuffer.h"
+#include "core/connbuffer.h"
 
 // return buffer size processed, return -1 means process fail, reactor will close it
 typedef int32_t (*wsconn_read_func)(int32_t fd,

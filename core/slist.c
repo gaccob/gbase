@@ -1,4 +1,4 @@
-#include "ds/slist.h"
+#include "slist.h"
 
 typedef struct slist_node_t
 {

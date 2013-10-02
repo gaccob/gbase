@@ -1,4 +1,4 @@
-#include "ds/bitset.h"
+#include "bitset.h"
 
 typedef struct bit_t
 {

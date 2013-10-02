@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <string.h>
-#include "ds/array.h"
+#include "array.h"
 
 typedef struct array_t
 {

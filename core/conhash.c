@@ -1,4 +1,4 @@
-#include "ds/conhash.h"
+#include "conhash.h"
 
 #if !defined OS_WIN
 

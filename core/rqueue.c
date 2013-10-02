@@ -1,7 +1,7 @@
 #include <assert.h>
 
-#include "ds/rqueue.h"
 #include "core/atom.h"
+#include "rqueue.h"
 
 typedef struct rqueue_t
 {

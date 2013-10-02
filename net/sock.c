@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <string.h>
-#include "net/sock.h"
+#include "sock.h"
 
 //  create tcp socket
 //  return >= 0, success

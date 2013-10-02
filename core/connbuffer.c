@@ -1,4 +1,4 @@
-#include "ds/connbuffer.h"
+#include "connbuffer.h"
 
 typedef struct connbuffer_t
 {

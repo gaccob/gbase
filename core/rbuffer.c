@@ -1,7 +1,7 @@
 #include <assert.h>
 
-#include "ds/rbuffer.h"
 #include "core/atom.h"
+#include "rbuffer.h"
 
 typedef struct rbuffer_t
 {

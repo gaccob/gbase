@@ -1,4 +1,4 @@
-#include "ds/heap.h"
+#include "heap.h"
 #include <assert.h>
 
 // minimum heap

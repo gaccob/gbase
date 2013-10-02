@@ -1,4 +1,4 @@
-#include "ds/rbtree.h"
+#include "core/rbtree.h"
 #include <assert.h>
 
 #define LOOP 32

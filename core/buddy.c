@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <stddef.h>
-#include "ds/buddy.h"
+#include "buddy.h"
 
 typedef struct buddy_t
 {

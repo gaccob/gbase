@@ -6,9 +6,9 @@ extern "C" {
 #endif
 
 #include "core/os_def.h"
+#include "core/connbuffer.h"
 #include "net/sock.h"
 #include "net/reactor.h"
-#include "ds/connbuffer.h"
 
 // return buffer size processed, return -1 means process fail, reactor will close it
 typedef int32_t (*connector_read_func)(int32_t fd,

@@ -1,4 +1,4 @@
-#include "ds/slist.h"
+#include "core/slist.h"
 #include <assert.h>
 
 #define LOOP 32

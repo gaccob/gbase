@@ -1,4 +1,4 @@
-#include "ds/bitset.h"
+#include "core/bitset.h"
 #include <assert.h>
 
 int main()

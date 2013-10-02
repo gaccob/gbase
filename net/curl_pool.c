@@ -4,8 +4,8 @@
 #include "core/os_def.h"
 #include "net/curl_pool.h"
 #include "net/curl_client.h"
-#include "ds/slist.h"
-#include "ds/hash.h"
+#include "core/slist.h"
+#include "core/hash.h"
 
 typedef struct curl_pool_t
 {

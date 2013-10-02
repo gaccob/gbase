@@ -1,6 +1,6 @@
 #include "net/wsconn.h"
-#include "ds/sha1.h"
-#include "ds/md5.h"
+#include "util/sha1.h"
+#include "util/md5.h"
 #include "util/base64.h"
 #include "util/util_str.h"
 

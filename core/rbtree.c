@@ -1,5 +1,5 @@
-#include "ds/rbtree.h"
 #include <assert.h>
+#include "rbtree.h"
 
 /*
  *  @author:   gaccob <weiye.zhang@qq.com>

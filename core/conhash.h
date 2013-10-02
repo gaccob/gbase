@@ -9,8 +9,8 @@ extern "C" {
 
 #if !defined OS_WIN
 
-#include "ds/list.h"
-#include "ds/hash.h"
+#include "list.h"
+#include "hash.h"
 
 struct conhash_t;
 

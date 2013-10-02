@@ -1,8 +1,8 @@
 #include <assert.h>
 
-#include "ds/timer.h"
-#include "ds/heap.h"
+#include "core/heap.h"
 #include "util/util_time.h"
+#include "timer.h"
 
 typedef struct timer_node_t
 {

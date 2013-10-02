@@ -1,4 +1,4 @@
-#include "core/thread.h"
+#include "thread.h"
 
 void* thread_lock_alloc()
 {

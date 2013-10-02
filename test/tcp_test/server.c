@@ -1,5 +1,5 @@
 #include "tcp_test.h"
-#include "ds/idtable.h"
+#include "core/idtable.h"
 
 int stop_flag;
 struct reactor_t* r;

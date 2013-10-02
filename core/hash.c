@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <string.h>
-#include "ds/hash.h"
+#include "hash.h"
 
 typedef struct hash_node_t
 {

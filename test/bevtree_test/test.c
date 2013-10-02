@@ -3,7 +3,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <core/os_def.h>
-#include <ds/bevtree.h>
+#include <core/bevtree.h>
 
 #define TEST_LOOP 300000
 

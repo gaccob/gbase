@@ -3,8 +3,8 @@
 #include <assert.h>
 #include "core/os_def.h"
 #include "util/base64.h"
-#include "ds/sha1.h"
-#include "ds/conhash.h"
+#include "util/sha1.h"
+#include "core/conhash.h"
 
 int32_t test_base64()
 {
