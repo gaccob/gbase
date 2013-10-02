@@ -216,7 +216,7 @@ websocket handshake for flash
         WebSocket-Origin: http://www.xx.com
         WebSocket-Location: ws://www.xx.com/ls
 */
-int32_t _wsconn_proc_flash_req(struct wsconn_t* con, struct wsconn_request_t* request)
+int32_t _wsconn_proc_flash_req(wsconn_t* con, struct wsconn_request_t* request)
 {
     char res[WS_HANDSHAKE_MAX_SIZE];
     int32_t nwrite, nres;
@@ -252,7 +252,7 @@ websocket handshake for version > 13: sha1 + base64 encrypt
         Connection: Upgrade
         Sec-WebSocket-Accept: mLDKNeBNWz6T9SxU+o0Fy/HgeSw=
 */
-int32_t _wsconn_proc_sha1_req(struct wsconn_t* con, struct wsconn_request_t* request)
+int32_t _wsconn_proc_sha1_req(wsconn_t* con, struct wsconn_request_t* request)
 {
     char res[WS_HANDSHAKE_MAX_SIZE];
     char key[64], sha[128], base64_code[128];
@@ -296,7 +296,7 @@ websocket handshake for no version: md5 encrypt
         Sec-WebSocket-Protocol: sample
         8jKS’y:G*Co,Wxa-
 */
-int32_t _wsconn_proc_md5_req(struct wsconn_t* con, struct wsconn_request_t* request)
+int32_t _wsconn_proc_md5_req(wsconn_t* con, struct wsconn_request_t* request)
 {
     uint8_t chrkey1[4];
     uint8_t chrkey2[4];
@@ -339,7 +339,7 @@ int32_t _wsconn_proc_md5_req(struct wsconn_t* con, struct wsconn_request_t* requ
 
 // return processed bytes
 // return < 0 means processed fail, reactor will close connection
-int32_t _wsconn_handshake(struct wsconn_t* con, char* data, int32_t sz)
+int32_t _wsconn_handshake(wsconn_t* con, char* data, int32_t sz)
 {
     wsconn_request_t request;
     int32_t ret;
@@ -417,7 +417,7 @@ typedef struct wsconn_frame_t
 */
 // return processed bytes
 // return < 0 means fail, reactor will close connection
-int32_t _wsconn_frame(struct wsconn_t* con, char* data, int32_t sz)
+int32_t _wsconn_frame(wsconn_t* con, char* data, int32_t sz)
 {
     int32_t i, res, nread;
     char* buffer;
@@ -515,7 +515,7 @@ int32_t _wsconn_read(struct handler_t* h)
 {
     char* buffer;
     int32_t nread, nwrite, res;
-    struct wsconn_t* con = (struct wsconn_t*)h;
+    wsconn_t* con = (wsconn_t*)h;
 
     nwrite = connbuffer_write_len(con->read_buf);
     assert(nwrite >= 0);
@@ -572,7 +572,7 @@ int32_t _wsconn_write(struct handler_t* h)
 {
     char* buffer;
     int32_t nwrite, res;
-    struct wsconn_t* con = (struct wsconn_t*)h;
+    wsconn_t* con = (wsconn_t*)h;
 
     nwrite = connbuffer_read_len(con->write_buf);
     if (nwrite <= 0)
@@ -599,7 +599,7 @@ int32_t _wsconn_write(struct handler_t* h)
 
 int32_t _wsconn_close(struct handler_t* h)
 {
-    struct wsconn_t* con = (struct wsconn_t*)h;
+    wsconn_t* con = (wsconn_t*)h;
 #if 0 
     int8_t finish_data[4];
     finish_data[0] = 0x08;
@@ -615,7 +615,7 @@ int32_t _wsconn_close(struct handler_t* h)
     return 0;
 }
 
-struct wsconn_t* wsconn_init(struct reactor_t* r,
+wsconn_t* wsconn_init(struct reactor_t* r,
                              wsconn_build_func build_cb,
                              wsconn_read_func read_cb,
                              wsconn_close_func close_cb,
@@ -624,9 +624,9 @@ struct wsconn_t* wsconn_init(struct reactor_t* r,
                              struct connbuffer_t* write_buf,
                              int32_t fd)
 {
-    struct wsconn_t* con;
+    wsconn_t* con;
     if (!r || fd < 0 || !read_buf || !write_buf) return NULL;
-    con = (struct wsconn_t*)MALLOC(sizeof(struct wsconn_t));
+    con = (wsconn_t*)MALLOC(sizeof(wsconn_t));
     if (!con) return NULL;
     con->h.fd = fd;
     con->h.in_func = _wsconn_read;
@@ -643,7 +643,7 @@ struct wsconn_t* wsconn_init(struct reactor_t* r,
     return con;
 }
 
-int32_t wsconn_release(struct wsconn_t* con)
+int32_t wsconn_release(wsconn_t* con)
 {
     if (con) {
         wsconn_stop(con);
@@ -652,13 +652,13 @@ int32_t wsconn_release(struct wsconn_t* con)
     return 0;
 }
 
-int32_t wsconn_fd(struct wsconn_t* con)
+int32_t wsconn_fd(wsconn_t* con)
 {
     if (con) return con->h.fd;
     return -1;
 }
 
-int32_t wsconn_start(struct wsconn_t* con)
+int32_t wsconn_start(wsconn_t* con)
 {
     if (!con || con->h.fd < 0) return -1;
     sock_set_nonblock(con->h.fd);
@@ -668,7 +668,7 @@ int32_t wsconn_start(struct wsconn_t* con)
 
 // return = 0 success
 // return < 0, fail maybe full
-int32_t wsconn_send(struct wsconn_t* con, const char* buffer, int32_t buflen)
+int32_t wsconn_send(wsconn_t* con, const char* buffer, int32_t buflen)
 {
     int32_t nwrite;
     int8_t head, sz, c;
@@ -723,7 +723,7 @@ int32_t wsconn_send(struct wsconn_t* con, const char* buffer, int32_t buflen)
     return 0;
 }
 
-int32_t wsconn_stop(struct wsconn_t* con)
+int32_t wsconn_stop(wsconn_t* con)
 {
     if (!con || con->h.fd < 0) return -1;
     reactor_unregister(con->r, &con->h);
@@ -732,7 +732,7 @@ int32_t wsconn_stop(struct wsconn_t* con)
     return 0;
 }
 
-int32_t wsconn_established(struct wsconn_t* con)
+int32_t wsconn_established(wsconn_t* con)
 {
     if (con) return con->status == WS_ESTABLISHED ? 0 : -1;
     return -1;

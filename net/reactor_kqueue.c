@@ -12,7 +12,7 @@ typedef struct kqueue_t
     int kqueue_fd;
     struct kevent events[KQUEUE_SIZE];
     struct slist_t* expired;
-}kqueue_t;
+} kqueue_t;
 
 static const char* KQUEUE_NAME = "kqueue";
 
@@ -20,7 +20,7 @@ int kqueue_init(struct reactor_t* reactor)
 {
     if (!reactor || reactor->data) return -1;
 
-    struct kqueue_t* kq = (struct kqueue_t*)MALLOC(sizeof(struct kqueue_t));
+    kqueue_t* kq = (kqueue_t*)MALLOC(sizeof(kqueue_t));
     if (!kq) goto KQ_FAIL;
 
     kq->kqueue_fd = kqueue();
@@ -45,10 +45,10 @@ KQ_FAIL:
 int kqueue_register(struct reactor_t* reactor, struct handler_t* h, int events)
 {
     struct kevent ke_read, ke_write;
-    struct kqueue_t* kq;
+    kqueue_t* kq;
     if (!reactor || !reactor->data || !h) return -1;
 
-    kq = (struct kqueue_t*)reactor->data;
+    kq = (kqueue_t*)reactor->data;
     if (EVENT_IN & events)
         EV_SET(&ke_read, h->fd, EVFILT_READ, EV_ADD, 0, 0, h);
     else
@@ -64,11 +64,11 @@ int kqueue_register(struct reactor_t* reactor, struct handler_t* h, int events)
 
 int kqueue_unregister(struct reactor_t* reactor, struct handler_t* h)
 {
-    struct kqueue_t* kq;
+    kqueue_t* kq;
     struct kevent ke;
     if (!reactor || !reactor->data || !h) return -1;
 
-    kq = (struct kqueue_t*)reactor->data;
+    kq = (kqueue_t*)reactor->data;
     slist_push_front(kq->expired, h);
     EV_SET(&ke, h->fd, 0, EV_DELETE, 0, 0, h);
     return kevent(kq->kqueue_fd, &ke, 1, NULL, 0, NULL);
@@ -76,11 +76,11 @@ int kqueue_unregister(struct reactor_t* reactor, struct handler_t* h)
 
 int kqueue_modify(struct reactor_t* reactor, struct handler_t* h, int events)
 {
-    struct kqueue_t* kq;
+    kqueue_t* kq;
     struct kevent ke;
     if (!reactor || !reactor->data || !h) return -1;
 
-    kq = (struct kqueue_t*)reactor->data;
+    kq = (kqueue_t*)reactor->data;
     if (EVENT_OUT & events)
         EV_SET(&ke, h->fd, EVFILT_WRITE, EV_ENABLE, 0, 0, h);
     else
@@ -101,11 +101,11 @@ int kqueue_dispatch(struct reactor_t* reactor, int ms)
 {
     int res, i, type;
     struct handler_t* h;
-    struct kqueue_t* kq;
+    kqueue_t* kq;
     struct timespec ts;
     if (!reactor || !reactor->data) return -1;
 
-    kq = (struct kqueue_t*)(reactor->data);
+    kq = (kqueue_t*)(reactor->data);
     ts.tv_sec = ms / 1000;
     ts.tv_nsec = (ms % 1000) * 1000000;
     res = kevent(kq->kqueue_fd, NULL, 0, kq->events, KQUEUE_SIZE, &ts);
@@ -155,7 +155,7 @@ int kqueue_dispatch(struct reactor_t* reactor, int ms)
 void kqueue_release(struct reactor_t* reactor)
 {
     if (reactor && reactor->data) {
-        struct kqueue_t* kq = (struct kqueue_t*)(reactor->data);
+        kqueue_t* kq = (kqueue_t*)(reactor->data);
         slist_release(kq->expired);
         close(kq->kqueue_fd);
         kq->kqueue_fd = -1;

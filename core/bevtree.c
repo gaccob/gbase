@@ -7,6 +7,8 @@
 #include "core/os_def.h"
 #include "util/cjson.h"
 
+#define BVT_GLIFFY_SPLIT "|"
+
 enum bvt_tType
 {
     BVT_NODE_SELECTOR,
@@ -243,7 +245,7 @@ int32_t _bvt_run_action(bvt_t* n, bvt_callback_table* t, void* input)
     return ret;
 }
 
-void _bvt_release_node(struct bvt_t* n)
+void _bvt_release_node(bvt_t* n)
 {
     if (n) {
         if (n->child) {
@@ -266,7 +268,7 @@ void _bvt_release_node(struct bvt_t* n)
     }
 }
 
-void bvt_release(struct bvt_t* n)
+void bvt_release(bvt_t* n)
 {
     if (n) {
         if (n->cb_table) {
@@ -767,7 +769,7 @@ struct bvt_t* bvt_load_gliffy(const char* cfg)
     return root;
 }
 
-int32_t bvt_register_callback(struct bvt_t* n, bvt_callback cb, int32_t id)
+int32_t bvt_register_callback(bvt_t* n, bvt_callback cb, int32_t id)
 {
     if (!n || !cb || id < 0)
         return BVT_ERROR;
@@ -814,7 +816,7 @@ int32_t _bvt_run(bvt_t* n, bvt_callback_table* t, void* input)
     return BVT_ERROR;
 }
 
-int32_t bvt_run(struct bvt_t* n, void* input)
+int32_t bvt_run(bvt_t* n, void* input)
 {
     if (n) {
         return _bvt_run(n, n->cb_table, input);

@@ -1,6 +1,11 @@
 #ifndef OS_DEF_H_
 #define OS_DEF_H_
 
+//
+// define OS and some common types
+// now support WIN, LINUX, MAC
+//
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -91,27 +96,6 @@ extern "C" {
     typedef unsigned __int16  uint16_t;
     typedef unsigned __int32  uint32_t;
     typedef unsigned __int64  uint64_t;
-
-    #if !defined snprintf
-    #define snprintf _snprintf
-    #endif
-
-    #if !defined vsnprintf
-    #define vsnprintf _vsnprintf
-    #endif
-
-    inline int strcasecmp(const char *s1, const char *s2)
-    {
-       while  (toupper((unsigned char)*s1) == toupper((unsigned char)*s2++))
-           if (*s1++ == 0) return 0;
-       return(toupper((unsigned char)*s1) - toupper((unsigned char)*--s2));
-    }
-    inline int strncasecmp(const char *s1, const char *s2, register int n)
-    {
-      while (--n >= 0 && toupper((unsigned char)*s1) == toupper((unsigned char)*s2++))
-          if (*s1++ == 0)  return 0;
-      return(n < 0 ? 0 : toupper((unsigned char)*s1) - toupper((unsigned char)*--s2));
-    }
 
 #elif defined(OS_LINUX) || defined(OS_MAC)
     #include <arpa/inet.h>

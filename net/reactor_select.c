@@ -23,7 +23,7 @@ typedef struct select_t
     fd_set out_set;
     struct hash_t* handler_table;
     struct slist_t* expired;
-}select_t;
+} select_t;
 
 uint32_t _handle_hash(const void* data)
 {
@@ -38,12 +38,12 @@ int32_t _handle_cmp(const void* data1, const void* data2)
 #define SELECT_SIZE (sizeof(fd_set)  * 8)
 int select_init(struct reactor_t* reactor)
 {
-    struct select_t* s;
+    select_t* s;
     if (!reactor || reactor->data) goto SELECT_FAIL;
 
-    s = (struct select_t*)MALLOC(sizeof(struct select_t));
+    s = (select_t*)MALLOC(sizeof(select_t));
     if (!s) goto SELECT_FAIL;
-    memset(s, 0, sizeof(struct select_t));
+    memset(s, 0, sizeof(select_t));
 
     s->handler_table = hash_init(_handle_hash, _handle_cmp, SELECT_SIZE * 3);
     if (!s->handler_table) goto SELECT_FAIL1;
@@ -66,14 +66,14 @@ SELECT_FAIL:
 
 int select_register(struct reactor_t* reactor, struct handler_t* h, int events)
 {
-    struct select_t* s;
+    select_t* s;
     if (!reactor || !reactor->data || !h || h->fd < 0) return -1;
 
     // exceeds fd max
     if (h->fd > (int)sizeof(fd_set)  * 8) return -1;
 
     // add handle fd
-    s = (struct select_t*)reactor->data;
+    s = (select_t*)reactor->data;
     if (s->nfds < (int)h->fd)
         s->nfds = h->fd;
     if (EVENT_IN & events)
@@ -88,10 +88,10 @@ int select_register(struct reactor_t* reactor, struct handler_t* h, int events)
 
 int select_unregister(struct reactor_t* reactor, struct handler_t* h)
 {
-    struct select_t* s;
+    select_t* s;
     if (!reactor || !reactor->data || !h) return -1;
 
-    s = (struct select_t*)reactor->data;
+    s = (select_t*)reactor->data;
     FD_CLR(h->fd, &s->in_prepare);
     FD_CLR(h->fd, &s->out_prepare);
     hash_remove(s->handler_table, h);
@@ -101,10 +101,10 @@ int select_unregister(struct reactor_t* reactor, struct handler_t* h)
 
 int select_modify(struct reactor_t* reactor, struct handler_t* h, int events)
 {
-    struct select_t* s;
+    select_t* s;
     if (!reactor || !reactor->data || !h) return -1;
 
-    s = (struct select_t*)reactor->data;
+    s = (select_t*)reactor->data;
     if (EVENT_IN & events)
         FD_SET(h->fd, &s->in_prepare);
     if (EVENT_OUT & events)
@@ -114,7 +114,7 @@ int select_modify(struct reactor_t* reactor, struct handler_t* h, int events)
     return 0;
 }
 
-void _select_callback(struct select_t* s, int fd, int events)
+void _select_callback(select_t* s, int fd, int events)
 {
     int res;
     struct handler_t tmp;
@@ -149,12 +149,12 @@ void _select_callback(struct select_t* s, int fd, int events)
 int select_dispatch(struct reactor_t* reactor, int ms)
 {
     int i, j, res;
-    struct select_t* s;
+    select_t* s;
     struct timeval tv;
     if (!reactor || !reactor->data) return -1;
 
     // select
-    s = (struct select_t*)reactor->data;
+    s = (select_t*)reactor->data;
     memcpy(&s->in_set, &s->in_prepare, sizeof(fd_set));
     memcpy(&s->out_set, &s->out_prepare, sizeof(fd_set));
     tv.tv_sec = ms / 1000;
@@ -184,9 +184,9 @@ int select_dispatch(struct reactor_t* reactor, int ms)
 
 void select_release(struct reactor_t* reactor)
 {
-    struct select_t* s;
+    select_t* s;
     if (reactor && reactor->data) {
-        s = (struct select_t*)reactor->data;
+        s = (select_t*)reactor->data;
         hash_release(s->handler_table);
         FREE(s);
         reactor->data = 0;

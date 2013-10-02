@@ -14,7 +14,7 @@ int32_t _connector_read(struct handler_t* h)
 {
     char* buffer;
     int32_t nread, nwrite, res;
-    struct connector_t* con = (struct connector_t*)h;
+    connector_t* con = (connector_t*)h;
 
     nwrite = connbuffer_write_len(con->read_buf);
     assert(nwrite >= 0);
@@ -61,7 +61,7 @@ int32_t _connector_write(struct handler_t* h)
 {
     char* buffer;
     int32_t nwrite, res;
-    struct connector_t* con = (struct connector_t*)h;
+    connector_t* con = (connector_t*)h;
 
     nwrite = connbuffer_read_len(con->write_buf);
     if (nwrite <= 0) return 0;
@@ -88,24 +88,24 @@ int32_t _connector_write(struct handler_t* h)
 
 int32_t _connector_close(struct handler_t* h)
 {
-    struct connector_t* con = (struct connector_t*)h;
+    connector_t* con = (connector_t*)h;
     if (con->close_cb) {
         con->close_cb(con->h.fd);
     }
     return 0;
 }
 
-struct connector_t* connector_init(struct reactor_t* r,
+connector_t* connector_init(struct reactor_t* r,
                                    connector_read_func read_cb,
                                    connector_close_func close_cb,
                                    struct connbuffer_t* read_buf,
                                    struct connbuffer_t* write_buf,
                                    int32_t fd)
 {
-    struct connector_t* con;
+    connector_t* con;
     if (!r || !read_buf || !write_buf || fd < 0) return NULL;
 
-    con = (struct connector_t*)MALLOC(sizeof(struct connector_t));
+    con = (connector_t*)MALLOC(sizeof(connector_t));
     if (!con) return NULL;
     con->h.fd = fd;
     con->h.in_func = _connector_read;
@@ -119,7 +119,7 @@ struct connector_t* connector_init(struct reactor_t* r,
     return con;
 }
 
-int32_t connector_release(struct connector_t* con)
+int32_t connector_release(connector_t* con)
 {
     if (con) {
         connector_stop(con);
@@ -128,13 +128,13 @@ int32_t connector_release(struct connector_t* con)
     return 0;
 }
 
-int32_t connector_fd(struct connector_t* con)
+int32_t connector_fd(connector_t* con)
 {
     if (con) return con->h.fd;
     return -1;
 }
 
-int32_t connector_start(struct connector_t* con)
+int32_t connector_start(connector_t* con)
 {
     if (!con || con->h.fd < 0) return -1;
     sock_set_nonblock(con->h.fd);
@@ -144,7 +144,7 @@ int32_t connector_start(struct connector_t* con)
 
 //  return = 0 success
 //  return < 0, fail, maybe full
-int32_t connector_send(struct connector_t* con, const char* buffer, int32_t buflen)
+int32_t connector_send(connector_t* con, const char* buffer, int32_t buflen)
 {
     int32_t nwrite;
     if (!con || !buffer || buflen < 0) return -1;
@@ -156,7 +156,7 @@ int32_t connector_send(struct connector_t* con, const char* buffer, int32_t bufl
     return 0;
 }
 
-int32_t connector_stop(struct connector_t* con)
+int32_t connector_stop(connector_t* con)
 {
     if (!con || con->h.fd < 0) return -1;
     reactor_unregister(con->r, &con->h);

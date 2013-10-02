@@ -1,6 +1,11 @@
 #ifndef RBTREE_H_
 #define RBTREE_H_
 
+//
+// it's a red-black tree (like a hash table)
+// not key-value
+//
+
 #ifdef __cplusplus
 extern "C" {
 #endif

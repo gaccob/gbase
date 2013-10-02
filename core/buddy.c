@@ -40,10 +40,10 @@ typedef struct buddy_t
 
 #define BUDDY_MIN_SIZE 4
 
-struct buddy_t* buddy_init(size_t size, size_t min_alloc_size)
+buddy_t* buddy_init(size_t size, size_t min_alloc_size)
 {
     size_t real_size, real_min_size;
-    struct buddy_t* buddy;
+    buddy_t* buddy;
     int index;
 
     if (min_alloc_size < BUDDY_MIN_SIZE) {
@@ -58,7 +58,7 @@ struct buddy_t* buddy_init(size_t size, size_t min_alloc_size)
         goto BUDDY_FAIL;
     }
 
-    buddy = (struct buddy_t*)MALLOC(sizeof(buddy_t));
+    buddy = (buddy_t*)MALLOC(sizeof(buddy_t));
     if (!buddy) {
         goto BUDDY_FAIL;
     }
@@ -96,7 +96,7 @@ BUDDY_FAIL:
     return NULL;
 }
 
-int buddy_release(struct buddy_t* buddy)
+int buddy_release(buddy_t* buddy)
 {
     if (buddy) {
         FREE(buddy->tree);
@@ -106,7 +106,7 @@ int buddy_release(struct buddy_t* buddy)
     return 0;
 }
 
-void* buddy_realloc(struct buddy_t* buddy, void* mem, size_t nbytes)
+void* buddy_realloc(buddy_t* buddy, void* mem, size_t nbytes)
 {
     int offset, index, step, current;
     size_t mem_size;
@@ -153,7 +153,7 @@ void* buddy_realloc(struct buddy_t* buddy, void* mem, size_t nbytes)
     return new_mem;
 }
 
-void* buddy_alloc(struct buddy_t* buddy, size_t nbytes)
+void* buddy_alloc(buddy_t* buddy, size_t nbytes)
 {
     size_t malloc_size, mem_size;
     char* mem;
@@ -238,7 +238,7 @@ void* buddy_alloc(struct buddy_t* buddy, size_t nbytes)
     return NULL;
 }
 
-void buddy_free(struct buddy_t* buddy, void* mem)
+void buddy_free(buddy_t* buddy, void* mem)
 {
     int offset, index, step, current, loop, left, right;
     if (!mem || !buddy) {
@@ -297,7 +297,7 @@ void buddy_free(struct buddy_t* buddy, void* mem)
     }
 }
 
-void _buddy_debug_unit(struct buddy_t* buddy, int index)
+void _buddy_debug_unit(buddy_t* buddy, int index)
 {
     int shift, size;
     assert(buddy);
@@ -331,7 +331,7 @@ void _buddy_debug_unit(struct buddy_t* buddy, int index)
     }
 }
 
-void buddy_debug(struct buddy_t* buddy)
+void buddy_debug(buddy_t* buddy)
 {
     if (!buddy)  return;
     _buddy_debug_unit(buddy, 1);

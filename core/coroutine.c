@@ -12,29 +12,29 @@
 #define CRT_DEFAULT_SIZE 16
 
 struct crt_unit_t;
-struct crt_t {
+typedef struct crt_t {
     char stack[CRT_STACK_SIZE];
     ucontext_t main;
     int current;
     int capacity;
     int count;
     struct crt_unit_t** units;
-};
+} crt_t;
 
 struct crt_unit_t {
     crt_func_t func;
     void* arg;
     ucontext_t ctx;
-    struct crt_t* crt;
+    crt_t* crt;
     ptrdiff_t capacity;
     ptrdiff_t size;
     int status;
     char* stack;
-};
+} crt_unit_t;
 
-struct crt_unit_t* _crt_unit_init(struct crt_t* c, crt_func_t func, void* arg)
+crt_unit_t* _crt_unit_init(crt_t* c, crt_func_t func, void* arg)
 {
-    struct crt_unit_t* cu = (struct crt_unit_t*)MALLOC(sizeof(*cu));
+    crt_unit_t* cu = (crt_unit_t*)MALLOC(sizeof(*cu));
     assert(cu);
     cu->func = func;
     cu->arg = arg;
@@ -46,7 +46,7 @@ struct crt_unit_t* _crt_unit_init(struct crt_t* c, crt_func_t func, void* arg)
     return cu;
 }
 
-void _crt_unit_release(struct crt_unit_t* cu)
+void _crt_unit_release(crt_unit_t* cu)
 {
     if (cu) {
         if (cu->stack)
@@ -55,25 +55,25 @@ void _crt_unit_release(struct crt_unit_t* cu)
     }
 }
 
-struct crt_t* crt_init()
+crt_t* crt_init()
 {
-    struct crt_t* c = (struct crt_t*)MALLOC(sizeof(*c));
+    crt_t* c = (crt_t*)MALLOC(sizeof(*c));
     assert(c);
     c->count = 0;
     c->capacity = CRT_DEFAULT_SIZE;
     c->current = -1;
-    c->units = (struct crt_unit_t**)MALLOC(sizeof(struct crt_unit_t*) * c->capacity);
+    c->units = (crt_unit_t**)MALLOC(sizeof(crt_unit_t*) * c->capacity);
     assert(c->units);
-    memset(c->units, 0, sizeof(struct crt_unit_t*) * c->capacity);
+    memset(c->units, 0, sizeof(crt_unit_t*) * c->capacity);
     return c;
 }
 
-void crt_release(struct crt_t* c)
+void crt_release(crt_t* c)
 {
     if (c) {
         int i;
         for (i = 0; i < c->capacity; ++ i) {
-            struct crt_unit_t* cu = c->units[i];
+            crt_unit_t* cu = c->units[i];
             if (cu) _crt_unit_release(cu);
         }
         FREE(c->units);
@@ -82,15 +82,15 @@ void crt_release(struct crt_t* c)
     }
 }
 
-int crt_new(struct crt_t* c, crt_func_t func, void* arg)
+int crt_new(crt_t* c, crt_func_t func, void* arg)
 {
-    struct crt_unit_t* cu = _crt_unit_init(c, func, arg);
+    crt_unit_t* cu = _crt_unit_init(c, func, arg);
     if (c->count >= c->capacity) {
         int id = c->capacity;
-        c->units = (struct crt_unit_t**)realloc(c->units,
-            c->capacity * 2 * sizeof(struct crt_unit_t*));
+        c->units = (crt_unit_t**)realloc(c->units,
+            c->capacity * 2 * sizeof(crt_unit_t*));
         assert(c->units);
-        memset(c->units + c->capacity, 0, c->capacity * sizeof(struct crt_unit_t*));
+        memset(c->units + c->capacity, 0, c->capacity * sizeof(crt_unit_t*));
         c->units[c->capacity] = cu;
         c->capacity *= 2;
         ++ c->count;
@@ -114,10 +114,10 @@ int crt_new(struct crt_t* c, crt_func_t func, void* arg)
 static void _crt_main(uint32_t low32, uint32_t hi32)
 {
     uintptr_t ptr = (uintptr_t)low32 | ((uintptr_t)hi32 << 32);
-    struct crt_t* c = (struct crt_t*)ptr;
+    crt_t* c = (crt_t*)ptr;
     int id = c->current;
     assert(id >= 0 && id < c->capacity);
-    struct crt_unit_t* cu = c->units[id];
+    crt_unit_t* cu = c->units[id];
     cu->func(c, cu->arg);
 
     _crt_unit_release(cu);
@@ -126,10 +126,10 @@ static void _crt_main(uint32_t low32, uint32_t hi32)
     c->current = CRT_INVALID_ID;
 }
 
-void crt_resume(struct crt_t* c, int id)
+void crt_resume(crt_t* c, int id)
 {
     assert(c && c->current < 0 && id >= 0 && id < c->capacity);
-    struct crt_unit_t* cu = c->units[id];
+    crt_unit_t* cu = c->units[id];
     if (!cu) return;
 
     switch (cu->status) {
@@ -174,7 +174,7 @@ void crt_resume(struct crt_t* c, int id)
 //      |                     |
 //      -----------------------  <-- stack bottom, c->stack
 //
-void _crt_save_stack(struct crt_unit_t* cu, char* top)
+void _crt_save_stack(crt_unit_t* cu, char* top)
 {
     char dummy = 0;
     if (cu->capacity < top - &dummy) {
@@ -186,12 +186,12 @@ void _crt_save_stack(struct crt_unit_t* cu, char* top)
     memcpy(cu->stack, &dummy, cu->size);
 }
 
-void crt_yield(struct crt_t* c)
+void crt_yield(crt_t* c)
 {
     assert(c);
     int id = c->current;
     assert(id >= 0);
-    struct crt_unit_t* cu = c->units[id];
+    crt_unit_t* cu = c->units[id];
 
     // &cu: it's an address on current stack
     // make sure current stack still above c->stack(in CRT_STACK_SIZE range)
@@ -205,7 +205,7 @@ void crt_yield(struct crt_t* c)
     swapcontext(&cu->ctx, &c->main);
 }
 
-int crt_status(struct crt_t* c, int id)
+int crt_status(crt_t* c, int id)
 {
     assert(id >= 0 && id < c->capacity);
     if (c->units[id] == NULL)
@@ -213,7 +213,7 @@ int crt_status(struct crt_t* c, int id)
     return c->units[id]->status;
 }
 
-int crt_current(struct crt_t* c)
+int crt_current(crt_t* c)
 {
     assert(c);
     return c->current;

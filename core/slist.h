@@ -1,6 +1,10 @@
 #ifndef SLIST_H_
 #define SLIST_H_
 
+//
+// easy single list
+//
+
 #ifdef __cplusplus
 extern "C" {
 #endif

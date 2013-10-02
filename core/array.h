@@ -1,5 +1,6 @@
 //
-// nearly same as single list
+// nearly same as single list, but only fixed size
+// so, it's an array not list
 //
 #ifndef ARRAY_H_
 #define ARRAY_H_

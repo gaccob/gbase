@@ -10,7 +10,7 @@ typedef struct heap_node_t
 
 typedef struct heap_t
 {
-    struct heap_node_t* array;
+    heap_node_t* array;
     size_t size;
     size_t count;
     heap_cmp cmp_func;
@@ -24,16 +24,16 @@ typedef struct heap_t
 #define HEAP_LEFT_CHILD(pos) (((pos) << 1) + 1)
 #define HEAP_RIGHT_CHILD(pos) (((pos) << 1) + 2)
 
-struct heap_t* heap_init(heap_cmp cmp)
+heap_t* heap_init(heap_cmp cmp)
 {
     size_t index;
-    struct heap_t* heap;
+    heap_t* heap;
 
-    heap = (struct heap_t*)MALLOC(sizeof(struct heap_t));
+    heap = (heap_t*)MALLOC(sizeof(heap_t));
     if (!heap) goto HEAP_FAIL;
 
     heap->size = HEAP_DEFAULT_SIZE;
-    heap->array = (struct heap_node_t*)MALLOC(sizeof(struct heap_node_t) * heap->size);
+    heap->array = (heap_node_t*)MALLOC(sizeof(heap_node_t) * heap->size);
     if (!heap->array) goto HEAP_FAIL1;
 
     heap->count = 0;
@@ -58,7 +58,7 @@ HEAP_FAIL:
     return NULL;
 }
 
-void heap_release(struct heap_t* heap)
+void heap_release(heap_t* heap)
 {
     if (heap) {
         FREE(heap->key_table);
@@ -67,7 +67,7 @@ void heap_release(struct heap_t* heap)
     }
 }
 
-void _heap_swap(struct heap_t* heap, int pos1, int pos2)
+void _heap_swap(heap_t* heap, int pos1, int pos2)
 {
     void* temp_data = heap->array[pos1].data;
     int temp_key = heap->array[pos1].heap_key;
@@ -83,19 +83,19 @@ void _heap_swap(struct heap_t* heap, int pos1, int pos2)
     heap->array[pos2].heap_key = temp_key;
 }
 
-int _heap_full(struct heap_t* heap)
+int _heap_full(heap_t* heap)
 {
     return (heap && heap->size == heap->count) ? 0: -1;
 }
 
-int _heap_realloc(struct heap_t* heap)
+int _heap_realloc(heap_t* heap)
 {
     size_t index, new_size;
-    struct heap_node_t* new_array;
+    heap_node_t* new_array;
     int* new_key_table;
 
     new_size = heap->size * 2;
-    new_array = (struct heap_node_t*)MALLOC(sizeof(struct heap_node_t) * new_size);
+    new_array = (heap_node_t*)MALLOC(sizeof(heap_node_t) * new_size);
     if (!new_array) return -1;
 
     new_key_table = (int*)MALLOC(sizeof(int) * new_size);
@@ -123,7 +123,7 @@ int _heap_realloc(struct heap_t* heap)
     return 0;
 }
 
-void _heap_set_next_key(struct heap_t* heap)
+void _heap_set_next_key(heap_t* heap)
 {
     int key;
     assert(heap);
@@ -140,7 +140,7 @@ void _heap_set_next_key(struct heap_t* heap)
     heap->next_key = heap->size;
 }
 
-void _heap_rotdown(struct heap_t* heap, int pos)
+void _heap_rotdown(heap_t* heap, int pos)
 {
     int pos_left, pos_right;
     if (!heap) return;
@@ -185,10 +185,10 @@ void _heap_rotdown(struct heap_t* heap, int pos)
 
 //  return >= 0, success, return key which used to erase data
 //  return < 0, fail
-int heap_insert(struct heap_t* heap, void* data)
+int heap_insert(heap_t* heap, void* data)
 {
     int pos, pos_up, res;
-    struct heap_node_t* node;
+    heap_node_t* node;
 
     if (!heap || !data) return -1;
 
@@ -221,7 +221,7 @@ int heap_insert(struct heap_t* heap, void* data)
     return res;
 }
 
-void* heap_erase(struct heap_t* heap, int key)
+void* heap_erase(heap_t* heap, int key)
 {
     int index;
     void* data;
@@ -250,7 +250,7 @@ void* heap_erase(struct heap_t* heap, int key)
     return data;
 }
 
-void heap_update(struct heap_t* heap, int key, void* data)
+void heap_update(heap_t* heap, int key, void* data)
 {
     int index;
     if (!heap || !data) return;
@@ -263,13 +263,13 @@ void heap_update(struct heap_t* heap, int key, void* data)
     _heap_rotdown(heap, index);
 }
 
-int heap_count(struct heap_t* heap)
+int heap_count(heap_t* heap)
 {
     if (!heap) return -1;
     return (int)heap->count;
 }
 
-void* heap_top(struct heap_t* heap)
+void* heap_top(heap_t* heap)
 {
     if (heap && heap->count > 0) {
         return heap->array[0].data;
@@ -277,7 +277,7 @@ void* heap_top(struct heap_t* heap)
     return NULL;
 }
 
-void* heap_pop(struct heap_t* heap)
+void* heap_pop(heap_t* heap)
 {
     void* res;
     if (!heap || 0 == heap->count) {
@@ -295,7 +295,7 @@ void* heap_pop(struct heap_t* heap)
 }
 
 #if 0
-void _heap_debug(struct heap_t* heap)
+void _heap_debug(heap_t* heap)
 {
     int i;
     printf("DEBUG: ");

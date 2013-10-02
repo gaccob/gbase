@@ -1,6 +1,11 @@
 #ifndef LIST_H_
 #define LIST_H_
 
+//
+// list_head from linux kernel
+// not support windows as no "offsetof" definition
+//
+
 #include "core/os_def.h"
 
 #if !defined OS_WIN

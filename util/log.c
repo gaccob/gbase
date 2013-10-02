@@ -28,12 +28,13 @@ typedef struct log_rotator_t
 
 typedef struct log_t
 {
-    struct log_rotator_t* rotator;
+    log_rotator_t* rotator;
     int log_level;
     char log_name[MAX_LOG_NAME_LEN];
 } log_t;
 
-int log_do_date_rotate(struct log_t* log)
+
+int log_do_date_rotate(log_t* log)
 {
     time_t now = time(NULL);
     assert(log);
@@ -49,7 +50,7 @@ int log_do_date_rotate(struct log_t* log)
     return 0;
 }
 
-int log_date_rotator_init(struct log_t* log)
+int log_date_rotator_init(log_t* log)
 {
     time_t now;
     struct tm now_tm;
@@ -87,16 +88,16 @@ int log_date_rotator_init(struct log_t* log)
 //  log rotate by date
 //  log_name: log file name
 //  args: when ELogRotator_Size, max file size
-struct log_t* log_init(int log_level, const char* log_name, int args)
+log_t* log_init(int log_level, const char* log_name, int args)
 {
-    struct log_t* log;
+    log_t* log;
     if (!log_name) return NULL;
-    log = (struct log_t*)MALLOC(sizeof(struct log_t));
+    log = (log_t*)MALLOC(sizeof(log_t));
     assert(log);
 
     log->log_level = log_level;
     snprintf(log->log_name, MAX_LOG_NAME_LEN, "%s", log_name);
-    log->rotator = (struct log_rotator_t*)MALLOC(sizeof(struct log_rotator_t));
+    log->rotator = (log_rotator_t*)MALLOC(sizeof(log_rotator_t));
     assert(log->rotator);
 
     if (log_date_rotator_init(log) < 0)
@@ -109,7 +110,7 @@ FAIL:
     return NULL;
 }
 
-int log_release(struct log_t* log)
+int log_release(log_t* log)
 {
     if (log) {
         FREE(log->rotator);
@@ -118,7 +119,7 @@ int log_release(struct log_t* log)
     return 0;
 }
 
-int log_write(struct log_t* log, int level, struct timeval* now,
+int log_write(log_t* log, int level, struct timeval* now,
               const char* file_name, int line_number,
               const char* function_name, char* fmt, ...)
 {
@@ -153,7 +154,7 @@ int log_write(struct log_t* log, int level, struct timeval* now,
     return 0;
 }
 
-int log_set_level(struct log_t* log, int log_level)
+int log_set_level(log_t* log, int log_level)
 {
     if (log) {
         log->log_level = log_level;

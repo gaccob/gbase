@@ -1,6 +1,10 @@
 #ifndef CONNBUFFER_H_
 #define CONNBUFFER_H_
 
+//
+// buffer for connection, read / write like pop / push
+//
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,7 +16,7 @@ struct connbuffer_t;
 typedef void* (*connbuffer_malloc)(size_t);
 typedef void (*connbuffer_free)(void*);
 
-// buffer_size hint: 4 * max pkg size 
+// buffer_size hint: 4 * max pkg size
 struct connbuffer_t* connbuffer_init(int buffer_size, connbuffer_malloc buffer_malloc, connbuffer_free buffer_free);
 int connbuffer_release(struct connbuffer_t* connbuffer);
 

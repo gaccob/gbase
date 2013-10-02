@@ -1,6 +1,10 @@
 #ifndef CON_HASH_H_
 #define CON_HASH_H_
 
+//
+// for consistant hash
+//
+
 #ifdef __cplusplus
 extern "C" {
 #endif

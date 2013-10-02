@@ -11,9 +11,9 @@ typedef struct rbuffer_t
     volatile atom_t write_pos;
 } rbuffer_t;
 
-struct rbuffer_t* rbuffer_init(uint32_t size)
+rbuffer_t* rbuffer_init(uint32_t size)
 {
-    struct rbuffer_t* r = (struct rbuffer_t*)MALLOC(sizeof(struct rbuffer_t));
+    rbuffer_t* r = (rbuffer_t*)MALLOC(sizeof(rbuffer_t));
     if (!r) {
         return NULL;
     }
@@ -32,7 +32,7 @@ struct rbuffer_t* rbuffer_init(uint32_t size)
     return r;
 }
 
-void rbuffer_release(struct rbuffer_t* r)
+void rbuffer_release(rbuffer_t* r)
 {
     if (r) {
         FREE(r->buffer);
@@ -40,7 +40,7 @@ void rbuffer_release(struct rbuffer_t* r)
     }
 }
 
-uint32_t rbuffer_read_bytes(struct rbuffer_t* r)
+uint32_t rbuffer_read_bytes(rbuffer_t* r)
 {
     uint32_t write_pos = r->write_pos;
     uint32_t read_pos = r->read_pos;
@@ -52,7 +52,7 @@ uint32_t rbuffer_read_bytes(struct rbuffer_t* r)
     return 0;
 }
 
-uint32_t rbuffer_write_bytes(struct rbuffer_t* r)
+uint32_t rbuffer_write_bytes(rbuffer_t* r)
 {
     uint32_t write_pos = r->write_pos;
     uint32_t read_pos = r->read_pos;
@@ -63,7 +63,7 @@ uint32_t rbuffer_write_bytes(struct rbuffer_t* r)
     return r->size - min_len - (write_pos - read_pos);
 }
 
-int rbuffer_read(struct rbuffer_t* r, char* buf, size_t* buf_size)
+int rbuffer_read(rbuffer_t* r, char* buf, size_t* buf_size)
 {
     int ret = rbuffer_peek(r, buf, buf_size);
     if (0 == ret) {
@@ -72,7 +72,7 @@ int rbuffer_read(struct rbuffer_t* r, char* buf, size_t* buf_size)
     return ret;
 }
 
-int rbuffer_peek(struct rbuffer_t* r, char* buf, size_t* buf_size)
+int rbuffer_peek(rbuffer_t* r, char* buf, size_t* buf_size)
 {
     uint32_t read_to_tail, least, read_to_tail_least, read_len, read_to_tail_bytes;
 
@@ -113,7 +113,7 @@ int rbuffer_peek(struct rbuffer_t* r, char* buf, size_t* buf_size)
     return 0;
 }
 
-int rbuffer_write(struct rbuffer_t* r, const char* buf, size_t buf_size)
+int rbuffer_write(rbuffer_t* r, const char* buf, size_t buf_size)
 {
     uint32_t len_size, nwrites, write_to_tail, min_len_size, write_to_tail_bytes;
     if (!r || !buf) return -1;

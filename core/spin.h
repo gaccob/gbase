@@ -1,6 +1,11 @@
 #ifndef SPIN_H_
 #define SPIN_H_
 
+//
+// spin lock type, unlike a mutex, it's running under user-level
+// reference: http://www.gaccob.com/?p=1053
+//
+
 #ifdef __cplusplus
 extern "C" {
 #endif

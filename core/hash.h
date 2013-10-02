@@ -1,6 +1,11 @@
 #ifndef HASH_H_
 #define HASH_H_
 
+//
+// it's a hash table (not key-value style, just a table)
+// with a jhash method
+//
+
 #ifdef __cplusplus
 extern "C" {
 #endif

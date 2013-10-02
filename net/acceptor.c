@@ -13,7 +13,7 @@ typedef struct acceptor_t
 //  return -1, means fail, reactor will remove & close acceptor
 int _acceptor_read(struct handler_t* h)
 {
-    struct acceptor_t* a = (struct acceptor_t*)h;
+    acceptor_t* a = (acceptor_t*)h;
     struct sockaddr addr;
     int new_fd = sock_accept(a->h.fd, &addr);
     if (new_fd < 0) return -1;
@@ -23,19 +23,19 @@ int _acceptor_read(struct handler_t* h)
 
 int _acceptor_close(struct handler_t* h)
 {
-    struct acceptor_t* a = (struct acceptor_t*)h;
+    acceptor_t* a = (acceptor_t*)h;
     if (a->close_cb) a->close_cb(a->h.fd);
     return acceptor_release(a);
 }
 
-struct acceptor_t* acceptor_init(struct reactor_t* r,
+acceptor_t* acceptor_init(struct reactor_t* r,
         acceptor_read_func read_cb,
         acceptor_close_func close_cb)
 {
-    struct acceptor_t* a;
+    acceptor_t* a;
     if (!r) return NULL;
 
-    a = (struct acceptor_t*)MALLOC(sizeof(struct acceptor_t));
+    a = (acceptor_t*)MALLOC(sizeof(acceptor_t));
     if (!a) return NULL;
     a->r = r;
     a->read_cb = read_cb;
@@ -47,14 +47,14 @@ struct acceptor_t* acceptor_init(struct reactor_t* r,
     return a;
 }
 
-int acceptor_release(struct acceptor_t* a)
+int acceptor_release(acceptor_t* a)
 {
     acceptor_stop(a);
     if (a) FREE(a);
     return 0;
 }
 
-int acceptor_start(struct acceptor_t* a, struct sockaddr* laddr)
+int acceptor_start(acceptor_t* a, struct sockaddr* laddr)
 {
     int res;
     if (!a || a->h.fd < 0) return -1;
@@ -66,7 +66,7 @@ int acceptor_start(struct acceptor_t* a, struct sockaddr* laddr)
     return 0;
 }
 
-int acceptor_stop(struct acceptor_t* a)
+int acceptor_stop(acceptor_t* a)
 {
     if (!a || a->h.fd < 0) return -1;
     reactor_unregister(a->r, &a->h);

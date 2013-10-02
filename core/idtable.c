@@ -16,17 +16,17 @@ typedef struct idtable_t
 
 #define IDTS_INVALID_ID -1
 
-struct idtable_t* idtable_init(int32_t max_count)
+idtable_t* idtable_init(int32_t max_count)
 {
-    struct idtable_t* table;
+    idtable_t* table;
     int32_t index;
 
     assert(max_count > 0);
-    table = (struct idtable_t*)MALLOC(sizeof(struct idtable_t));
+    table = (idtable_t*)MALLOC(sizeof(idtable_t));
     assert(table);
 
     table->count = max_count;
-    table->table = (struct idtable_item_t*)MALLOC(sizeof(struct idtable_item_t) * max_count);
+    table->table = (idtable_item_t*)MALLOC(sizeof(idtable_item_t) * max_count);
     assert(table->table);
     for (index = 0; index < max_count; index ++) {
         table->table[index].id = IDTS_INVALID_ID;
@@ -35,7 +35,7 @@ struct idtable_t* idtable_init(int32_t max_count)
     return table;
 }
 
-int32_t idtable_add(struct idtable_t* table, int32_t id, void* ptr)
+int32_t idtable_add(idtable_t* table, int32_t id, void* ptr)
 {
     int32_t i, index;
     assert(table && id >= 0 && ptr);
@@ -54,7 +54,7 @@ int32_t idtable_add(struct idtable_t* table, int32_t id, void* ptr)
     return -1;
 }
 
-void* idtable_get(struct idtable_t* table, int32_t id)
+void* idtable_get(idtable_t* table, int32_t id)
 {
     int32_t i, index;
     assert(table && id >= 0);
@@ -72,7 +72,7 @@ void* idtable_get(struct idtable_t* table, int32_t id)
     return NULL;
 }
 
-void idtable_remove(struct idtable_t* table, int32_t id)
+void idtable_remove(idtable_t* table, int32_t id)
 {
     int32_t index, i;
     assert(table && id >= 0);
@@ -92,7 +92,7 @@ void idtable_remove(struct idtable_t* table, int32_t id)
     } while(index != i);
 }
 
-void idtable_cleanup(struct idtable_t* table)
+void idtable_cleanup(idtable_t* table)
 {
     int32_t i;
     assert(table);
@@ -102,7 +102,7 @@ void idtable_cleanup(struct idtable_t* table)
     }
 }
 
-void idtable_release(struct idtable_t* table)
+void idtable_release(idtable_t* table)
 {
     if (table) {
         FREE(table->table);

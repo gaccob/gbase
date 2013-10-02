@@ -1,6 +1,11 @@
 #ifndef IDTABLE_H_
 #define IDTABLE_H_
 
+//
+// id-table, it looks likes an array, but with id as key
+// fix sized when init
+//
+
 #ifdef __cplusplus
 extern "C" {
 #endif

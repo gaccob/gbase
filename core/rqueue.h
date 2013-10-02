@@ -1,6 +1,11 @@
 #ifndef RQUEUE_H_
 #define RQUEUE_H_
 
+//
+// it's a ring queue
+// likes a ring buffer, it's also lock-free
+//
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -2,6 +2,10 @@
 #define THREAD_H_
 #pragma once
 
+//
+// multi thread uniform apis for different platform
+//
+
 #ifdef __cplusplus
 extern "C" {
 #endif

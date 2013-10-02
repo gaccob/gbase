@@ -1,6 +1,11 @@
 #ifndef RBUFFER_H_
 #define RBUFFER_H_
 
+//
+// it's a ring buffer, so don't need to do memmove
+// it's flag is atomic, so lock-free
+//
+
 #ifdef __cplusplus
 extern "C" {
 #endif

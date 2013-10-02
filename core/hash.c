@@ -6,7 +6,7 @@ typedef struct hash_node_t
 {
     void* m_data;
     struct hash_node_t* m_next;
-}hash_node_t;
+} hash_node_t;
 
 typedef struct hash_t
 {
@@ -14,17 +14,17 @@ typedef struct hash_t
     int32_t m_count;
     hash_func m_hash_func;
     cmp_func m_cmp_func;
-    struct hash_node_t** m_table;
-}hash_t;
+    hash_node_t** m_table;
+} hash_t;
 
-struct hash_t* hash_init(hash_func hash, cmp_func cmp, int32_t hint_size)
+hash_t* hash_init(hash_func hash, cmp_func cmp, int32_t hint_size)
 {
-    struct hash_t* htable;
+    hash_t* htable;
     if (!hash || !cmp || hint_size <= 0) {
         return NULL;
     }
 
-    htable = (struct hash_t*)MALLOC(sizeof(struct hash_t));
+    htable = (hash_t*)MALLOC(sizeof(hash_t));
     if (!htable) {
         goto HASH_FAIL;
     }
@@ -46,7 +46,7 @@ HASH_FAIL:
     return NULL;
 }
 
-int32_t hash_release(struct hash_t* htable)
+int32_t hash_release(hash_t* htable)
 {
     if (!htable) return -1;
     hash_clean(htable);
@@ -55,7 +55,7 @@ int32_t hash_release(struct hash_t* htable)
     return 0;
 }
 
-int32_t hash_clean(struct hash_t* htable)
+int32_t hash_clean(hash_t* htable)
 {
     int32_t i;
     hash_node_t* bak;
@@ -78,7 +78,7 @@ int32_t hash_clean(struct hash_t* htable)
     return 0;
 }
 
-void hash_loop(struct hash_t* htable, loop_func f, void* args)
+void hash_loop(hash_t* htable, loop_func f, void* args)
 {
     int32_t i;
     hash_node_t* node;
@@ -95,7 +95,7 @@ void hash_loop(struct hash_t* htable, loop_func f, void* args)
     }
 }
 
-int32_t hash_insert(struct hash_t* htable, void* data)
+int32_t hash_insert(hash_t* htable, void* data)
 {
     uint32_t hash_key, index;
     hash_node_t* node;
@@ -115,7 +115,7 @@ int32_t hash_insert(struct hash_t* htable, void* data)
         node = node->m_next;
     }
 
-    node = (hash_node_t*)MALLOC(sizeof(struct hash_node_t));
+    node = (hash_node_t*)MALLOC(sizeof(hash_node_t));
     if (!node) return -1;
     node->m_data = data;
     node->m_next = 0;
@@ -128,7 +128,7 @@ int32_t hash_insert(struct hash_t* htable, void* data)
     return 0;
 }
 
-int32_t hash_remove(struct hash_t* htable, void* data)
+int32_t hash_remove(hash_t* htable, void* data)
 {
     uint32_t hash_key, index;
     hash_node_t* node;
@@ -158,17 +158,17 @@ int32_t hash_remove(struct hash_t* htable, void* data)
     return -1;
 }
 
-int32_t hash_count(struct hash_t* htable)
+int32_t hash_count(hash_t* htable)
 {
     if (!htable) return -1;
     return htable->m_count;
 }
 
 
-void* hash_find(struct hash_t* htable, void* data)
+void* hash_find(hash_t* htable, void* data)
 {
     uint32_t hash_key;
-    struct hash_node_t* node;
+    hash_node_t* node;
 
     if (!htable || !data) return NULL;
     hash_key = htable->m_hash_func(data);

@@ -58,18 +58,18 @@ typedef struct rbtree_t
     rbtree_cmp cmp;
 } rbtree_t;
 
-struct rbtree_t* rbtree_init(rbtree_cmp cmp)
+rbtree_t* rbtree_init(rbtree_cmp cmp)
 {
-    struct rbtree_t* tree = (struct rbtree_t*)MALLOC(sizeof(struct rbtree_t));
+    rbtree_t* tree = (rbtree_t*)MALLOC(sizeof(rbtree_t));
     if (!tree) return NULL;
     tree->root = 0;
     tree->cmp = cmp;
     return tree;
 }
 
-struct rbtree_node_t* _rbtree_min_node(struct rbtree_node_t* node)
+rbtree_node_t* _rbtree_min_node(rbtree_node_t* node)
 {
-    struct rbtree_node_t* p;
+    rbtree_node_t* p;
     if (node) {
         p = node;
         while(p->left) {
@@ -80,9 +80,9 @@ struct rbtree_node_t* _rbtree_min_node(struct rbtree_node_t* node)
     return NULL;
 }
 
-struct rbtree_node_t* _rbtree_max_node(struct rbtree_node_t* node)
+rbtree_node_t* _rbtree_max_node(rbtree_node_t* node)
 {
-    struct rbtree_node_t* p;
+    rbtree_node_t* p;
     if (node) {
         p = node;
         while(p->right) {
@@ -93,9 +93,9 @@ struct rbtree_node_t* _rbtree_max_node(struct rbtree_node_t* node)
     return NULL;
 }
 
-struct rbtree_node_t* _rbtree_next_node(struct rbtree_node_t* node)
+rbtree_node_t* _rbtree_next_node(rbtree_node_t* node)
 {
-    struct rbtree_node_t *source, *dest;
+    rbtree_node_t *source, *dest;
     if (!node) return NULL;
 
     // min node of right child tree
@@ -112,9 +112,9 @@ struct rbtree_node_t* _rbtree_next_node(struct rbtree_node_t* node)
     return dest;
 }
 
-struct rbtree_node_t* _rbtree_prev_node(struct rbtree_node_t* node)
+rbtree_node_t* _rbtree_prev_node(rbtree_node_t* node)
 {
-    struct rbtree_node_t *source, *dest;
+    rbtree_node_t *source, *dest;
     if (!node) return NULL;
 
     // max node of left child tree
@@ -143,9 +143,9 @@ struct rbtree_node_t* _rbtree_prev_node(struct rbtree_node_t* node)
 *
 *   rotate x
 */
-void _rbtree_rotl(struct rbtree_t* tree, struct rbtree_node_t* node)
+void _rbtree_rotl(rbtree_t* tree, rbtree_node_t* node)
 {
-    struct rbtree_node_t *x, *y;
+    rbtree_node_t *x, *y;
     assert(tree && node);
 
     x = node;
@@ -180,9 +180,9 @@ void _rbtree_rotl(struct rbtree_t* tree, struct rbtree_node_t* node)
 *            a   b                   b    c
 * rotate y
 */
-void _rbtree_rotr(struct rbtree_t* tree, struct rbtree_node_t* node)
+void _rbtree_rotr(rbtree_t* tree, rbtree_node_t* node)
 {
-    struct rbtree_node_t *x, *y;
+    rbtree_node_t *x, *y;
     assert(tree && node);
 
     x = node->left;
@@ -209,9 +209,9 @@ void _rbtree_rotr(struct rbtree_t* tree, struct rbtree_node_t* node)
 }
 
 
-int _rbtree_insert_adjust(struct rbtree_t* tree, struct rbtree_node_t* node)
+int _rbtree_insert_adjust(rbtree_t* tree, rbtree_node_t* node)
 {
-    struct rbtree_node_t *y, *z;
+    rbtree_node_t *y, *z;
     if (!node || !tree) {
         return -1;
     }
@@ -276,14 +276,14 @@ int _rbtree_insert_adjust(struct rbtree_t* tree, struct rbtree_node_t* node)
 }
 
 
-int rbtree_insert(struct rbtree_t* tree, void* data)
+int rbtree_insert(rbtree_t* tree, void* data)
 {
-    struct rbtree_node_t* parent, *dest, *node;
+    rbtree_node_t* parent, *dest, *node;
     if (!tree || !data) return -1;
 
     // root node
     if (!tree->root) {
-        tree->root = (struct rbtree_node_t*)MALLOC(sizeof(struct rbtree_node_t));
+        tree->root = (rbtree_node_t*)MALLOC(sizeof(rbtree_node_t));
         if (!tree->root) return -1;
         tree->root->parent = 0;
         tree->root->left = 0;
@@ -309,7 +309,7 @@ int rbtree_insert(struct rbtree_t* tree, void* data)
     }
 
     // alloc new node
-    node = (struct rbtree_node_t*)MALLOC(sizeof(struct rbtree_node_t));
+    node = (rbtree_node_t*)MALLOC(sizeof(rbtree_node_t));
     if (!node) return -1;
     node->data = data;
     node->parent = dest;
@@ -329,8 +329,8 @@ int rbtree_insert(struct rbtree_t* tree, void* data)
     return _rbtree_insert_adjust(tree, node);
 }
 
-struct rbtree_node_t* _rbtree_find_node(struct rbtree_t* tree,
-                                        struct rbtree_node_t* node,
+rbtree_node_t* _rbtree_find_node(rbtree_t* tree,
+                                        rbtree_node_t* node,
                                         void* data)
 {
     int ret;
@@ -346,9 +346,9 @@ struct rbtree_node_t* _rbtree_find_node(struct rbtree_t* tree,
     }
 }
 
-void* rbtree_find(struct rbtree_t* tree, void* data)
+void* rbtree_find(rbtree_t* tree, void* data)
 {
-    struct rbtree_node_t* node;
+    rbtree_node_t* node;
     if (!tree || !data || !tree->root) return NULL;
 
     node = _rbtree_find_node(tree, tree->root, data);
@@ -358,9 +358,9 @@ void* rbtree_find(struct rbtree_t* tree, void* data)
     return NULL;
 }
 
-void _rbtree_delete_adjust(struct rbtree_t* tree, struct rbtree_node_t* node, struct rbtree_node_t* parent)
+void _rbtree_delete_adjust(rbtree_t* tree, rbtree_node_t* node, rbtree_node_t* parent)
 {
-    struct rbtree_node_t *x, *w;
+    rbtree_node_t *x, *w;
     assert(tree);
 
     x = node;
@@ -447,9 +447,9 @@ void _rbtree_delete_adjust(struct rbtree_t* tree, struct rbtree_node_t* node, st
     }
 }
 
-void _rbtree_delete_node(struct rbtree_t* tree, struct rbtree_node_t* node)
+void _rbtree_delete_node(rbtree_t* tree, rbtree_node_t* node)
 {
-    struct rbtree_node_t *p, *ch, *next;
+    rbtree_node_t *p, *ch, *next;
     if (!tree || !node) return;
 
     #if 0
@@ -574,9 +574,9 @@ void _rbtree_delete_node(struct rbtree_t* tree, struct rbtree_node_t* node)
     }
 }
 
-void* rbtree_delete(struct rbtree_t* tree, void* data)
+void* rbtree_delete(rbtree_t* tree, void* data)
 {
-    struct rbtree_node_t* node;
+    rbtree_node_t* node;
     void* res;
     if (!tree || !data || !tree->root) {
         return NULL;
@@ -590,7 +590,7 @@ void* rbtree_delete(struct rbtree_t* tree, void* data)
     return res;
 }
 
-void _rbtree_loop_node(struct rbtree_node_t* node, rbtree_func func)
+void _rbtree_loop_node(rbtree_node_t* node, rbtree_func func)
 {
     if (node) {
         if (node->left) {
@@ -603,7 +603,7 @@ void _rbtree_loop_node(struct rbtree_node_t* node, rbtree_func func)
     }
 }
 
-void rbtree_loop(struct rbtree_t* tree, rbtree_func func)
+void rbtree_loop(rbtree_t* tree, rbtree_func func)
 {
     if (!tree || !tree->root) {
         return;
@@ -611,7 +611,7 @@ void rbtree_loop(struct rbtree_t* tree, rbtree_func func)
     _rbtree_loop_node(tree->root, func);
 }
 
-void _rbtree_release_node(struct rbtree_node_t* node)
+void _rbtree_release_node(rbtree_node_t* node)
 {
     if (node) {
         if (node->left) {
@@ -625,7 +625,7 @@ void _rbtree_release_node(struct rbtree_node_t* node)
     }
 }
 
-void rbtree_release(struct rbtree_t* tree)
+void rbtree_release(rbtree_t* tree)
 {
     if (tree) {
         if (tree->root) {

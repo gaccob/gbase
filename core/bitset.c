@@ -9,11 +9,9 @@ typedef struct bit_t
 
 #define BIT_BYTES(len) ((((len) + 8 - 1) & ( ~ (8 - 1))) / 8)
 
-struct bit_t* bit_init(int size)
+bit_t* bit_init(int size)
 {
-    struct bit_t* bit;
-
-    bit = (struct bit_t*)MALLOC(sizeof(struct bit_t));
+    bit_t* bit = (bit_t*)MALLOC(sizeof(bit_t));
     if (!bit) goto BIT_FAIL;
 
     bit->bit_size = size;
@@ -29,7 +27,7 @@ BIT_FAIL:
     return NULL;
 }
 
-void bit_release(struct bit_t* bit)
+void bit_release(bit_t* bit)
 {
     if (bit) {
         FREE(bit->data);
@@ -37,7 +35,7 @@ void bit_release(struct bit_t* bit)
     }
 }
 
-void bit_set(struct bit_t* bit, int index)
+void bit_set(bit_t* bit, int index)
 {
     if (!bit || index < 0 || index >= bit->bit_size) {
         return;
@@ -45,7 +43,7 @@ void bit_set(struct bit_t* bit, int index)
     bit->data[index / 8] |= (1 << (index % 8));
 }
 
-void bit_reset(struct bit_t* bit, int index)
+void bit_reset(bit_t* bit, int index)
 {
     if (!bit || index < 0 || index >= bit->bit_size) {
         return;
@@ -53,7 +51,7 @@ void bit_reset(struct bit_t* bit, int index)
     bit->data[index / 8] &= (~(1 << (index % 8)));
 }
 
-int bit_isset(struct bit_t* bit, int index)
+int bit_isset(bit_t* bit, int index)
 {
     if (!bit || index < 0 || index >= bit->bit_size) {
         return -1;
@@ -61,7 +59,7 @@ int bit_isset(struct bit_t* bit, int index)
     return (bit->data[index / 8] & (1 << (index % 8))) ? 0 : -1;
 }
 
-int bit_count(struct bit_t* bit)
+int bit_count(bit_t* bit)
 {
     int index, sum = 0;
     static int count[16] = { 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4 };

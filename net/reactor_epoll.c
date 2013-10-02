@@ -19,7 +19,7 @@ static const char* EPOLL_NAME = "epoll";
 int epoll_init(struct reactor_t* reactor)
 {
     if (!reactor || reactor->data) return -1;
-    struct epoll_t* epoll = (struct epoll_t*)MALLOC(sizeof(*epoll));
+    epoll_t* epoll = (epoll_t*)MALLOC(sizeof(*epoll));
     if (!epoll) goto EPOLL_FAIL;
 
     epoll->epoll_fd = epoll_create(EPOLL_SIZE);
@@ -41,7 +41,7 @@ EPOLL_FAIL:
     return -1;
 }
 
-int _epoll_set(struct epoll_t* epoll, struct handler_t* h, int option, int events)
+int _epoll_set(epoll_t* epoll, struct handler_t* h, int option, int events)
 {
     struct epoll_event ep_event;
     if (!epoll || epoll->epoll_fd < 0 || !h) return -1;
@@ -61,13 +61,13 @@ int _epoll_set(struct epoll_t* epoll, struct handler_t* h, int option, int event
 int epoll_register(struct reactor_t* reactor, struct handler_t* h, int events)
 {
     if (!reactor || !reactor->data || !h) return -1;
-    return _epoll_set((struct epoll_t*)reactor->data, h, EPOLL_CTL_ADD, events);
+    return _epoll_set((epoll_t*)reactor->data, h, EPOLL_CTL_ADD, events);
 }
 
 int epoll_unregister(struct reactor_t* reactor, struct handler_t* h)
 {
     if (!reactor || !reactor->data || !h) return -1;
-    struct epoll_t* epoll = (struct epoll_t*)reactor->data;
+    epoll_t* epoll = (epoll_t*)reactor->data;
     // add to expire-list
     slist_push_front(epoll->expired, h);
     return _epoll_set(epoll, h, EPOLL_CTL_DEL, 0);
@@ -76,7 +76,7 @@ int epoll_unregister(struct reactor_t* reactor, struct handler_t* h)
 int epoll_modify(struct reactor_t* reactor, struct handler_t* h, int events)
 {
     if (!reactor || !reactor->data || !h) return -1;
-    return _epoll_set((struct epoll_t*)reactor->data, h, EPOLL_CTL_MOD, events);
+    return _epoll_set((epoll_t*)reactor->data, h, EPOLL_CTL_MOD, events);
 }
 
 //  return = 0, success & process
@@ -86,10 +86,10 @@ int epoll_dispatch(struct reactor_t* reactor, int ms)
 {
     int res, i, type;
     struct handler_t* h;
-    struct epoll_t* epoll;
+    epoll_t* epoll;
     if (!reactor || !reactor->data) return -1;
 
-    epoll = (struct epoll_t*)(reactor->data);
+    epoll = (epoll_t*)(reactor->data);
     res = epoll_wait(epoll->epoll_fd, epoll->events, EPOLL_SIZE, ms);
     if (res < 0) {
         if (EINTR != errno) return -errno;
@@ -136,7 +136,7 @@ int epoll_dispatch(struct reactor_t* reactor, int ms)
 void epoll_release(struct reactor_t* reactor)
 {
     if (reactor && reactor->data) {
-        struct epoll_t* epoll = (struct epoll_t*)(reactor->data);
+        epoll_t* epoll = (epoll_t*)(reactor->data);
         slist_release(epoll->expired);
         close(epoll->epoll_fd);
         epoll->epoll_fd = -1;

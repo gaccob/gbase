@@ -1,13 +1,16 @@
 #ifndef HEAP_H_
 #define HEAP_H_
 
+//
+// it's a minimum heap, grows automatic
+//
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "core/os_def.h"
 
-// minimum heap
 struct heap_t;
 typedef int (*heap_cmp)(void*, void*);
 

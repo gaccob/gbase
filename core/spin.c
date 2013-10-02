@@ -30,11 +30,11 @@ typedef struct spin_lock_t
     #else
         volatile LONG spin;
     #endif
-}spin_lock_t;
+} spin_lock_t;
 
-struct spin_lock_t* spin_init()
+spin_lock_t* spin_init()
 {
-    struct spin_lock_t* lock = (struct spin_lock_t*)MALLOC(sizeof(struct spin_lock_t));
+    spin_lock_t* lock = (spin_lock_t*)MALLOC(sizeof(spin_lock_t));
     if (!lock) return NULL;
 
 #if defined(SPIN_IMPL_INTLOCK)
@@ -48,7 +48,7 @@ struct spin_lock_t* spin_init()
     return lock;
 }
 
-void spin_release(struct spin_lock_t* lock)
+void spin_release(spin_lock_t* lock)
 {
     if (lock) {
     #if defined(SPIN_IMPL_PTHREAD)
@@ -60,7 +60,7 @@ void spin_release(struct spin_lock_t* lock)
     }
 }
 
-void spin_lock(struct spin_lock_t* lock)
+void spin_lock(spin_lock_t* lock)
 {
 #if defined(SPIN_IMPL_INTLOCK)
     while(InterlockedExchange(&lock->spin, 1)) {}
@@ -71,7 +71,7 @@ void spin_lock(struct spin_lock_t* lock)
 #endif
 }
 
-int spin_trylock(struct spin_lock_t* lock)
+int spin_trylock(spin_lock_t* lock)
 {
 #if defined(SPIN_IMPL_INTLOCK)
     return !InterlockedExchange(&lock->spin, 1);
@@ -82,7 +82,7 @@ int spin_trylock(struct spin_lock_t* lock)
 #endif
 }
 
-void spin_unlock(struct spin_lock_t* lock)
+void spin_unlock(spin_lock_t* lock)
 {
 #if defined(SPIN_IMPL_INTLOCK)
     InterlockedExchange(&lock->spin, 0);

@@ -31,7 +31,7 @@ int32_t _curl_pool_cmp(const void* data1, const void* data2)
 
 void _curl_loop_release_client(void* data, void* args)
 {
-    struct curl_pool_t* cp = (struct curl_pool_t*)(args);
+    curl_pool_t* cp = (curl_pool_t*)(args);
     struct curl_client_t* cc = (struct curl_client_t*)(data);
     if (cp && cc) {
         curl_multi_remove_handle(cp->mhandle, curl_client_handle(cc));
@@ -39,11 +39,11 @@ void _curl_loop_release_client(void* data, void* args)
     }
 }
 
-struct curl_pool_t* curl_pool_init()
+curl_pool_t* curl_pool_init()
 {
     int32_t i = 0;
     struct curl_client_t* cc = NULL;
-    struct curl_pool_t* cp = (struct curl_pool_t*)MALLOC(sizeof(*cp));
+    curl_pool_t* cp = (curl_pool_t*)MALLOC(sizeof(*cp));
     if (!cp) goto CURL_FAIL;
     memset(cp, 0, sizeof(*cp));
 
@@ -78,7 +78,7 @@ CURL_FAIL:
     return NULL;
 }
 
-struct curl_client_t* _curl_pool_client_alloc(struct curl_pool_t* cp)
+struct curl_client_t* _curl_pool_client_alloc(curl_pool_t* cp)
 {
     struct curl_client_t* cc = NULL;
     if (!cp || !cp->free_list) { return NULL; }
@@ -96,7 +96,7 @@ struct curl_client_t* _curl_pool_client_alloc(struct curl_pool_t* cp)
     return cc;
 }
 
-void _curl_pool_client_gc(struct curl_pool_t* cp,
+void _curl_pool_client_gc(curl_pool_t* cp,
                           struct curl_client_t* cc)
 {
     if (cp && cc && cp->free_list) {
@@ -106,7 +106,7 @@ void _curl_pool_client_gc(struct curl_pool_t* cp,
     }
 }
 
-void curl_pool_release(struct curl_pool_t* cp)
+void curl_pool_release(curl_pool_t* cp)
 {
     if (cp) {
         if (cp->free_list) {
@@ -124,7 +124,7 @@ void curl_pool_release(struct curl_pool_t* cp)
     }
 }
 
-int32_t curl_pool_add_get_req(struct curl_pool_t* cp, const char* req,
+int32_t curl_pool_add_get_req(curl_pool_t* cp, const char* req,
                               CURL_CALLBACK cb, void* args,
                               const char* cookie)
 {
@@ -152,7 +152,7 @@ int32_t curl_pool_add_get_req(struct curl_pool_t* cp, const char* req,
     return 0;
 }
 
-int32_t curl_pool_add_post_req(struct curl_pool_t* cp, const char* req,
+int32_t curl_pool_add_post_req(curl_pool_t* cp, const char* req,
                                const char* post, size_t post_len,
                                CURL_CALLBACK cb, void* args,
                                const char* cookie)
@@ -181,7 +181,7 @@ int32_t curl_pool_add_post_req(struct curl_pool_t* cp, const char* req,
     return 0;
 }
 
-void curl_pool_run(struct curl_pool_t* cp)
+void curl_pool_run(curl_pool_t* cp)
 {
     int32_t num = 0;
     CURLMsg* msg = NULL;
@@ -210,7 +210,7 @@ void curl_pool_run(struct curl_pool_t* cp)
     }
 }
 
-int32_t curl_pool_running_count(struct curl_pool_t* cp)
+int32_t curl_pool_running_count(curl_pool_t* cp)
 {
     return cp ? cp->running : 0;
 }

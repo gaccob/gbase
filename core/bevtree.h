@@ -1,15 +1,16 @@
 #ifndef BEVTREE_H_
 #define BEVTREE_H_
 
+//
+// a behavior tree relies on gliffy diagram
+// reference: http://www.gaccob.com/?p=1226
+//
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <stdint.h>
-
-#ifdef BVT_DEBUG
-#undef BVT_DEBUG
-#endif
 
 enum
 {
@@ -29,7 +30,6 @@ enum
     BVT_GLIFFY_ERROR = -111,
 };
 
-#define BVT_GLIFFY_SPLIT "|"
 
 // return BVT error code
 typedef int32_t (*bvt_callback)(void* input);

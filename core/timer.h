@@ -1,6 +1,10 @@
 #ifndef TIMER_H_
 #define TIMER_H_
 
+//
+// a timer manager relies on callback
+//
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -1,6 +1,12 @@
 #ifndef COROUTINE_H_
 #define COROUTINE_H_
 
+//
+// a simple coroutine monitor
+// copy stack while switch conext, so it's not fit for heavy context
+// now only works under linux (not for unix and mac)
+//
+
 #ifdef __cplusplus
 extern "C" {
 #endif

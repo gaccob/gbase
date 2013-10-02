@@ -18,7 +18,7 @@ typedef struct handler_t
     int (*in_func)(struct handler_t*);
     int (*out_func)(struct handler_t*);
     int (*close_func)(struct handler_t*);
-}handler_t;
+} handler_t;
 
 #define EVENT_IN 1
 #define EVENT_OUT 2
