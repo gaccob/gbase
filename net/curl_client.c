@@ -89,8 +89,9 @@ int32_t curl_client_init_post_req(curl_client_t* cc, const char* req,
     curl_easy_setopt(cc->handle, CURLOPT_WRITEFUNCTION, &curl_client_write_cb);
     curl_easy_setopt(cc->handle, CURLOPT_WRITEDATA, cc);
     curl_easy_setopt(cc->handle, CURLOPT_POST, 1);
-    curl_easy_setopt(cc->handle, CURLOPT_COPYPOSTFIELDS, post);
     curl_easy_setopt(cc->handle, CURLOPT_POSTFIELDSIZE, post_size);
+    curl_easy_setopt(cc->handle, CURLOPT_COPYPOSTFIELDS, post);
+
     // support https
     curl_easy_setopt(cc->handle, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(cc->handle, CURLOPT_SSL_VERIFYHOST, 0L);
