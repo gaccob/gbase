@@ -6,6 +6,44 @@
 #include "util/sha1.h"
 #include "core/conhash.h"
 
+#ifdef OS_LINUX
+#include "core/coroutine.h"
+void crt_func(struct crt_t* c, void* arg)
+{
+    int32_t index = *(int32_t*)(arg);
+    int32_t tick;
+    for (tick = 0; tick < 5; ++ tick)
+    {
+        printf("coroutine[%d] tick %d\n", crt_current(c), index + tick);
+        crt_yield(c);
+    }
+    printf("coroutine[%d] finish\n", crt_current(c));
+}
+
+int32_t test_coroutine()
+{
+    int i, j;
+    int c1, c2;
+    struct crt_t* c = crt_init();
+    assert(c);
+
+    i = 10;
+    c1 = crt_new(c, crt_func, &i);
+    assert(c1 >= 0);
+    j = 100;
+    c2 = crt_new(c, crt_func, &j);
+    assert(c2 >= 0);
+    
+    while (crt_status(c, c1) && crt_status(c, c2))
+    {
+        crt_resume(c, c1);
+        crt_resume(c, c2);
+    }
+    crt_release(c);
+    return 0;
+}
+#endif
+
 int32_t test_base64()
 {
     const char* const src = "Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure.";
@@ -105,6 +143,10 @@ int main()
     //test_base64();
     //test_ws();
     //test_conhash();
+
+#ifdef OS_LINUX
+    test_coroutine();
+#endif
     return 0;
 }
 

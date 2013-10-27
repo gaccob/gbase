@@ -13,8 +13,6 @@ extern "C" {
 
 #include "core/os_def.h"
 
-#ifdef OS_LINUX
-
 #define CRT_INVALID_ID -1
 
 #define CRT_DEAD 0
@@ -32,8 +30,6 @@ void crt_resume(struct crt_t*, int id);
 int crt_status(struct crt_t*, int id);
 int crt_current(struct crt_t*);
 void crt_yield(struct crt_t*);
-
-#endif
 
 #ifdef __cplusplus
 }

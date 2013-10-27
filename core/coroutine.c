@@ -1,12 +1,12 @@
-#ifdef OS_LINUX
-
-#include <ucontext.h>
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <stddef.h>
 #include "coroutine.h"
+
+#if defined(OS_LINUX)
+#include <ucontext.h>
 
 #define CRT_STACK_SIZE (1 << 20)
 #define CRT_DEFAULT_SIZE 16
@@ -21,7 +21,7 @@ typedef struct crt_t {
     struct crt_unit_t** units;
 } crt_t;
 
-struct crt_unit_t {
+typedef struct crt_unit_t {
     crt_func_t func;
     void* arg;
     ucontext_t ctx;
