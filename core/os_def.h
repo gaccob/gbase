@@ -205,6 +205,14 @@ extern "C" {
 #define FREE free
 #endif
 
+#if !defined REALLOC
+#define REALLOC realloc
+#endif
+
+#if !defined VALLOC
+#define VALLOC valloc
+#endif
+
 #ifdef __cplusplus
 }
 #endif

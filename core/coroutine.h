@@ -23,12 +23,13 @@ extern "C" {
 struct crt_t;
 typedef void (*crt_func_t)(struct crt_t*, void* arg);
 
-struct crt_t* crt_init();
+struct crt_t* crt_init(int crt_stack_size);
 void crt_release(struct crt_t*);
 int crt_new(struct crt_t*, crt_func_t, void* arg);
 void crt_resume(struct crt_t*, int id);
 int crt_status(struct crt_t*, int id);
 int crt_current(struct crt_t*);
+char* crt_current_stack_top(struct crt_t*);
 void crt_yield(struct crt_t*);
 
 #ifdef __cplusplus
