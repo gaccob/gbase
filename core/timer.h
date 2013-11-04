@@ -11,6 +11,8 @@ extern "C" {
 
 #include "core/os_def.h"
 
+#define TIMER_INVALID_ID -1
+
 //  return < 0 means to erase timer
 //  return >= 0 success, and if timer is continual, continue
 //  should nerver call timer_unregister in callback
@@ -23,6 +25,7 @@ void timer_release(struct heaptimer_t* timer);
 
 //  interval==NULL means once
 //  return registered timer id
+//  if fail, return TIMER_INVALID_ID
 int timer_register(struct heaptimer_t* timer, struct timeval* interval,
                    struct timeval* delay, timer_callback cb, void* args);
 

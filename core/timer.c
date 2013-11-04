@@ -55,12 +55,13 @@ void timer_release(heaptimer_t* timer)
 
 //  interval==NULL means once
 //  return registered timer id
+//  if fail, return TIMER_INVALID_ID
 int timer_register(heaptimer_t* timer, struct timeval* interval,
                    struct timeval* delay, timer_callback cb, void* args)
 {
     timer_node_t* node;
     struct timeval now;
-    if (!timer || !delay || !cb) return -1;
+    if (!timer || !delay || !cb) return TIMER_INVALID_ID;
 
     node = (timer_node_t*)MALLOC(sizeof(*node));
     node->args = args;
@@ -76,7 +77,7 @@ int timer_register(heaptimer_t* timer, struct timeval* interval,
     node->timer_id = heap_insert(timer->heap, node);
     if (node->timer_id < 0) {
         FREE(node);
-        return -1;
+        return TIMER_INVALID_ID;
     }
     return node->timer_id;
 }
