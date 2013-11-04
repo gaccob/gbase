@@ -42,11 +42,17 @@ int32_t t1_run(struct task_step_t* ts)
 void t2_notify(struct curl_client_t* cc, void* args)
 {
     struct task_step_t* ts = (struct task_step_t*)(args);
-    printf("task step[%x] asynchronous notify, complete\n", task_step_id(ts));
-
-    struct task_step_result_t* rt = task_step_result_init(TASK_RET_NEXT);
-    task_step_finish(ts, rt);
-    task_step_result_release(rt);
+    if (curl_client_err_code(cc) != CURLE_OK) {
+        printf("task step[%x] asynchronous notify, fail\n", task_step_id(ts));
+        struct task_step_result_t* rt = task_step_result_init(TASK_RET_FAIL);
+        task_step_finish(ts, rt);
+        task_step_result_release(rt);
+    } else {
+        printf("task step[%x] asynchronous notify, complete\n", task_step_id(ts));
+        struct task_step_result_t* rt = task_step_result_init(TASK_RET_NEXT);
+        task_step_finish(ts, rt);
+        task_step_result_release(rt);
+    }
 }
 
 int32_t t2_run(struct task_step_t* ts)
@@ -64,6 +70,12 @@ int32_t t2_run(struct task_step_t* ts)
 void t3_notify(struct curl_client_t* cc, void* args)
 {
     struct task_step_t* ts = (struct task_step_t*)(args);
+    if (curl_client_err_code(cc) != CURLE_OK) {
+        printf("task step[%x] asynchronous notify, fail\n", task_step_id(ts));
+        struct task_step_result_t* rt = task_step_result_init(TASK_RET_FAIL);
+        task_step_finish(ts, rt);
+        task_step_result_release(rt);
+    }
     printf("task step[%x] asynchronous notify, complete\n", task_step_id(ts));
 
     struct task_step_t* t1 = task_get_step(task_step_task(ts), id);
