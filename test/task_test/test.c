@@ -123,8 +123,8 @@ void on_fail(struct task_t* t, int timeout)
 
 // task: t1-t3 repeat twice
 // t1 -> t2 -> t3
-// ^           |
-// |-----------v
+//       ^      |
+//       |------v
 
 int main(int argc, char** argv)
 {
