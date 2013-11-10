@@ -4,6 +4,7 @@
 #include "core/os_def.h"
 #include "util/base64.h"
 #include "util/sha1.h"
+#include "util/random.h"
 #include "core/conhash.h"
 
 #ifdef OS_LINUX
@@ -154,15 +155,30 @@ int32_t test_conhash()
 }
 #endif
 
+void test_random()
+{
+    int32_t i;
+    uint32_t r;
+    rand_seed(time(NULL));
+    for (i = 0; i < 1000; ++ i) {
+        r = rand_gen();
+        printf("%u\t", r);
+        if (i % 8 == 0) printf("\n");
+    }
+}
+
 int main()
 {
-    //test_base64();
-    //test_ws();
-    //test_conhash();
+    // test_base64();
+    // test_ws();
+    // test_conhash();
 
 #ifdef OS_LINUX
-    test_coroutine();
+    // test_coroutine();
 #endif
+
+    test_random();
+
     return 0;
 }
 
