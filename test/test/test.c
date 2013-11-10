@@ -165,6 +165,21 @@ void test_random()
         printf("%u\t", r);
         if (i % 8 == 0) printf("\n");
     }
+    printf("\n\n");
+}
+
+void test_shuffle()
+{
+    rand_seed(time(NULL));
+    const size_t sz = 52;
+    int32_t cards[sz];
+    size_t i;
+    for (i = 0; i < sz; ++ i)
+        cards[i] = (int32_t)i;
+    rand_shuffle(cards, sz);
+    for (i = 0; i < sz; ++ i)
+        printf("%d ", cards[i]);
+    printf("\n");
 }
 
 int main()
@@ -178,6 +193,7 @@ int main()
 #endif
 
     test_random();
+    test_shuffle();
 
     return 0;
 }

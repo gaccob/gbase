@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
 #include "util/random.h"
 
 // Period parameters
@@ -62,5 +65,19 @@ uint32_t rand_gen()
     y ^= TEMPERING_SHIFT_T(y) & TEMPERING_MASK_C;
     y ^= TEMPERING_SHIFT_L(y);
     return y;
+}
+
+// shuffle card
+void rand_shuffle(int32_t* src, size_t sz)
+{
+    size_t i;
+    uint32_t index;
+    for (i = sz; i > 1; -- i) {
+        index = rand_gen() % sz;
+        // do swap
+        src[i - 1] ^= src[index];
+        src[index] ^= src[i - 1];
+        src[i - 1] ^= src[index];
+    }
 }
 
