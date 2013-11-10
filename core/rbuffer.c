@@ -5,27 +5,21 @@
 
 typedef struct rbuffer_t
 {
-    char* buffer;
     uint32_t size;
     volatile atom_t read_pos;
     volatile atom_t write_pos;
+    char buffer[0];
 } rbuffer_t;
 
 rbuffer_t* rbuffer_init(uint32_t size)
 {
-    rbuffer_t* r = (rbuffer_t*)MALLOC(sizeof(rbuffer_t));
-    if (!r) {
-        return NULL;
-    }
     // round up by 2^*
     if (size & (size - 1)) {
         size = ROUNDUP(size);
     }
-    r->buffer = (char*)MALLOC(size);
-    if (!r->buffer) {
-        FREE(r);
-        return NULL;
-    }
+
+    rbuffer_t* r = (rbuffer_t*)MALLOC(sizeof(rbuffer_t) + size);
+    if (!r) { return NULL; }
     r->size = size;
     atom_set(&r->read_pos, 0);
     atom_set(&r->write_pos, 0);
@@ -34,10 +28,7 @@ rbuffer_t* rbuffer_init(uint32_t size)
 
 void rbuffer_release(rbuffer_t* r)
 {
-    if (r) {
-        FREE(r->buffer);
-        FREE(r);
-    }
+    if (r) { FREE(r); }
 }
 
 uint32_t rbuffer_read_bytes(rbuffer_t* r)
