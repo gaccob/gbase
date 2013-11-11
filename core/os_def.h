@@ -76,6 +76,18 @@ extern "C" {
     #define ERR_EINPROGRESS WSAEINPROGRESS
 
     #define SLEEP(ms) Sleep(ms)
+	#define inline __inline
+
+	inline long getpagesize()
+	{
+        static long _pagesize = 0;
+        if (!_pagesize) {
+            SYSTEM_INFO si;
+            GetSystemInfo(&si);
+            _pagesize = si.dwPageSize;
+        }
+        return _pagesize;
+    }
 
     #include <io.h>
     #include <direct.h>
@@ -194,6 +206,15 @@ extern "C" {
 // get 2^n round-down
 #if !defined ROUNDDOWN
 #define ROUNDDOWN(n) (1 << (ILOG2(n)))
+#endif
+
+// round x up by y, y = 2^n
+#if !defined ROUNDUP2
+#define ROUNDUP2(X, Y) (((X) + ((Y) - 1)) & ~((Y) - 1))
+#endif
+// round y down by y, y = 2^n
+#ifndef ROUNDDOWN2
+#define ROUNDDOWN2(X, Y) ((X) & -(Y))
 #endif
 
 // check is power of 2
