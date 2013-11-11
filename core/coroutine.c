@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stddef.h>
-#include <unistd.h>
 #include "core/coroutine.h"
 #include "core/slist.h"
 

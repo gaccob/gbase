@@ -13,12 +13,15 @@ typedef struct rbuffer_t
 
 rbuffer_t* rbuffer_init(uint32_t size)
 {
+	rbuffer_t* r;
+
     // round up by 2^*
     if (size & (size - 1)) {
         size = ROUNDUP(size);
     }
 
-    rbuffer_t* r = (rbuffer_t*)MALLOC(sizeof(rbuffer_t) + size);
+	// malloc
+    r = (rbuffer_t*)MALLOC(sizeof(rbuffer_t) + size);
     if (!r) { return NULL; }
     r->size = size;
     atom_set(&r->read_pos, 0);

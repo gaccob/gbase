@@ -122,7 +122,8 @@ void task_step_finish(task_step_t* ts, task_step_result_t* rt)
                     ts->t->current = ts->t->current->prev;
                 }
             }
-            return _task_run(ts->t);
+            _task_run(ts->t);
+			return;
 
         // task complet fail
         default:
@@ -258,7 +259,7 @@ void task_run(task_t* t, struct heaptimer_t* timer, struct timeval* timeout)
         t->timer_id = timer_register(timer, NULL, timeout, _task_timeout, t);
         assert(t->timer_id != TIMER_INVALID_ID);
     }
-    return _task_run(t);
+    _task_run(t);
 }
 
 int _task_timeout(void* args)

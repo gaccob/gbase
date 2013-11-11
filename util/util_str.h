@@ -10,7 +10,7 @@ extern "C" {
 uint32_t util_str2int(const char* key);
 
 #define TOLOWER(c) (char)((c >= 'A' && c <= 'Z') ? (c | 0x20) : c)
-#define TOUPPER(c) (char)((c >= 'a' && c <= 'z') ? (C & ~0x20) : c)
+#define TOUPPER(c) (char)((c >= 'a' && c <= 'z') ? (c & ~0x20) : c)
 
 #if defined(OS_WIN)
 

@@ -97,6 +97,10 @@ extern "C" {
     typedef unsigned __int32  uint32_t;
     typedef unsigned __int64  uint64_t;
 
+	#define snprintf(buffer, size, fmt, ...) \
+		*(buffer + size - 1) = 0; \
+		_snprintf(buffer, size - 1, fmt, __VA_ARGS__);
+
 #elif defined(OS_LINUX) || defined(OS_MAC)
     #include <arpa/inet.h>
     #include <unistd.h>

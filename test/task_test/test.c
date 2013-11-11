@@ -24,13 +24,14 @@ void t1_data_release(void* data)
 
 int32_t t1_run(struct task_step_t* ts)
 {
-    struct t1_data_t* td = (t1_data_t*)MALLOC(sizeof(*td));
-    task_step_set_data(ts, td, t1_data_release);
+	struct t1_data_t* td;
+	void* arg;
 
-    void* arg = task_data(task_step_task(ts));
+    td = (t1_data_t*)MALLOC(sizeof(*td));
+    task_step_set_data(ts, td, t1_data_release);
+	arg = task_data(task_step_task(ts));
     assert(arg);
     td->result = *(int32_t*)arg;
-
     printf("task step[%x] run complete\n", task_step_id(ts));
     return TASK_RET_NEXT;
 }
@@ -42,14 +43,15 @@ int32_t t1_run(struct task_step_t* ts)
 void t2_notify(struct curl_client_t* cc, void* args)
 {
     struct task_step_t* ts = (struct task_step_t*)(args);
+	struct task_step_result_t* rt = NULL;
     if (curl_client_err_code(cc) != CURLE_OK) {
         printf("task step[%x] asynchronous notify, fail\n", task_step_id(ts));
-        struct task_step_result_t* rt = task_step_result_init(TASK_RET_FAIL);
+        rt = task_step_result_init(TASK_RET_FAIL);
         task_step_finish(ts, rt);
         task_step_result_release(rt);
     } else {
         printf("task step[%x] asynchronous notify, complete\n", task_step_id(ts));
-        struct task_step_result_t* rt = task_step_result_init(TASK_RET_NEXT);
+        rt = task_step_result_init(TASK_RET_NEXT);
         task_step_finish(ts, rt);
         task_step_result_release(rt);
     }
@@ -70,26 +72,30 @@ int32_t t2_run(struct task_step_t* ts)
 void t3_notify(struct curl_client_t* cc, void* args)
 {
     struct task_step_t* ts = (struct task_step_t*)(args);
+	struct task_step_result_t* rt = NULL;
+	struct task_step_t* t1 = NULL;
+	t1_data_t* td = NULL;
+
     if (curl_client_err_code(cc) != CURLE_OK) {
         printf("task step[%x] asynchronous notify, fail\n", task_step_id(ts));
-        struct task_step_result_t* rt = task_step_result_init(TASK_RET_FAIL);
+        rt = task_step_result_init(TASK_RET_FAIL);
         task_step_finish(ts, rt);
         task_step_result_release(rt);
     }
     printf("task step[%x] asynchronous notify, complete\n", task_step_id(ts));
 
-    struct task_step_t* t1 = task_get_step(task_step_task(ts), id);
+    t1 = task_get_step(task_step_task(ts), id);
     assert(t1);
-    t1_data_t* td = (t1_data_t*)task_step_data(t1);
+    td = (t1_data_t*)task_step_data(t1);
     td->result --;
     if (td->result > 0) {
         printf("need to loop %d times\n", td->result);
-        struct task_step_result_t* rt = task_step_result_init(TASK_RET_NEXT);
+        rt = task_step_result_init(TASK_RET_NEXT);
         task_step_result_set_backward(rt);
         task_step_finish(ts, rt);
         task_step_result_release(rt);
     } else {
-        struct task_step_result_t* rt = task_step_result_init(TASK_RET_SUCCESS);
+        rt = task_step_result_init(TASK_RET_SUCCESS);
         task_step_finish(ts, rt);
         task_step_result_release(rt);
     }
@@ -128,31 +134,36 @@ void on_fail(struct task_t* t, int timeout)
 
 int main(int argc, char** argv)
 {
+	struct heaptimer_t* timer;
+	struct task_t* t;
+	struct task_step_t* t1, *t2, *t3;
+	struct timeval timeout;
+	struct timeval tv;
+
     int32_t loop = argc > 1 ? atoi(argv[1]) : 3;
 
     cp = curl_pool_init();
     assert(cp);
 
-    struct heaptimer_t* timer = timer_init();
+    timer = timer_init();
     assert(timer);
 
-    struct task_t* t = task_init(on_success, on_fail, (void*)&loop);
+    t = task_init(on_success, on_fail, (void*)&loop);
     assert(t);
 
-    struct task_step_t* t1 = task_step_init(t1_run);
+    t1 = task_step_init(t1_run);
     assert(t1);
     task_push_back_step(t, t1);
     id = task_step_id(t1);
 
-    struct task_step_t* t2 = task_step_init(t2_run);
+    t2 = task_step_init(t2_run);
     assert(t2);
     task_push_back_step(t, t2);
 
-    struct task_step_t* t3 = task_step_init(t3_run);
+    t3 = task_step_init(t3_run);
     assert(t3);
     task_push_back_step(t, t3);
 
-    struct timeval timeout;
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;
     task_run(t, timer, &timeout);
@@ -162,7 +173,6 @@ int main(int argc, char** argv)
             curl_pool_run(cp);
         }
 
-        struct timeval tv;
         util_gettimeofday(&tv, NULL);
         timer_poll(timer, &tv);
 

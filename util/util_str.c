@@ -121,7 +121,7 @@ size_t util_uri_escape(char* dst, const char* src, size_t size, int32_t type)
     };
 
     uint32_t* escape;
-    size_t n = 0;;
+    size_t n = 0;
     static unsigned char hex[] = "0123456789abcdef";
 
     if (type < 0 || type >= UTIL_ESCAPE_MAX) return 0;

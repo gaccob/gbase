@@ -159,7 +159,7 @@ void test_random()
 {
     int32_t i;
     uint32_t r;
-    rand_seed(time(NULL));
+    rand_seed((uint32_t)time(NULL));
     for (i = 0; i < 1000; ++ i) {
         r = rand_gen();
         printf("%u\t", r);
@@ -170,10 +170,11 @@ void test_random()
 
 void test_shuffle()
 {
-    rand_seed(time(NULL));
-    const size_t sz = 52;
-    int32_t cards[sz];
+	const size_t sz = 52;
+	int32_t cards[52];
     size_t i;
+
+    rand_seed((uint32_t)time(NULL));
     for (i = 0; i < sz; ++ i)
         cards[i] = (int32_t)i;
     rand_shuffle(cards, sz);

@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <sys/time.h>
 #include <stddef.h>
 #include "core/os_def.h"
 #include "net/curl_pool.h"
