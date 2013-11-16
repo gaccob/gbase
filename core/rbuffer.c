@@ -15,7 +15,7 @@ rbuffer_t* rbuffer_init(uint32_t size)
 {
 	rbuffer_t* r;
 
-    // round up by 2^*
+    // round up by 2^n
     if (size & (size - 1)) {
         size = ROUNDUP(size);
     }
@@ -29,9 +29,38 @@ rbuffer_t* rbuffer_init(uint32_t size)
     return r;
 }
 
+rbuffer_t* rbuffer_init_mem(void* mem, size_t mem_size)
+{
+    rbuffer_t* r;
+    uint32_t size;
+
+    if (!mem || mem_size < sizeof(struct rbuffer_t)) {
+        return NULL;
+    }
+    size = mem_size - sizeof(struct rbuffer_t);
+    if (size & (size - 1)) {
+        size = ROUNDDOWN(size);
+    }
+    if (size == 0) {
+        return NULL;
+    }
+
+    // assignment
+    r = (rbuffer_t*)mem;
+    r->size = size;
+    atom_set(&r->read_pos, 0);
+    atom_set(&r->write_pos, 0);
+    return r;
+}
+
 void rbuffer_release(rbuffer_t* r)
 {
     if (r) { FREE(r); }
+}
+
+uint32_t rbuffer_size(rbuffer_t* r)
+{
+    return r ? r->size : 0;
 }
 
 uint32_t rbuffer_read_bytes(rbuffer_t* r)
