@@ -58,9 +58,14 @@ void rbuffer_release(rbuffer_t* r)
     if (r) { FREE(r); }
 }
 
-uint32_t rbuffer_size(rbuffer_t* r)
+size_t rbuffer_size(rbuffer_t* r)
 {
     return r ? r->size : 0;
+}
+
+size_t rbuffer_head_size()
+{
+    return sizeof(rbuffer_t);
 }
 
 uint32_t rbuffer_read_bytes(rbuffer_t* r)

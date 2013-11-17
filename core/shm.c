@@ -10,11 +10,7 @@
 
 typedef struct shm_t
 {
-#if defined(OS_WIN)
-    HANDLE h;
-#else
-    int shmid;
-#endif
+    shm_id_t id;
     size_t size;
     void* mem;
 } shm_t;
@@ -38,38 +34,43 @@ struct shm_t* shm_create(int shmkey, size_t size)
 
 #if defined(OS_WIN)
     snprintf(name, sizeof(name), "gbase_shm_%d", shmkey);
-    shm->h = CreateFileMapping(INVALID_HANDLE_VALUE, NULL,
+    shm->id = CreateFileMapping(INVALID_HANDLE_VALUE, NULL,
         PAGE_READWRITE, 0, shm->size, name);
-    if (!shm->h) {
+    if (!shm->id) {
         FREE(shm);
         return NULL;
     }
-    shm->mem = MapViewOfFile(shm->h, FILE_MAP_ALL_ACCESS, 0, 0, shm->size);
+    shm->mem = MapViewOfFile(shm->id, FILE_MAP_ALL_ACCESS, 0, 0, shm->size);
     if (!shm->mem) {
-        CloseHandle(shm->h);
+        CloseHandle(shm->id);
         FREE(shm);
         return NULL;
     }
     return shm;
 #else
-    shm->shmid = shmget(shmkey, shm->size, 0666 | IPC_CREAT | IPC_EXCL);
-    if (shm->shmid < 0) {
+    shm->id = shmget(shmkey, shm->size, 0666 | IPC_CREAT | IPC_EXCL);
+    if (shm->id < 0) {
         if (errno != EEXIST) {
             FREE(shm);
             return NULL;
         }
         // already exsit, validate shm size
-        shm->shmid = shmget(shmkey, 0, 0666);
-        ret = shmctl(shm->shmid, IPC_STAT, &sd);
+        shm->id = shmget(shmkey, 0, 0666);
+        ret = shmctl(shm->id, IPC_STAT, &sd);
         if (ret < 0 || (int)sd.shm_segsz != shm->size) {
             FREE(shm);
             return NULL;
         }
     }
-    shm->mem = shmat(shm->shmid, NULL, 0);
+    shm->mem = shmat(shm->id, NULL, 0);
     assert(shm->mem);
     return shm;
 #endif
+}
+
+shm_id_t shm_id(struct shm_t* shm)
+{
+    return shm ? shm->id : SHM_INVALID_ID;
 }
 
 size_t shm_size(struct shm_t* shm)
@@ -88,13 +89,13 @@ void shm_destroy(struct shm_t* shm)
     if (shm) {
         UnmapViewOfFile(shm->mem);
         shm->mem = NULL;
-        CloseHandle(shm->h);
-        shm->h = NULL;
+        CloseHandle(shm->id);
+        shm->id = NULL;
     }
 #else
     if (shm) {
-        shmctl(shm->shmid, IPC_RMID, NULL);
-        shm->shmid = -1;
+        shmctl(shm->id, IPC_RMID, NULL);
+        shm->id = -1;
     }
 #endif
 }
