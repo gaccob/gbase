@@ -24,6 +24,11 @@ typedef void (*idtable_free_func)(void*);
 void idtable_clean_ex(struct idtable_t* table, idtable_free_func f);
 void idtable_release_ex(struct idtable_t* table, idtable_free_func f);
 
+// return 0 means continue loop. otherwise break loop
+typedef int32_t (*idtable_callback_func)(void*, void* args);
+int32_t idtable_loop(struct idtable_t* table, idtable_callback_func f,
+                     void* args, int32_t start_idx);
+
 #ifdef __cplusplus
 }
 #endif
