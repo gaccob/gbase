@@ -10,15 +10,15 @@ extern "C" {
 struct shm_t;
 
 #if defined (OS_WIN)
-typedef HANDLE shm_id_t
+typedef HANDLE shm_id_t;
 #else
 typedef int shm_id_t;
 #endif
 
 #define SHM_INVALID_ID 0
 
-// if exist, attach
-struct shm_t* shm_create(int shmkey, size_t size);
+// excl equals 0: if exist return null
+struct shm_t* shm_create(int shmkey, size_t size, int excl);
 
 shm_id_t shm_id(struct shm_t* shm);
 

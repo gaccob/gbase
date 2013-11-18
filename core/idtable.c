@@ -102,13 +102,31 @@ void idtable_cleanup(idtable_t* table)
     }
 }
 
+void idtable_clean_ex(idtable_t* table, idtable_free_func f)
+{
+    int32_t i;
+    assert(table);
+    for (i = 0; i<table->count; i++) {
+        table->table[i].id = IDTS_INVALID_ID;
+        f(table->table[i].ptr);
+        table->table[i].ptr = NULL ;
+    }
+}
+
 void idtable_release(idtable_t* table)
 {
     if (table) {
+        idtable_cleanup(table);
         FREE(table->table);
         FREE(table);
     }
 }
 
-
-
+void idtable_release_ex(idtable_t* table, idtable_free_func f)
+{
+    if (table) {
+        idtable_clean_ex(table, f);
+        FREE(table->table);
+        FREE(table);
+    }
+}

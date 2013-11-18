@@ -20,6 +20,10 @@ void idtable_remove(struct idtable_t* table, int32_t id);
 void idtable_cleanup(struct idtable_t* table);
 void idtable_release(struct idtable_t* table);
 
+typedef void (*idtable_free_func)(void*);
+void idtable_clean_ex(struct idtable_t* table, idtable_free_func f);
+void idtable_release_ex(struct idtable_t* table, idtable_free_func f);
+
 #ifdef __cplusplus
 }
 #endif

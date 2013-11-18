@@ -15,8 +15,8 @@ typedef struct shm_t
     void* mem;
 } shm_t;
 
-// if exist, attach
-struct shm_t* shm_create(int shmkey, size_t size)
+// excl equals 0: if exist return null
+struct shm_t* shm_create(int shmkey, size_t size, int excl)
 {
 #if defined(OS_WIN)
     char name[64];
@@ -34,11 +34,19 @@ struct shm_t* shm_create(int shmkey, size_t size)
 
 #if defined(OS_WIN)
     snprintf(name, sizeof(name), "gbase_shm_%d", shmkey);
-    shm->id = CreateFileMapping(INVALID_HANDLE_VALUE, NULL,
-        PAGE_READWRITE, 0, shm->size, name);
-    if (!shm->id) {
-        FREE(shm);
-        return NULL;
+    shm->id = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, name);
+    if (shm->id) {
+        if (excl == 0) {
+            FREE(shm);
+            return NULL;
+        }
+    } else {
+        shm->id = CreateFileMapping(INVALID_HANDLE_VALUE, NULL,
+            PAGE_READWRITE, 0, shm->size, name);
+        if (!shm->id) {
+            FREE(shm);
+            return NULL;
+        }
     }
     shm->mem = MapViewOfFile(shm->id, FILE_MAP_ALL_ACCESS, 0, 0, shm->size);
     if (!shm->mem) {
@@ -47,17 +55,19 @@ struct shm_t* shm_create(int shmkey, size_t size)
         return NULL;
     }
     return shm;
+
 #else
     shm->id = shmget(shmkey, shm->size, 0666 | IPC_CREAT | IPC_EXCL);
     if (shm->id < 0) {
-        if (errno != EEXIST) {
-            FREE(shm);
-            return NULL;
-        }
-        // already exsit, validate shm size
-        shm->id = shmget(shmkey, 0, 0666);
-        ret = shmctl(shm->id, IPC_STAT, &sd);
-        if (ret < 0 || (int)sd.shm_segsz != shm->size) {
+        if (errno == EEXIST && excl) {
+            // already exsit, validate shm size
+            shm->id = shmget(shmkey, 0, 0666);
+            ret = shmctl(shm->id, IPC_STAT, &sd);
+            if (ret < 0 || (int)sd.shm_segsz != shm->size) {
+                FREE(shm);
+                return NULL;
+            }
+        } else {
             FREE(shm);
             return NULL;
         }
