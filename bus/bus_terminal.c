@@ -181,22 +181,39 @@ bus_terminal_t* bus_terminal_init(int16_t key, bus_addr_t ba)
     return NULL;
 }
 
-void _bus_terminal_release_func(void* data)
-{
-    if (data) {
-        bus_terminal_channel_release((struct bus_terminal_channel_t*)data);
-    }
-}
-
 void bus_terminal_release(bus_terminal_t* bt)
 {
+    struct idtable_iterator_t* it;
+    struct bus_terminal_channel_t* btc;
     if (bt) {
+        // release send channels
         if (bt->send_channels) {
-            idtable_release_ex(bt->send_channels, _bus_terminal_release_func);
+            it = idtable_iterator_init(bt->send_channels, 0);
+            while (it && idtable_iterator_loop(it) == 0) {
+                btc = (struct bus_terminal_channel_t*)idtable_iterator_value(it);
+                if (btc) {
+                    bus_terminal_channel_release(btc);
+                }
+            }
+            if (it) {
+                idtable_iterator_release(it);
+            }
+            idtable_release(bt->send_channels);
             bt->send_channels = NULL;
         }
+        // release recv channels
         if (bt->recv_channels) {
-            idtable_release_ex(bt->recv_channels, _bus_terminal_release_func);
+            it = idtable_iterator_init(bt->recv_channels, 0);
+            while (it && idtable_iterator_loop(it) == 0) {
+                btc = (struct bus_terminal_channel_t*)idtable_iterator_value(it);
+                if (btc) {
+                    bus_terminal_channel_release(btc);
+                }
+            }
+            if (it) {
+                idtable_iterator_release(it);
+            }
+            idtable_release(bt->recv_channels);
             bt->recv_channels = NULL;
         }
         FREE(bt);
@@ -241,6 +258,39 @@ int32_t bus_terminal_send(bus_terminal_t* bt, const char* buf,
     return ret == 0 ? bus_err_send_fail : bus_ok;
 }
 
+int32_t bus_terminal_send_by_type(bus_terminal_t* bt, const char* buf,
+                                  size_t buf_size, int bus_type)
+{
+    struct bus_terminal_channel_t* btc;
+    struct idtable_iterator_t* it;
+    struct bus_channel_t* bc;
+    int32_t ret;
+    int32_t send = -1;
+
+    if (!bt) return bus_err_fail;
+    it = idtable_iterator_init(bt->send_channels, 0);
+    if (!it) return bus_err_fail;
+
+    while (idtable_iterator_loop(it) == 0) {
+        btc = (struct bus_terminal_channel_t*)idtable_iterator_value(it);
+        assert(btc);
+        bc = bus_terminal_channel(btc);
+        assert(bc);
+
+        // if destinate bus type
+        if (bus_addr_type(bc->to) == bus_type) {
+            ret = rbuffer_write(bus_terminal_channel_rbuffer(btc), buf, buf_size);
+            if (ret) {
+                return bus_err_send_fail;
+            } else {
+                send = 0;
+            }
+        }
+    }
+    idtable_iterator_release(it);
+    return send == 0 ? bus_ok : bus_err_peer_not_found;
+}
+
 int32_t bus_terminal_recv(bus_terminal_t* bt, char* buf,
                           size_t* buf_size, bus_addr_t from)
 {
@@ -255,84 +305,82 @@ int32_t bus_terminal_recv(bus_terminal_t* bt, char* buf,
     return ret == 0 ? bus_err_empty : bus_ok;
 }
 
-typedef struct bus_recv_args_t {
-    char* buf;
-    size_t* buf_size;
-    bus_addr_t* from;
-} bus_recv_args_t;
-
-int32_t _bus_terminal_recv_callback(void* data, void* args)
-{
-    int32_t read_ret;
-    struct bus_channel_t* bc;
-    struct bus_terminal_channel_t* btc;
-
-    btc = (struct bus_terminal_channel_t*)data;
-    assert(btc);
-    bc = bus_terminal_channel(btc);
-    assert(bc);
-    bus_recv_args_t* ra = (bus_recv_args_t*)args;
-    read_ret = rbuffer_read(bus_terminal_channel_rbuffer(btc), ra->buf, ra->buf_size);
-    // read ret == 0 means read data, so we need to end loop
-    if (read_ret == 0) {
-        *ra->from = bc->from;
-        return 1;
-    }
-    // continue loop
-    return 0;
-}
-
 int32_t bus_terminal_recv_all(bus_terminal_t* bt, char* buf,
                               size_t* buf_size, bus_addr_t* from)
 {
     static int32_t index = 0;
-    int32_t loop_ret;
-    bus_recv_args_t args;
-    if (!bt || !buf || !buf_size || !from) {
-        return bus_err_fail;
-    }
-    args.buf = buf;
-    args.buf_size = buf_size;
-    args.from = from;
-    loop_ret = idtable_loop(bt->recv_channels, _bus_terminal_recv_callback, &args,
-        (index ++) % BUS_MAX_TERMINAL_COUNT);
-    if (loop_ret == 1) return bus_ok;
-    if (loop_ret == 0) return bus_err_empty;
-    return bus_err_recv_fail;
-}
-
-typedef struct bus_dump_args_t {
-    char* debug;
-    size_t debug_size;
-} bus_dump_args_t;
-
-int32_t _bus_terminal_dump_callback(void* data, void* args)
-{
-    bus_dump_args_t* ba = (bus_dump_args_t*)args;
-    struct rbuffer_t* r;
+    int32_t ret;
+    struct idtable_iterator_t* it;
     struct bus_terminal_channel_t* btc;
     struct bus_channel_t* bc;
 
-    btc = (struct bus_terminal_channel_t*)data;
-    bc = bus_terminal_channel(btc);
-    r = bus_terminal_channel_rbuffer(btc);
-    assert(btc && bc && r);
-
-    snprintf(ba->debug, ba->debug_size - strnlen(ba->debug, ba->debug_size),
-        "%d->%d: size=%d, read bytes %u, write bytes %d\n", bc->from, bc->to,
-        (int)bc->channel_size, rbuffer_read_bytes(r), rbuffer_write_bytes(r));
-    return 0;
+    if (!bt || !buf || !buf_size || !from) {
+        return bus_err_fail;
+    }
+    it = idtable_iterator_init(bt->recv_channels, (index ++) % BUS_MAX_TERMINAL_COUNT);
+    while (it && idtable_iterator_loop(it) == 0) {
+        btc = (struct bus_terminal_channel_t*)idtable_iterator_value(it);
+        assert(btc);
+        bc = bus_terminal_channel(btc);
+        assert(bc);
+        ret = rbuffer_read(bus_terminal_channel_rbuffer(btc), buf, buf_size);
+        if (ret == 0) {
+            *from = bc->from;
+            if (it) {
+                idtable_iterator_release(it);
+            }
+            return 0;
+        }
+    }
+    if (it) {
+        idtable_iterator_release(it);
+    }
+    return bus_err_empty;
 }
 
 void bus_terminal_dump(bus_terminal_t* bt, char* debug, size_t debug_size)
 {
-    bus_dump_args_t args;
+    struct rbuffer_t* r;
+    struct bus_terminal_channel_t* btc;
+    struct bus_channel_t* bc;
+    struct idtable_iterator_t* it;
+
     if (bt) {
-        args.debug = debug;
-        args.debug_size = debug_size;
         debug[0] = 0;
-        idtable_loop(bt->recv_channels, _bus_terminal_dump_callback, &args, 0);
-        idtable_loop(bt->send_channels, _bus_terminal_dump_callback, &args, 0);
+
+        // dump recv channels
+        it = idtable_iterator_init(bt->recv_channels, 0);
+        while (it && idtable_iterator_loop(it) == 0) {
+            btc = idtable_iterator_value(it);
+            assert(btc);
+            bc = bus_terminal_channel(btc);
+            r = bus_terminal_channel_rbuffer(btc);
+            assert(bc && r);
+            snprintf(debug, debug_size - strnlen(debug, debug_size),
+                "%d->%d: size=%d, read bytes %u, write bytes %d\n", bc->from, bc->to,
+                (int)bc->channel_size, rbuffer_read_bytes(r), rbuffer_write_bytes(r));
+        }
+        if (it) {
+            idtable_iterator_release(it);
+            it = NULL;
+        }
+
+        // dump send channels
+        it = idtable_iterator_init(bt->send_channels, 0);
+        while (it && idtable_iterator_loop(it) == 0) {
+            btc = idtable_iterator_value(it);
+            assert(btc);
+            bc = bus_terminal_channel(btc);
+            r = bus_terminal_channel_rbuffer(btc);
+            assert(bc && r);
+            snprintf(debug, debug_size - strnlen(debug, debug_size),
+                "%d->%d: size=%d, read bytes %u, write bytes %d\n", bc->from, bc->to,
+                (int)bc->channel_size, rbuffer_read_bytes(r), rbuffer_write_bytes(r));
+        }
+        if (it) {
+            idtable_iterator_release(it);
+            it = NULL;
+        }
     }
 }
 

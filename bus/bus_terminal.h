@@ -8,8 +8,10 @@
 
 typedef int bus_addr_t;
 
+#define bus_addr_type(addr) (addr >> 16)
+#define bus_addr_id(addr) ((addr << 16) >> 16)
+
 struct bus_terminal_t;
-struct bus_terminal_channel_t;
 
 enum {
     bus_err_peer_not_found = -100,
@@ -32,6 +34,8 @@ void bus_terminal_dispatch(struct bus_terminal_t* bt);
 
 int32_t bus_terminal_send(struct bus_terminal_t* bt, const char* buf,
                           size_t buf_size, bus_addr_t to);
+int32_t bus_terminal_send_by_type(struct bus_terminal_t* bt, const char* buf,
+                                  size_t buf_size, int bus_type);
 int32_t bus_terminal_recv(struct bus_terminal_t* bt, char* buf,
                           size_t* buf_size, bus_addr_t from);
 int32_t bus_terminal_recv_all(struct bus_terminal_t* bt, char* buf,

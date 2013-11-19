@@ -20,14 +20,13 @@ void idtable_remove(struct idtable_t* table, int32_t id);
 void idtable_cleanup(struct idtable_t* table);
 void idtable_release(struct idtable_t* table);
 
-typedef void (*idtable_free_func)(void*);
-void idtable_clean_ex(struct idtable_t* table, idtable_free_func f);
-void idtable_release_ex(struct idtable_t* table, idtable_free_func f);
-
-// return 0 means continue loop. otherwise break loop
-typedef int32_t (*idtable_callback_func)(void*, void* args);
-int32_t idtable_loop(struct idtable_t* table, idtable_callback_func f,
-                     void* args, int32_t start_idx);
+struct idtable_iterator_t;
+struct idtable_iterator_t* idtable_iterator_init(struct idtable_t*, int start_idx);
+// call idtable_iterator_loop first to get iterator, as maybe idtable empty
+int32_t idtable_iterator_loop(struct idtable_iterator_t*);
+void* idtable_iterator_value(struct idtable_iterator_t*);
+int32_t idtable_iterator_id(struct idtable_iterator_t*);
+void idtable_iterator_release(struct idtable_iterator_t*);
 
 #ifdef __cplusplus
 }
