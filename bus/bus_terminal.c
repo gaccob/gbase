@@ -33,6 +33,8 @@ typedef struct bus_terminal_t
 
     uint32_t local_terminal_version;
     uint32_t local_channel_version;
+    int local_terminal_count;
+    bus_addr_t local_terminals[BUS_MAX_TERMINAL_COUNT];
 
     struct process_lock_t* lock;
 
@@ -52,19 +54,28 @@ int32_t _bus_terminal_init_create(bus_terminal_t* bt, int16_t key)
         bt->bus->channel_key = 0;
         bt->bus->size = sizeof(bus_t);
 
-        // terminals info
+        // terminals local info
         bt->bus->terminal_count = 1;
         bt->bus->terminals[0] = bt->self;
         atom_set(&bt->bus->terminal_version, 1);
-        bt->local_terminal_version = bt->bus->terminal_version;
 
         // channels info
         bt->bus->channel_count = 0;
         atom_set(&bt->bus->channel_version, 1);
-        bt->local_channel_version = bt->bus->channel_version;
         return 0;
     }
     return -1;
+}
+
+void _bus_terminal_update_terminals(bus_terminal_t* bt)
+{
+    int32_t i;
+    assert(bt && bt->bus);
+    bt->local_terminal_version = bt->bus->terminal_version;
+    bt->local_terminal_count = bt->bus->terminal_count;
+    for (i = 0; i < bt->local_terminal_count; ++ i) {
+        bt->local_terminals[i] = bt->bus->terminals[i];
+    }
 }
 
 void _bus_terminal_update_channels(bus_terminal_t* bt)
@@ -74,6 +85,7 @@ void _bus_terminal_update_channels(bus_terminal_t* bt)
     assert(bt && bt->bus);
 
     // load terminal channel info
+    bt->local_channel_version = bt->bus->channel_version;
     for (i = 0; i < bt->bus->channel_count; ++ i) {
 
         if (bt->bus->channels[i].from == bt->self && idtable_get(bt->send_channels,
@@ -131,14 +143,6 @@ int32_t _bus_terminal_init_attach(bus_terminal_t* bt, int16_t key)
             atom_inc(&bt->bus->terminal_version);
         }
     }
-
-    // load channels info
-    _bus_terminal_update_channels(bt);
-
-    // load terminal version info
-    bt->local_terminal_version = bt->bus->terminal_version;
-    bt->local_channel_version = bt->bus->channel_version;
-
     return 0;
 }
 
@@ -165,12 +169,16 @@ bus_terminal_t* bus_terminal_init(int16_t key, bus_addr_t ba)
 
     // create shm
     if (_bus_terminal_init_create(bt, key) == 0) {
+        _bus_terminal_update_terminals(bt);
+        _bus_terminal_update_channels(bt);
         process_lock_unlock(bt->lock);
         return bt;
     }
 
     // attach shm
     if (_bus_terminal_init_attach(bt, key) == 0) {
+        _bus_terminal_update_terminals(bt);
+        _bus_terminal_update_channels(bt);
         process_lock_unlock(bt->lock);
         return bt;
     }
@@ -230,8 +238,9 @@ void bus_terminal_dispatch(bus_terminal_t* bt)
     // update terminals
     terminal_version = bt->bus->terminal_version;
     if (terminal_version != bt->local_terminal_version) {
-        // nothing to do
-        bt->local_terminal_version = terminal_version;
+        process_lock_lock(bt->lock);
+        _bus_terminal_update_terminals(bt);
+        process_lock_unlock(bt->lock);
     }
 
     // udpate channels
@@ -240,8 +249,73 @@ void bus_terminal_dispatch(bus_terminal_t* bt)
         process_lock_lock(bt->lock);
         _bus_terminal_update_channels(bt);
         process_lock_unlock(bt->lock);
-        bt->local_channel_version = channel_version;
     }
+}
+
+int32_t _bus_terminal_register_channel(bus_terminal_t* bt, bus_addr_t to, size_t sz)
+{
+    int i, found, ret;
+    struct bus_channel_t* bc;
+    struct bus_terminal_channel_t* btc;
+    if (!bt) return bus_err_fail;
+
+    // make sure same version
+    bus_terminal_dispatch(bt);
+
+    // add lock
+    process_lock_lock(bt->lock);
+    if (bt->local_channel_version != bt->bus->channel_version) {
+        process_lock_unlock(bt->lock);
+        return bus_err_fail;
+    }
+
+    // no left free channel
+    if (bt->bus->channel_count >= BUS_MAX_CHANNLE_COUNT) {
+        process_lock_unlock(bt->lock);
+        return bus_err_channel_full;
+    }
+
+    // check terminals
+    found = -1;
+    for (i = 0; i < bt->bus->terminal_count; ++ i) {
+        if (bt->bus->terminals[i] == to) {
+            found = 0;
+            break;
+        }
+    }
+    if (found) {
+        process_lock_unlock(bt->lock);
+        return bus_err_peek_fail;
+    }
+
+    // check not self (no loop bus)
+    if (to == bt->self) {
+        process_lock_unlock(bt->lock);
+        return bus_err_peek_fail;
+    }
+
+    // create channel
+    bc = &bt->bus->channels[bt->bus->channel_count];
+    bc->from = bt->self;
+    bc->to = to;
+    bc->shmkey = bt->bus->key + (++ bt->bus->channel_key);
+    bc->channel_size = sz;
+    btc = bus_terminal_channel_init(bc->shmkey, bc->from, bc->to, bc->channel_size, 0);
+    if (!btc) {
+        process_lock_unlock(bt->lock);
+        return bus_err_channel_fail;
+    }
+
+    // add terminal-channel to idtable
+    ret = idtable_add(bt->send_channels, bc->to, btc);
+    assert(0 == ret);
+
+    // add channel version
+    ++ bt->bus->channel_count;
+    atom_inc(&bt->bus->channel_version);
+    process_lock_unlock(bt->lock);
+    bt->local_channel_version = bt->bus->channel_version;
+    return bus_ok;
 }
 
 int32_t bus_terminal_send(bus_terminal_t* bt, const char* buf,
@@ -252,43 +326,52 @@ int32_t bus_terminal_send(bus_terminal_t* bt, const char* buf,
 
     if (!bt) return bus_err_fail;
     btc = (struct bus_terminal_channel_t*)idtable_get(bt->send_channels, to);
-    if (!btc) return bus_err_peer_not_found;
+    // if no channel, then dynamic alloc one
+    if (!btc) {
+        ret = _bus_terminal_register_channel(bt, to, BUS_CHANNEL_DEFAULT_SIZE);
+        if (ret != bus_ok) {
+            return ret;
+        }
+    }
+    btc = (struct bus_terminal_channel_t*)idtable_get(bt->send_channels, to);
+    assert(btc);
 
+    // send buffer
     ret = rbuffer_write(bus_terminal_channel_rbuffer(btc), buf, buf_size);
-    return ret == 0 ? bus_err_send_fail : bus_ok;
+    return ret == 0 ? bus_ok : bus_err_send_fail;
 }
 
 int32_t bus_terminal_send_by_type(bus_terminal_t* bt, const char* buf,
                                   size_t buf_size, int bus_type)
 {
-    struct bus_terminal_channel_t* btc;
-    struct idtable_iterator_t* it;
-    struct bus_channel_t* bc;
-    int32_t ret;
+    int32_t i, ret;
     int32_t send = -1;
-
-    if (!bt) return bus_err_fail;
-    it = idtable_iterator_init(bt->send_channels, 0);
-    if (!it) return bus_err_fail;
-
-    while (idtable_iterator_loop(it) == 0) {
-        btc = (struct bus_terminal_channel_t*)idtable_iterator_value(it);
-        assert(btc);
-        bc = bus_terminal_channel(btc);
-        assert(bc);
-
-        // if destinate bus type
-        if (bus_addr_type(bc->to) == bus_type) {
-            ret = rbuffer_write(bus_terminal_channel_rbuffer(btc), buf, buf_size);
+    for (i = 0; i < bt->local_terminal_count; ++ i) {
+        if (bt->local_terminals[i] != bt->self &&
+            bus_addr_type(bt->local_terminals[i]) == bus_type) {
+            ret = bus_terminal_send(bt, buf, buf_size, bt->local_terminals[i]);
             if (ret) {
-                return bus_err_send_fail;
+                return ret;
             } else {
                 send = 0;
             }
         }
     }
-    idtable_iterator_release(it);
     return send == 0 ? bus_ok : bus_err_peer_not_found;
+}
+
+int32_t bus_terminal_send_all(bus_terminal_t* bt, const char* buf, size_t buf_size)
+{
+    int32_t i, ret;
+    for (i = 0; i < bt->local_terminal_count; ++ i) {
+        if (bt->local_terminals[i] != bt->self) {
+            ret = bus_terminal_send(bt, buf, buf_size, bt->local_terminals[i]);
+            if (ret) {
+                return ret;
+            }
+        }
+    }
+    return bus_ok;
 }
 
 int32_t bus_terminal_recv(bus_terminal_t* bt, char* buf,
@@ -344,9 +427,17 @@ void bus_terminal_dump(bus_terminal_t* bt, char* debug, size_t debug_size)
     struct bus_terminal_channel_t* btc;
     struct bus_channel_t* bc;
     struct idtable_iterator_t* it;
+    int i;
 
     if (bt) {
         debug[0] = 0;
+
+        // dump terminals
+        for (i = 0; i < bt->local_terminal_count; ++ i) {
+            snprintf(debug + strnlen(debug, debug_size),
+                debug_size - strnlen(debug, debug_size),
+                "terminal: %d\n", bt->local_terminals[i]);
+        }
 
         // dump recv channels
         it = idtable_iterator_init(bt->recv_channels, 0);
@@ -356,7 +447,8 @@ void bus_terminal_dump(bus_terminal_t* bt, char* debug, size_t debug_size)
             bc = bus_terminal_channel(btc);
             r = bus_terminal_channel_rbuffer(btc);
             assert(bc && r);
-            snprintf(debug, debug_size - strnlen(debug, debug_size),
+            snprintf(debug + strnlen(debug, debug_size),
+                debug_size - strnlen(debug, debug_size),
                 "%d->%d: size=%d, read bytes %u, write bytes %d\n", bc->from, bc->to,
                 (int)bc->channel_size, rbuffer_read_bytes(r), rbuffer_write_bytes(r));
         }
@@ -373,7 +465,8 @@ void bus_terminal_dump(bus_terminal_t* bt, char* debug, size_t debug_size)
             bc = bus_terminal_channel(btc);
             r = bus_terminal_channel_rbuffer(btc);
             assert(bc && r);
-            snprintf(debug, debug_size - strnlen(debug, debug_size),
+            snprintf(debug + strnlen(debug, debug_size),
+                debug_size - strnlen(debug, debug_size),
                 "%d->%d: size=%d, read bytes %u, write bytes %d\n", bc->from, bc->to,
                 (int)bc->channel_size, rbuffer_read_bytes(r), rbuffer_write_bytes(r));
         }

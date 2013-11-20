@@ -18,6 +18,8 @@ enum {
     bus_err_send_fail,
     bus_err_recv_fail,
     bus_err_peek_fail,
+    bus_err_channel_full,
+    bus_err_channel_fail,
     bus_err_empty,
     bus_err_fail,
     bus_ok = 0,
@@ -26,7 +28,7 @@ enum {
 // key: 16 bits, reserved 16 bits for channels
 struct bus_terminal_t* bus_terminal_init(int16_t key, bus_addr_t ba);
 
-void bus_termial_release(struct bus_terminal_t* bt);
+void bus_terminal_release(struct bus_terminal_t* bt);
 
 // check bus version and do update
 // we should do dispatch in every tick
@@ -36,6 +38,8 @@ int32_t bus_terminal_send(struct bus_terminal_t* bt, const char* buf,
                           size_t buf_size, bus_addr_t to);
 int32_t bus_terminal_send_by_type(struct bus_terminal_t* bt, const char* buf,
                                   size_t buf_size, int bus_type);
+int32_t bus_terminal_send_all(struct bus_terminal_t* bt, const char* buf,
+                              size_t buf_size);
 int32_t bus_terminal_recv(struct bus_terminal_t* bt, char* buf,
                           size_t* buf_size, bus_addr_t from);
 int32_t bus_terminal_recv_all(struct bus_terminal_t* bt, char* buf,

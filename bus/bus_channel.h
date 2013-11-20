@@ -17,6 +17,8 @@ typedef struct bus_channel_t
     bus_addr_t to;
 } bus_channel_t;
 
+#define BUS_CHANNEL_DEFAULT_SIZE (1 << 20)
+
 // if create == 0: create new share-memory channel
 // else: attach exist share-memory channel and verify data
 struct bus_terminal_channel_t* bus_terminal_channel_init(int32_t shmkey, bus_addr_t from,
