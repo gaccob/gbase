@@ -21,9 +21,10 @@ void idtable_cleanup(struct idtable_t* table);
 void idtable_release(struct idtable_t* table);
 
 struct idtable_iterator_t;
+// return null when idtable empty
 struct idtable_iterator_t* idtable_iterator_init(struct idtable_t*, int start_idx);
-// call idtable_iterator_loop first to get iterator, as maybe idtable empty
-int32_t idtable_iterator_loop(struct idtable_iterator_t*);
+// return < 0 when end-loop
+int32_t idtable_iterator_next(struct idtable_iterator_t*);
 void* idtable_iterator_value(struct idtable_iterator_t*);
 int32_t idtable_iterator_id(struct idtable_iterator_t*);
 void idtable_iterator_release(struct idtable_iterator_t*);

@@ -197,14 +197,15 @@ void bus_terminal_release(bus_terminal_t* bt)
         // release send channels
         if (bt->send_channels) {
             it = idtable_iterator_init(bt->send_channels, 0);
-            while (it && idtable_iterator_loop(it) == 0) {
+            while (it) {
                 btc = (struct bus_terminal_channel_t*)idtable_iterator_value(it);
                 if (btc) {
                     bus_terminal_channel_release(btc);
                 }
-            }
-            if (it) {
-                idtable_iterator_release(it);
+                if (idtable_iterator_next(it) < 0) {
+                    idtable_iterator_release(it);
+                    break;
+                }
             }
             idtable_release(bt->send_channels);
             bt->send_channels = NULL;
@@ -212,14 +213,15 @@ void bus_terminal_release(bus_terminal_t* bt)
         // release recv channels
         if (bt->recv_channels) {
             it = idtable_iterator_init(bt->recv_channels, 0);
-            while (it && idtable_iterator_loop(it) == 0) {
+            while (it) {
                 btc = (struct bus_terminal_channel_t*)idtable_iterator_value(it);
                 if (btc) {
                     bus_terminal_channel_release(btc);
                 }
-            }
-            if (it) {
-                idtable_iterator_release(it);
+                if (idtable_iterator_next(it) < 0) {
+                    idtable_iterator_release(it);
+                    break;
+                }
             }
             idtable_release(bt->recv_channels);
             bt->recv_channels = NULL;
@@ -401,7 +403,7 @@ int32_t bus_terminal_recv_all(bus_terminal_t* bt, char* buf,
         return bus_err_fail;
     }
     it = idtable_iterator_init(bt->recv_channels, (index ++) % BUS_MAX_TERMINAL_COUNT);
-    while (it && idtable_iterator_loop(it) == 0) {
+    while (it) {
         btc = (struct bus_terminal_channel_t*)idtable_iterator_value(it);
         assert(btc);
         bc = bus_terminal_channel(btc);
@@ -414,9 +416,11 @@ int32_t bus_terminal_recv_all(bus_terminal_t* bt, char* buf,
             }
             return 0;
         }
-    }
-    if (it) {
-        idtable_iterator_release(it);
+
+        if (idtable_iterator_next(it) < 0) {
+            idtable_iterator_release(it);
+            break;
+        }
     }
     return bus_err_empty;
 }
@@ -441,7 +445,7 @@ void bus_terminal_dump(bus_terminal_t* bt, char* debug, size_t debug_size)
 
         // dump recv channels
         it = idtable_iterator_init(bt->recv_channels, 0);
-        while (it && idtable_iterator_loop(it) == 0) {
+        while (it) {
             btc = idtable_iterator_value(it);
             assert(btc);
             bc = bus_terminal_channel(btc);
@@ -451,15 +455,16 @@ void bus_terminal_dump(bus_terminal_t* bt, char* debug, size_t debug_size)
                 debug_size - strnlen(debug, debug_size),
                 "%d->%d: size=%d, read bytes %u, write bytes %d\n", bc->from, bc->to,
                 (int)bc->channel_size, rbuffer_read_bytes(r), rbuffer_write_bytes(r));
-        }
-        if (it) {
-            idtable_iterator_release(it);
-            it = NULL;
+
+            if (idtable_iterator_next(it) < 0) {
+                idtable_iterator_release(it);
+                break;
+            }
         }
 
         // dump send channels
         it = idtable_iterator_init(bt->send_channels, 0);
-        while (it && idtable_iterator_loop(it) == 0) {
+        while (it) {
             btc = idtable_iterator_value(it);
             assert(btc);
             bc = bus_terminal_channel(btc);
@@ -469,10 +474,11 @@ void bus_terminal_dump(bus_terminal_t* bt, char* debug, size_t debug_size)
                 debug_size - strnlen(debug, debug_size),
                 "%d->%d: size=%d, read bytes %u, write bytes %d\n", bc->from, bc->to,
                 (int)bc->channel_size, rbuffer_read_bytes(r), rbuffer_write_bytes(r));
-        }
-        if (it) {
-            idtable_iterator_release(it);
-            it = NULL;
+
+            if (idtable_iterator_next(it) < 0) {
+                idtable_iterator_release(it);
+                break;
+            }
         }
     }
 }
