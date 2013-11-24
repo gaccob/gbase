@@ -33,8 +33,8 @@ THREAD_FUNC thread_bus(void* arg)
     bus_addr_t from;
     size_t rsize;
     while (1) {
-        // bus dispatch
-        bus_terminal_dispatch(bt);
+        // bus tickh
+        bus_terminal_tick(bt);
 
         // dump bus
         if (time(NULL) != now) {

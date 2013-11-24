@@ -31,8 +31,8 @@ struct bus_terminal_t* bus_terminal_init(int16_t key, bus_addr_t ba);
 void bus_terminal_release(struct bus_terminal_t* bt);
 
 // check bus version and do update
-// we should do dispatch in every tick
-void bus_terminal_dispatch(struct bus_terminal_t* bt);
+// we should check in every tick
+void bus_terminal_tick(struct bus_terminal_t* bt);
 
 int32_t bus_terminal_send(struct bus_terminal_t* bt, const char* buf,
                           size_t buf_size, bus_addr_t to);

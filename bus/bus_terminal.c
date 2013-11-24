@@ -231,8 +231,8 @@ void bus_terminal_release(bus_terminal_t* bt)
 }
 
 // check bus version and do update
-// we should do dispatch in every tick
-void bus_terminal_dispatch(bus_terminal_t* bt)
+// we should do check in every tick
+void bus_terminal_tick(bus_terminal_t* bt)
 {
     uint32_t terminal_version, channel_version;
     if (!bt) return;
@@ -262,7 +262,7 @@ int32_t _bus_terminal_register_channel(bus_terminal_t* bt, bus_addr_t to, size_t
     if (!bt) return bus_err_fail;
 
     // make sure same version
-    bus_terminal_dispatch(bt);
+    bus_terminal_tick(bt);
 
     // add lock
     process_lock_lock(bt->lock);
