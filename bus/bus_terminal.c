@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "core/shm.h"
+#include "mm/shm.h"
 #include "core/atom.h"
 #include "core/idtable.h"
 #include "core/process_lock.h"

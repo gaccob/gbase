@@ -1,4 +1,4 @@
-#include "core/shm.h"
+#include "mm/shm.h"
 #include "core/process_lock.h"
 
 int shmkey = 2100001;

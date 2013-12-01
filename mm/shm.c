@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "core/shm.h"
+#include "mm/shm.h"
 
 #if defined(OS_WIN)
     #include <windows.h>
