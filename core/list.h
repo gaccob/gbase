@@ -1,6 +1,10 @@
 #ifndef LIST_H_
 #define LIST_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //
 // list_head from linux kernel
 // not support windows as no "offsetof" definition
@@ -8,21 +12,16 @@
 
 #include "core/os_def.h"
 
-#if !defined OS_WIN
+// #if !defined OS_WIN
 
 // This file is from Linux Kernel (include/linux/list.h)
 // and modified by simply removing hardware prefetching of list items.
 // Here by copyright, credits attributed to wherever they belong.
 // Kulesh Shanmugasundaram (kulesh [squiggly] isis.poly.edu)
 
-struct list_head {
+typedef struct list_head {
     struct list_head *next, *prev;
-};
-
-#define LIST_HEAD_INIT(name) { &(name), &(name) }
-
-#define LIST_HEAD(name) \
-    struct list_head name = LIST_HEAD_INIT(name)
+} list_head_t;
 
 #define INIT_LIST_HEAD(ptr) do { \
     (ptr)->next = (ptr); (ptr)->prev = (ptr); \
@@ -127,18 +126,23 @@ static inline void list_splice_init(struct list_head *list,
     for (pos = (head)->next, n = pos->next; pos != (head); \
         pos = n, n = pos->next)
 
-#define list_for_each_entry(pos, head, member)                \
-    for (pos = list_entry((head)->next, typeof(*pos), member);    \
-         &pos->member != (head);                     \
-         pos = list_entry(pos->member.next, typeof(*pos), member))
+//
+// as typeof is gcc extension, so add type parameter to make other compiler happy
+//
+#define list_for_each_entry(pos, pos_type, head, member)     \
+	for (pos = list_entry((head)->next, pos_type, member);    \
+		 &pos->member != (head);                     \
+		 pos = list_entry(pos->member.next, pos_type, member))
 
-#define list_for_each_entry_safe(pos, n, head, member)            \
-    for (pos = list_entry((head)->next, typeof(*pos), member),    \
-         n = list_entry(pos->member.next, typeof(*pos), member);    \
-         &pos->member != (head);                     \
-         pos = n, n = list_entry(n->member.next, typeof(*n), member))
+#define list_for_each_entry_safe(pos, pos_type, n, head, member)    \
+	for (pos = list_entry((head)->next, pos_type, member),    \
+		 n = list_entry(pos->member.next, pos_type, member);    \
+		 &pos->member != (head);                     \
+		 pos = n, n = list_entry(n->member.next, pos_type, member))
 
-#endif // OS_WIN
+#ifdef __cplusplus
+}
+#endif
 
 #endif // LIST_H_
 

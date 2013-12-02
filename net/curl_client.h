@@ -1,6 +1,10 @@
 #ifndef CURL_CLIENT_H_
 #define CURL_CLIENT_H_
 
+#ifdef __cpluplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <curl/curl.h>
 
@@ -45,5 +49,9 @@ const char* curl_client_err_str(struct curl_client_t*);
 
 size_t curl_client_write_cb(char* buffer, size_t sz,
                             size_t nitems, void* userp);
+
+#ifdef __cpluplus
+}
+#endif
 
 #endif

@@ -1,6 +1,10 @@
 #ifndef CURL_POOL_H_
 #define CURL_POOL_H_
 
+#ifdef __cpluplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <curl/curl.h>
 #include "net/curl_client.h"
@@ -21,5 +25,9 @@ int32_t curl_pool_add_post_req(struct curl_pool_t* cp, const char* req,
                                const char* cookie);
 void curl_pool_run(struct curl_pool_t* cp);
 int32_t curl_pool_running_count(struct curl_pool_t* cp);
+
+#ifdef __cpluplus
+}
+#endif
 
 #endif

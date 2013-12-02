@@ -1,6 +1,10 @@
 #ifndef REACTOR_INNER_H_
 #define REACTOR_INNER_H_
 
+#ifdef __cpluplus
+extern "C" {
+#endif
+
 #include "net/reactor.h"
 
 typedef struct reactor_t
@@ -30,6 +34,10 @@ extern struct reactor_impl_t reactor_epoll;
 extern struct reactor_impl_t reactor_kqueue;
 #endif
 extern struct reactor_impl_t reactor_select;
+
+#ifdef __cpluplus
+}
+#endif
 
 #endif // REACTOR_INNER_H_
 

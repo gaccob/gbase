@@ -1,6 +1,10 @@
 #ifndef BUS_TERMINAL_H_
 #define BUS_TERMINAL_H_
 
+#ifdef __cpluplus
+extern "C" {
+#endif
+
 #include "core/os_def.h"
 
 #define BUS_MAX_CHANNLE_COUNT 1024
@@ -50,4 +54,9 @@ uint32_t bus_terminal_recv_bytes(struct bus_terminal_t* bt, bus_addr_t from);
 
 void bus_terminal_dump(struct bus_terminal_t* bt, char* debug,
                        size_t debug_size);
+
+#ifdef __cpluplus
+}
+#endif
+
 #endif

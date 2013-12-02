@@ -28,6 +28,10 @@
 #ifndef MD5_H_
 #define MD5_H_
 
+#ifdef __cpluplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #define MD5_HASH_BITS  128
@@ -48,4 +52,8 @@ void md5_lastBlock(md5_ctx_t *state, const void* block, uint16_t length);
 void md5_ctx2hash(md5_hash_t dest, const md5_ctx_t* state);
 void md5(md5_hash_t dest, const void* msg, uint32_t length_b);
 
-#endif /*MD5_H_*/
+#ifdef __cpluplus
+}
+#endif
+
+#endif

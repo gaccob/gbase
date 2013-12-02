@@ -6,7 +6,7 @@
 // task is organized as step1, step2 ..
 //
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -90,7 +90,7 @@ void task_run(struct task_t*, struct heaptimer_t* timer,
 
 void task_release(struct task_t*);
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

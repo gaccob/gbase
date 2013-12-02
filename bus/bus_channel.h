@@ -1,7 +1,7 @@
 #ifndef BUS_CHANNEL_H_
 #define BUS_CHANNEL_H_
 
-#ifdef _cpluplus
+#ifdef __cpluplus
 extern "C" {
 #endif
 
@@ -32,5 +32,9 @@ struct rbuffer_t* bus_terminal_channel_rbuffer(struct bus_terminal_channel_t*);
 
 // get channel data saved in shm
 bus_channel_t* bus_terminal_channel(struct bus_terminal_channel_t*);
+
+#ifdef __cpluplus
+}
+#endif
 
 #endif

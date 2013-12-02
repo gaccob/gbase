@@ -20,8 +20,9 @@ THREAD_FUNC thread_input(void* arg)
         } else {
             printf("==>bus send:\n%s\n", input);
         }
-        usleep(10);
+        SLEEP(1);
     }
+	THREAD_RETURN;
 }
 
 THREAD_FUNC thread_bus(void* arg)
@@ -52,8 +53,9 @@ THREAD_FUNC thread_bus(void* arg)
             printf("==>bus recv from [%d]:\n%s\n", from, recv);
         }
 
-        usleep(10);
+        SLEEP(1);
     }
+	THREAD_RETURN;
 }
 
 int main(int argc, char** argv)
@@ -61,6 +63,7 @@ int main(int argc, char** argv)
     int16_t key = 0x1234;
     int addr;
     struct bus_terminal_t* bt;
+    thread_t ti, tb;
 
     if (argc != 2) {
         printf("usage: ./bus_echo bus_addr\n");
@@ -71,7 +74,6 @@ int main(int argc, char** argv)
     bt = bus_terminal_init(key, addr);
     assert(bt);
 
-    thread_t ti, tb;
     THREAD_CREATE(ti, thread_input, bt);
     THREAD_CREATE(tb, thread_bus, bt);
     assert(ti && tb);
