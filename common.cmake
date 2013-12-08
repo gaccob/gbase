@@ -47,6 +47,7 @@ function(CommonEcho)
     # ${ARGV}, ${ARGN}
     set(ECHO_WITH_COLOR_CMD "echo")
     set(ECHO_WITH_COLOR_CMD_DP "")
+
     if(UNIX OR CYGWIN OR APPLE)
         set(TAG_RED     "\\033[31;1m")
         set(TAG_GREEN   "\\033[32;1m")

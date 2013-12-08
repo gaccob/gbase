@@ -35,6 +35,16 @@
     #define pgm_read_dword(x) (*(x))
 #endif
 
+typedef struct md5_ctx_st {
+	uint32_t a[4];
+	uint32_t counter;
+} md5_ctx_t;
+
+void md5_init(md5_ctx_t *s);
+void md5_nextBlock(md5_ctx_t *state, const void* block);
+void md5_lastBlock(md5_ctx_t *state, const void* block, uint16_t length);
+void md5_ctx2hash(md5_hash_t dest, const md5_ctx_t* state);
+
 uint32_t md5_T[] PROGMEM = {
     0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee, 0xf57c0faf,
     0x4787c62a, 0xa8304613, 0xfd469501, 0x698098d8, 0x8b44f7af,

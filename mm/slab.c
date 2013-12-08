@@ -1,10 +1,10 @@
 #include <assert.h>
+#include <stddef.h>
 #include "core/list.h"
 #include "mm/slab.h"
 
-LIST_HEAD(g_slab_small);
-LIST_HEAD(g_slab_medium);
-LIST_HEAD(g_slab_large);
+LIST_HEAD(g_slab_minor);
+LIST_HEAD(g_slab_common);
 
 #define META_COLOR_DEFAULT 0x0
 #define META_COLOR_ALLOC 0x01
@@ -21,6 +21,7 @@ typedef struct meta_t
 
 #define META_SIZE SLAB_ALIGN(sizeof(meta_t))
 #define META_MEM(meta) ((char*)meta + META_SIZE)
+#define META_FROM_MEM(memory) (meta_t*)((char*)memory - META_SIZE)
 
 // getpagesize() must be 2^n
 #define META_SHIFT(meta) (int16_t)((uint64_t)meta & (getpagesize() - 1))
@@ -39,12 +40,10 @@ typedef struct page_t
 list_head_t* _slab_free_page(size_t sz)
 {
     list_head_t* head = NULL;
-    if (sz <= SLAB_SIZE_SMALL) {
-        head = &g_slab_small;
-    } else if (sz <= SLAB_SIZE_MEDIUM) {
-        head = &g_slab_medium;
-    } else if (sz <= getpagesize() - META_SIZE - PAGE_HEAD_SIZE) {
-        head = &g_slab_large;
+    if (sz <= SLAB_SIZE_MINOR) {
+        head = &g_slab_minor;
+    } else if (sz <= SLAB_SIZE_MAX) {
+        head = &g_slab_common;
     }
     return head;
 }
@@ -118,6 +117,41 @@ void _slab_free_replace(meta_t* meta, meta_t* replace)
     }
 }
 
+// check next meta whether free, if free, then do quick merge
+// replace_next == 0 means meta will replace next in free link
+// return 0 means do quick merge success
+int _slab_free_quick_merge(meta_t* meta, int replace_next)
+{
+    meta_t* next, *prev;
+    page_t* page = META_PAGE(meta);
+    size_t shift = META_SHIFT(meta) + META_SIZE + meta->size;
+    if (shift < getpagesize()) {
+        next = META(meta, shift);
+        if (!(next->color & META_COLOR_ALLOC)) {
+            prev = next->free_prev > 0 ? PAGE_META(page, next->free_prev) : NULL;
+            // quick merge with next
+            meta->size += next->size + META_SIZE;
+            if (replace_next == 0) {
+                _slab_free_replace(next, meta);
+                if (META_SHIFT(next) == page->free) {
+                    page->free = META_SHIFT(meta);
+                }
+            }
+            // quick merge with prev
+            if (prev && META_SHIFT(prev) + META_SIZE + prev->size == META_SHIFT(meta)) {
+                prev->size += META_SIZE + meta->size;
+                prev->free_next = meta->free_next;
+                next = meta->free_next > 0 ? PAGE_META(page, meta->free_next) : NULL;
+                if (next) {
+                    next->free_prev = META_SHIFT(prev);
+                }
+            }
+            return 0;
+        }
+    }
+    return -1;
+}
+
 void _slab_meta_init(meta_t* meta, size_t sz)
 {
     if (meta) {
@@ -135,7 +169,7 @@ meta_t* _slab_free_split(meta_t* meta, int16_t used)
     next = (meta_t*)((char*)meta + META_SIZE + used);
     _slab_meta_init(next, meta->size - used - META_SIZE);
     meta->size = used;
-    return meta;
+    return next;
 }
 
 void* _slab_alloc(page_t* page, size_t sz)
@@ -164,7 +198,7 @@ void* _slab_alloc(page_t* page, size_t sz)
             next = _slab_free_erase(meta);
             // erase free-link head
             if (META_SHIFT(meta) == page->free) {
-                page->free = next ? -1 : META_SHIFT(next);
+                page->free = next ? META_SHIFT(next) : -1;
             }
             meta->color |= META_COLOR_ALLOC;
             return META_MEM(meta);
@@ -221,15 +255,101 @@ void* slab_alloc(size_t sz)
 
 void slab_free(void* memory)
 {
-    // 1. check merge with last one
+    meta_t* meta, *next, *prev;
+    page_t* page;
+    size_t shift, next_shift;
 
+    if (!memory) return;
+    meta = META_FROM_MEM(memory);
+    if (!(meta->color & META_COLOR_ALLOC)) {
+        assert(0);
+    }
+    meta->color &= (~META_COLOR_ALLOC);
+    page = META_PAGE(meta);
 
-    // 2. loop page link
-    //
-    // 2.1 merge with prev
-    //
-    // 2.2 seperate one, add to link
+    // try quick merge with next one
+    if (_slab_free_quick_merge(meta, 0) == 0) {
+        goto FREE_SUCCESS;
+    }
 
-    // TODO:
+    shift = META_SHIFT(meta);
+    // if no free head
+    if (page->free < 0) {
+        meta->free_prev = -1;
+        meta->free_next = -1;
+        page->free = shift;
+        goto FREE_SUCCESS;
+    }
+
+    // insert from head
+    next_shift = page->free;
+    next = PAGE_META(page, next_shift);
+    if (shift < next_shift) {
+        meta->free_prev = -1;
+        meta->free_next = next_shift;
+        next->free_prev = shift;
+        page->free = shift;
+        goto FREE_SUCCESS;
+    }
+
+    // loop page free list
+    while (1) {
+        prev = next;
+        if (prev->free_next < 0) {
+            break;
+        }
+        next = PAGE_META(page, prev->free_next);
+        if (shift < prev->free_next) {
+            break;
+        }
+    }
+    // if cant merge, then do link after after
+    if (_slab_free_quick_merge(prev, -1)) {
+        _slab_free_insert(prev, meta);
+    }
+
+FREE_SUCCESS:
+    // free page
+    meta = PAGE_META(page, page->free);
+    if (meta->size + META_SIZE + PAGE_HEAD_SIZE == getpagesize()) {
+        list_del(&page->link);
+        free((void*)page);
+    }
 }
 
+void _page_debug(page_t* page)
+{
+    meta_t* meta;
+    int shift;
+    if (page) {
+        printf("--> page %tX: ", (ptrdiff_t)page);
+        shift = page->free;
+        if (shift != PAGE_HEAD_SIZE) {
+            printf("[%d:%d] ", (int)PAGE_HEAD_SIZE, shift);
+        }
+        while (shift > 0) {
+            meta = PAGE_META(page, shift);
+            printf("(%d:%d) ", shift, shift + (int)META_SIZE + (int)(meta->size));
+            if (meta->free_next > 0) {
+                printf("[%d:%d] ", shift + (int)(META_SIZE) + (int)(meta->size),
+                    (int)(meta->free_next));
+            }
+            shift = meta->free_next;
+        }
+        printf("\n");
+    }
+}
+
+void slab_debug()
+{
+    page_t* page;
+    printf("minor slab: \n");
+    list_for_each_entry(page, page_t, &g_slab_minor, link) {
+        _page_debug(page);
+    }
+    printf("common slab: \n");
+    list_for_each_entry(page, page_t, &g_slab_common, link) {
+        _page_debug(page);
+    }
+    printf("slab debug complete!\n\n");
+}
