@@ -44,7 +44,7 @@ void* hash_find(struct hash_t* htable, void* data);
  * I've modified Bob's hash to be useful in the Linux kernel, and
  * any bugs present are surely my fault.  -DaveM
  */
- uint32_t hash_jhash(const void* key, uint32_t length);
+uint32_t hash_jhash(const void* key, uint32_t length);
 
 #ifdef __cplusplus
 }

@@ -26,11 +26,11 @@ uint32_t util_date_number(time_t time)
         + (uint32_t)now_tm.tm_mday;
 }
 
-void util_timestamp(struct timeval* time, char* stamp)
+void util_timestamp(struct timeval* time, char* stamp, size_t sz)
 {
     struct tm now_tm;
     util_localtime((time_t*)&time->tv_sec, &now_tm);
-    sprintf(stamp, "[%d-%02d-%02d %02d:%02d:%02d:%06d]",
+    snprintf(stamp, sz, "[%d-%02d-%02d %02d:%02d:%02d:%06d]",
         now_tm.tm_year + 1900,
         now_tm.tm_mon + 1,
         now_tm.tm_mday,

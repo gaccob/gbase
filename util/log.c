@@ -129,7 +129,7 @@ int log_write(log_t* log, int level, struct timeval* now,
 
     if (level <= log->log_level) {
         // timestamp & file line function tag
-        util_timestamp(now, buffer);
+        util_timestamp(now, buffer, MAX_LOG_BUFFER_LEN);
         snprintf(buffer + strlen(buffer), MAX_LOG_BUFFER_LEN - 1 - strlen(buffer),
             "[%s:%d:%s] \t", file_name, line_number, function_name);
 

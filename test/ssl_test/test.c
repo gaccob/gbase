@@ -165,13 +165,13 @@ int main(int argc, char** argv)
     if (argc == 2) {
         // peformance test
         util_gettimeofday(&tv, NULL);
-        util_timestamp(&tv, timestamp);
+        util_timestamp(&tv, timestamp, 64);
         printf("%s\n", timestamp);
         for (i = 0; i < atoi(argv[1]); ++ i) {
             test_dh_perf();
         }
         util_gettimeofday(&tv, NULL);
-        util_timestamp(&tv, timestamp);
+        util_timestamp(&tv, timestamp, 64);
         printf("%s\n", timestamp);
     } else {
         // logic test

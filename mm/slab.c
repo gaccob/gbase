@@ -32,6 +32,7 @@ typedef struct page_t
 {
     list_head_t link;
     int16_t free; // first free memory shift
+    int16_t remain; // remain free size
 } page_t;
 
 #define PAGE_HEAD_SIZE SLAB_ALIGN(sizeof(page_t))
@@ -124,7 +125,7 @@ int _slab_free_quick_merge(meta_t* meta, int replace_next)
 {
     meta_t* next, *prev;
     page_t* page = META_PAGE(meta);
-    size_t shift = META_SHIFT(meta) + META_SIZE + meta->size;
+    int shift = META_SHIFT(meta) + META_SIZE + meta->size;
     if (shift < getpagesize()) {
         next = META(meta, shift);
         if (!(next->color & META_COLOR_ALLOC)) {
@@ -165,20 +166,47 @@ void _slab_meta_init(meta_t* meta, size_t sz)
 meta_t* _slab_free_split(meta_t* meta, int16_t used)
 {
     meta_t* next = NULL;
-    assert(meta->size > used + META_SIZE);
+    assert(meta->size > used + (int)META_SIZE);
     next = (meta_t*)((char*)meta + META_SIZE + used);
     _slab_meta_init(next, meta->size - used - META_SIZE);
     meta->size = used;
     return next;
 }
 
-void* _slab_alloc(page_t* page, size_t sz)
+void _slab_page_erase(page_t* page, list_head_t* head)
+{
+    // make full threshold as size limit
+    // erase from slab link
+    if (head == &g_slab_minor) {
+        if (page->remain < SLAB_SIZE_MINOR) {
+            list_del(&page->link);
+        }
+    } else if (head == &g_slab_common) {
+        if (page->remain < SLAB_SIZE_MAX) {
+            list_del(&page->link);
+        }
+    }
+}
+
+void _slab_page_insert(page_t* page, meta_t* meta)
+{
+    list_head_t* head;
+    head = _slab_free_page(meta->size);
+    // page not full, then add list
+    if (head == &g_slab_minor && list_not_in_link(&page->link)) {
+        list_add(&page->link, head);
+    } else if (head == &g_slab_common && list_not_in_link(&page->link)) {
+        list_add(&page->link, head);
+    }
+}
+
+void* _slab_alloc(page_t* page, list_head_t* head, size_t sz)
 {
     int16_t shift;
     meta_t* meta, *next, *split;
 
     // no free memory
-    if (page->free <= 0) {
+    if (page->free <= 0 || page->remain < (int)sz + (int)META_SIZE) {
         return NULL;
     }
 
@@ -189,19 +217,20 @@ void* _slab_alloc(page_t* page, size_t sz)
         shift = meta->free_next;
 
         // not enough, ignore
-        if (meta->size < sz) {
+        if (meta->size < (int)sz) {
+            meta = NULL;
             continue;
         }
 
         // just fit, erase from free list
-        else if (meta->size <= sz + META_SIZE) {
+        else if (meta->size <= (int)(sz + META_SIZE)) {
             next = _slab_free_erase(meta);
             // erase free-link head
             if (META_SHIFT(meta) == page->free) {
                 page->free = next ? META_SHIFT(next) : -1;
             }
             meta->color |= META_COLOR_ALLOC;
-            return META_MEM(meta);
+            break;
         }
 
         // do split
@@ -213,8 +242,13 @@ void* _slab_alloc(page_t* page, size_t sz)
                 page->free = META_SHIFT(split);
             }
             meta->color |= META_COLOR_ALLOC;
-            return META_MEM(meta);
+            break;
         }
+    }
+    if (meta) {
+        page->remain -= (META_SIZE + meta->size);
+        _slab_page_erase(page, head);
+        return META_MEM(meta);
     }
     return NULL;
 }
@@ -235,14 +269,20 @@ void* slab_alloc(size_t sz)
 
     // alloc from free page
     list_for_each_entry(page, page_t, head, link) {
-        memory = _slab_alloc(page, sz);
+        memory = _slab_alloc(page, head, sz);
         if (memory) return memory;
     }
 
     // now, we need alloc a new page
-    page = (page_t*)malloc(getpagesize());
+    page = NULL;
+#if defined (OS_LINUX) || defined (OS_MAC)
+    posix_memalign((void**)&page, getpagesize(), getpagesize());
+#elif defined (OS_WIN)
+    page = _aligned_malloc(getpagesize(), getpagesize());
+#endif
     if (!page) return NULL;
     page->free = PAGE_HEAD_SIZE;
+    page->remain = (int16_t)getpagesize() - page->free;
     meta = PAGE_META(page, PAGE_HEAD_SIZE);
     _slab_meta_init(meta, getpagesize() - PAGE_HEAD_SIZE - META_SIZE);
 
@@ -250,7 +290,7 @@ void* slab_alloc(size_t sz)
     list_add(&page->link, head);
 
     // recursive
-    return _slab_alloc(page, sz);
+    return _slab_alloc(page, head, sz);
 }
 
 void slab_free(void* memory)
@@ -266,6 +306,8 @@ void slab_free(void* memory)
     }
     meta->color &= (~META_COLOR_ALLOC);
     page = META_PAGE(meta);
+    _slab_page_insert(page, meta);
+    page->remain += meta->size + META_SIZE;
 
     // try quick merge with next one
     if (_slab_free_quick_merge(meta, 0) == 0) {
@@ -299,7 +341,7 @@ void slab_free(void* memory)
             break;
         }
         next = PAGE_META(page, prev->free_next);
-        if (shift < prev->free_next) {
+        if ((int)shift < prev->free_next) {
             break;
         }
     }
@@ -310,10 +352,13 @@ void slab_free(void* memory)
 
 FREE_SUCCESS:
     // free page
-    meta = PAGE_META(page, page->free);
-    if (meta->size + META_SIZE + PAGE_HEAD_SIZE == getpagesize()) {
+    if (page->remain + PAGE_HEAD_SIZE == getpagesize()) {
         list_del(&page->link);
+#if defined(OS_WIN)
+		_aligned_free((void*)page);
+#else
         free((void*)page);
+#endif
     }
 }
 
@@ -322,7 +367,7 @@ void _page_debug(page_t* page)
     meta_t* meta;
     int shift;
     if (page) {
-        printf("--> page %tX: ", (ptrdiff_t)page);
+        printf("--> page %tX, remain %d: ", (ptrdiff_t)page, page->remain);
         shift = page->free;
         if (shift != PAGE_HEAD_SIZE) {
             printf("[%d:%d] ", (int)PAGE_HEAD_SIZE, shift);

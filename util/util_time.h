@@ -10,7 +10,7 @@ extern "C" {
 
 uint32_t util_hour_number(time_t time);
 uint32_t util_date_number(time_t time);
-void util_timestamp(struct timeval* time, char* stamp);
+void util_timestamp(struct timeval* time, char* stamp, size_t sz);
 void util_localtime(const time_t *time, struct tm* _tm);
 void util_gettimeofday(struct timeval* tv, void* tz);
 

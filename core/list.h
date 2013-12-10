@@ -87,6 +87,11 @@ static inline int list_empty(struct list_head *head)
     return head->next == head;
 }
 
+static inline int list_not_in_link(struct list_head* head)
+{
+    return head->next == 0 && head->prev == 0;
+}
+
 static inline void __list_splice(struct list_head *list,
                                  struct list_head *head)
 {
