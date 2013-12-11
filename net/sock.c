@@ -211,12 +211,7 @@ int sock_set_reuseaddr(sock_t sock)
     if(sock < 0) return -1;
     optval = 1;
     optlen = sizeof(optval);
-#if defined(OS_WIN)
     return setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&optval, optlen);
-#elif defined(OS_LINUX) || defined(OS_MAC)
-    return setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const void*)&optval, optlen);
-#endif
-    return -1;
 }
 
 int sock_set_nodelay(sock_t sock)
@@ -227,34 +222,19 @@ int sock_set_nodelay(sock_t sock)
     if(sock < 0) return -1;
     optval = 1;
     optlen = sizeof(optval);
-#if defined(OS_WIN)
     return setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const char*)&optval, optlen);
-#elif defined(OS_LINUX) || defined(OS_MAC)
-    return setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const void*)&optval, optlen);
-#endif
-    return -1;
 }
 
 int sock_set_sndbuf(sock_t sock, int size)
 {
     if(sock < 0) return -1;
-#if defined(OS_WIN)
-    return setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (const char*)&size, sizeof(size));
-#elif defined(OS_LINUX) || defined(OS_MAC)
     return setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (const void*)&size, sizeof(size));
-#endif
-    return -1;
 }
 
 int sock_set_rcvbuf(sock_t sock, int size)
 {
     if(sock < 0) return -1;
-#if defined(OS_WIN)
-    return setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (const char*)&size, sizeof(size));
-#elif defined(OS_LINUX) || defined(OS_MAC)
     return setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (const void*)&size, sizeof(size));
-#endif
-    return -1;
 }
 
 
