@@ -3,8 +3,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stddef.h>
-#include "core/coroutine.h"
-#include "core/slist.h"
+
+#include "base/slist.h"
+#include "coroutine.h"
 
 #if defined(OS_LINUX)
 #include <ucontext.h>

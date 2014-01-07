@@ -1,6 +1,6 @@
 #include <assert.h>
 #include "bus/bus_channel.h"
-#include "core/rbuffer.h"
+#include "base/rbuffer.h"
 #include "mm/shm.h"
 
 typedef struct bus_terminal_channel_t

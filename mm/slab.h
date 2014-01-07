@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
 #include "core/os_def.h"
-#include "core/list.h"
+#include "base/list.h"
 
 // align with 8 bytes
 #define SLAB_ALIGN(sz) (((sz + 7) >> 3) << 3)

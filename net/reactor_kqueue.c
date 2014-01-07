@@ -1,7 +1,7 @@
 #include "core/os_def.h"
 #include "net/reactor.h"
 #include "net/reactor_inner.h"
-#include "core/slist.h"
+#include "base/slist.h"
 
 #if defined(OS_MAC)
 #include <sys/event.h>

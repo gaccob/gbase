@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <stddef.h>
-#include "core/list.h"
 #include "mm/slab.h"
 
 LIST_HEAD(g_slab_minor);

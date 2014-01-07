@@ -1,5 +1,5 @@
-#include "heap.h"
 #include <assert.h>
+#include "heap.h"
 
 // minimum heap
 typedef struct heap_node_t

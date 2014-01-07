@@ -11,8 +11,8 @@ extern "C" {
 #endif
 
 #include "core/os_def.h"
-#include "core/idtable.h"
-#include "core/timer.h"
+#include "base/idtable.h"
+#include "base/timer.h"
 
 #define TASK_INVALID_ID 0
 #define TASK_NAME_LEN 32

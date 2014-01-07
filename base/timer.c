@@ -1,6 +1,6 @@
 #include <assert.h>
 
-#include "core/heap.h"
+#include "base/heap.h"
 #include "util/util_time.h"
 #include "timer.h"
 

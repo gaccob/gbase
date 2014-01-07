@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #include "core/os_def.h"
-#include "core/connbuffer.h"
+#include "base/connbuffer.h"
 #include "net/sock.h"
 #include "net/reactor.h"
 

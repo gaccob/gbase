@@ -1,8 +1,8 @@
 #include "core/os_def.h"
 #include "net/reactor.h"
 #include "net/reactor_inner.h"
-#include "core/hash.h"
-#include "core/slist.h"
+#include "base/hash.h"
+#include "base/slist.h"
 
 static const char* SELECT_NAME = "select";
 

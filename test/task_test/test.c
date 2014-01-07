@@ -1,7 +1,7 @@
 #include <assert.h>
 #include "core/os_def.h"
 #include "core/task.h"
-#include "core/timer.h"
+#include "base/timer.h"
 #include "net/curl_client.h"
 #include "net/curl_pool.h"
 #include "util/util_time.h"

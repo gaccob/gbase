@@ -3,8 +3,8 @@
 #include "core/os_def.h"
 #include "net/curl_pool.h"
 #include "net/curl_client.h"
-#include "core/slist.h"
-#include "core/hash.h"
+#include "base/slist.h"
+#include "base/hash.h"
 
 typedef struct curl_pool_t
 {

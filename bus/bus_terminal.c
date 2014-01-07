@@ -1,9 +1,9 @@
 #include <assert.h>
 #include "mm/shm.h"
 #include "core/atom.h"
-#include "core/idtable.h"
 #include "core/process_lock.h"
-#include "core/rbuffer.h"
+#include "base/idtable.h"
+#include "base/rbuffer.h"
 #include "bus/bus_channel.h"
 #include "bus/bus_terminal.h"
 

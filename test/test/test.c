@@ -5,7 +5,7 @@
 #include "util/base64.h"
 #include "util/sha1.h"
 #include "util/random.h"
-#include "core/conhash.h"
+#include "base/conhash.h"
 
 #ifdef OS_LINUX
 #include "core/coroutine.h"
