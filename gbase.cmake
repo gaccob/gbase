@@ -4,7 +4,7 @@ include("${CMAKE_SOURCE_DIR}/common.cmake")
 include_directories("${CMAKE_SOURCE_DIR}")
 
 set(GBASE_DIR_CORE "${CMAKE_SOURCE_DIR}/core")
-set(GBASE_DIR_DS "${CMAKE_SOURCE_DIR}/ds")
+set(GBASE_DIR_BASE "${CMAKE_SOURCE_DIR}/base")
 set(GBASE_DIR_NET "${CMAKE_SOURCE_DIR}/net")
 set(GBASE_DIR_UTIL "${CMAKE_SOURCE_DIR}/util")
 set(GBASE_DIR_BUS "${CMAKE_SOURCE_DIR}/bus")
@@ -18,7 +18,7 @@ set (GBASE_LIB_LINK ${COMMON_LINK_LIB})
 
 # 编译lib的源文件
 aux_source_directory(${GBASE_DIR_CORE} GBASE_SOURCE)
-aux_source_directory(${GBASE_DIR_DS} GBASE_SOURCE)
+aux_source_directory(${GBASE_DIR_BASE} GBASE_SOURCE)
 aux_source_directory(${GBASE_DIR_NET} GBASE_SOURCE)
 aux_source_directory(${GBASE_DIR_UTIL} GBASE_SOURCE)
 aux_source_directory(${GBASE_DIR_BUS} GBASE_SOURCE)
