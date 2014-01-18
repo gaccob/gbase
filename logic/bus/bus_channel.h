@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #include "core/os_def.h"
-#include "bus/bus_terminal.h"
+#include "logic/bus/bus_terminal.h"
 
 // single way, saved in share-memory
 typedef struct bus_channel_t

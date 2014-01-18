@@ -4,8 +4,8 @@
 #include "core/process_lock.h"
 #include "base/idtable.h"
 #include "base/rbuffer.h"
-#include "bus/bus_channel.h"
-#include "bus/bus_terminal.h"
+#include "logic/bus/bus_channel.h"
+#include "logic/bus/bus_terminal.h"
 
 // stored in share memory
 typedef struct bus_t

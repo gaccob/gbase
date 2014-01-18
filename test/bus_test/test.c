@@ -3,7 +3,7 @@
 
 #include "core/os_def.h"
 #include "core/thread.h"
-#include "bus/bus_terminal.h"
+#include "logic/bus/bus_terminal.h"
 
 THREAD_FUNC thread_input(void* arg)
 {

@@ -1,7 +1,7 @@
 #include <assert.h>
-#include "bus/bus_channel.h"
 #include "base/rbuffer.h"
 #include "mm/shm.h"
+#include "logic/bus/bus_channel.h"
 
 typedef struct bus_terminal_channel_t
 {
