@@ -6,6 +6,7 @@
 #include "util/base64.h"
 #include "util/sha1.h"
 #include "util/random.h"
+#include "util/encode.h"
 #include "base/conhash.h"
 
 #ifdef OS_LINUX
@@ -263,6 +264,17 @@ void test_fsm()
     fsm_release(fsm);
 }
 
+void test_unicode()
+{
+    int unicode = 0;
+    char* utf8 = "张伟业";
+    char** src = &utf8;
+    while (0 == get_unicode(src, &unicode)) {
+        printf("%d ", unicode);
+    }
+    printf("\n");
+}
+
 int main()
 {
     // test_base64();
@@ -276,7 +288,9 @@ int main()
     // test_random();
     // test_shuffle();
 
-    test_fsm();
+    // test_fsm();
+
+    test_unicode();
 
     return 0;
 }

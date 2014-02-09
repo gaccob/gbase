@@ -59,6 +59,7 @@ size_t util_html_escape(char* dst, const char* src, size_t sz);
 
 void util_hex_dump(char* dst, char* src, size_t sz);
 
+
 #ifdef __cplusplus
 }
 #endif
