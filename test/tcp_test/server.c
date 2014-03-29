@@ -58,8 +58,8 @@ int accept_read(int fd)
     struct ConCtx* ctx = (struct ConCtx*)MALLOC(sizeof(struct ConCtx));
     assert(ctx);
 
-    ctx->read_buf = connbuffer_init(4096, MALLOC, FREE);
-    ctx->write_buf = connbuffer_init(4096, MALLOC, FREE);
+    ctx->read_buf = connbuffer_create(4096, MALLOC, FREE);
+    ctx->write_buf = connbuffer_create(4096, MALLOC, FREE);
     assert(ctx->read_buf && ctx->write_buf);
 
     ctx->con = connector_init(r, conn_read, conn_close, ctx->read_buf, ctx->write_buf, fd);
@@ -82,7 +82,7 @@ int main()
     struct acceptor_t* acc;
     struct sockaddr_in addr;
 
-    con_table = idtable_init(1024);
+    con_table = idtable_create(1024);
     if(!con_table)
         return 0;
 

@@ -13,7 +13,7 @@ extern "C" {
 #include "core/os_def.h"
 
 struct idtable_t;
-struct idtable_t* idtable_init(int32_t max_count);
+struct idtable_t* idtable_create(int32_t max_count);
 int32_t idtable_add(struct idtable_t* table, int32_t id, void* ptr);
 void* idtable_get(struct idtable_t* table, int32_t id);
 void idtable_remove(struct idtable_t* table, int32_t id);
@@ -22,7 +22,7 @@ void idtable_release(struct idtable_t* table);
 
 struct idtable_iterator_t;
 // return null when idtable empty
-struct idtable_iterator_t* idtable_iterator_init(struct idtable_t*, int start_idx);
+struct idtable_iterator_t* idtable_iterator_create(struct idtable_t*, int start_idx);
 // return < 0 when end-loop
 int32_t idtable_iterator_next(struct idtable_iterator_t*);
 void* idtable_iterator_value(struct idtable_iterator_t*);

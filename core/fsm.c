@@ -91,17 +91,17 @@ fsm_t* fsm_init(int size)
 
     fsm->status_count = 0;
     fsm->status = (fsm_status_t*)MALLOC(sizeof(fsm_status_t) * FSM_STATUS_SIZE(size));
-    fsm->status_table = idtable_init(FSM_STATUS_SIZE(size));
+    fsm->status_table = idtable_create(FSM_STATUS_SIZE(size));
     assert(fsm->status && fsm->status_table);
 
     fsm->events_count = 0;
     fsm->events = (fsm_event_t*)MALLOC(sizeof(fsm_event_t) * FSM_EVENTS_SIZE(size));
-    fsm->events_table = idtable_init(FSM_EVENTS_SIZE(size));
+    fsm->events_table = idtable_create(FSM_EVENTS_SIZE(size));
     assert(fsm->events && fsm->events_table);
 
     fsm->rules_count = 0;
     fsm->rules = (fsm_rule_t*)MALLOC(sizeof(fsm_rule_t) * FSM_RULES_SIZE(size));
-    fsm->rules_table = hash_init(_fsm_rule_hash, _fsm_rule_cmp, FSM_RULES_SIZE(size) * 3);
+    fsm->rules_table = hash_create(_fsm_rule_hash, _fsm_rule_cmp, FSM_RULES_SIZE(size) * 3);
     return fsm;
 }
 

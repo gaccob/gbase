@@ -45,7 +45,7 @@ int select_init(struct reactor_t* reactor)
     if (!s) goto SELECT_FAIL;
     memset(s, 0, sizeof(select_t));
 
-    s->handler_table = hash_init(_handle_hash, _handle_cmp, SELECT_SIZE * 3);
+    s->handler_table = hash_create(_handle_hash, _handle_cmp, SELECT_SIZE * 3);
     if (!s->handler_table) goto SELECT_FAIL1;
 
     s->expired = slist_init();

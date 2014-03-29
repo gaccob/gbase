@@ -72,9 +72,9 @@ int accept_read(int fd)
     struct WSCtx* ctx = (struct WSCtx*)MALLOC(sizeof(struct WSCtx));
     assert(ctx);
 
-    ctx->read_buf = connbuffer_init(TEST_BUFF_SIZE, MALLOC, FREE);
-    ctx->real_read_buf = connbuffer_init(TEST_BUFF_SIZE, MALLOC, FREE);
-    ctx->write_buf = connbuffer_init(TEST_BUFF_SIZE, MALLOC, FREE);
+    ctx->read_buf = connbuffer_create(TEST_BUFF_SIZE, MALLOC, FREE);
+    ctx->real_read_buf = connbuffer_create(TEST_BUFF_SIZE, MALLOC, FREE);
+    ctx->write_buf = connbuffer_create(TEST_BUFF_SIZE, MALLOC, FREE);
     assert(ctx->read_buf && ctx->write_buf && ctx->real_read_buf);
 
     ctx->con = wsconn_init(r, wscon_build, wscon_read, wscon_close, ctx->read_buf,
@@ -98,7 +98,7 @@ int main()
     struct sockaddr_in addr;
     struct WSCtx* ctx;
 
-    con_table = idtable_init(1024);
+    con_table = idtable_create(1024);
     if(!con_table) return 0;
 
     stop_flag = 0;

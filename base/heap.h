@@ -1,9 +1,7 @@
 #ifndef HEAP_H_
 #define HEAP_H_
 
-//
 // it's a minimum heap, grows automatic
-//
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,12 +10,12 @@ extern "C" {
 #include "core/os_def.h"
 
 struct heap_t;
-typedef int (*heap_cmp)(void*, void*);
+typedef int (*heap_cmp_func)(void*, void*);
 
-struct heap_t* heap_init(heap_cmp cmp);
+struct heap_t* heap_create(heap_cmp_func cmp);
 void heap_release(struct heap_t* heap);
 
-//  return >= 0, success, return key which used to erase data
+//  return >= 0, success, return key
 //  return < 0, fail
 int heap_insert(struct heap_t* heap, void* data);
 void* heap_erase(struct heap_t* heap, int key);

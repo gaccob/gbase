@@ -31,7 +31,7 @@ heaptimer_t* timer_init()
 {
     heaptimer_t* timer = (heaptimer_t*)MALLOC(sizeof(heaptimer_t));
     if (!timer) goto TIMER_FAIL;
-    timer->heap = heap_init(_timer_cmp);
+    timer->heap = heap_create(_timer_cmp);
     if (!timer->heap) goto TIMER_FAIL1;
     return timer;
 TIMER_FAIL1:

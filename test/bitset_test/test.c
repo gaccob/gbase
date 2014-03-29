@@ -6,7 +6,7 @@ int main()
     struct bit_t* bit;
     int i, setbit[4];
     int size = rand() % 1024;
-    bit = bit_init(size);
+    bit = bit_create(size);
     assert(bit);
 
     for(i = 0; i < 4; i++)

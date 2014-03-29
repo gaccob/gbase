@@ -8,7 +8,7 @@ extern "C" {
 #include "core/os_def.h"
 
 struct bit_t;
-struct bit_t* bit_init(int size);
+struct bit_t* bit_create(int size);
 void bit_release(struct bit_t* bit);
 void bit_set(struct bit_t* bit, int index);
 void bit_reset(struct bit_t* bit, int index);

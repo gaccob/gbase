@@ -159,9 +159,9 @@ bus_terminal_t* bus_terminal_init(int16_t key, bus_addr_t ba)
     bt->local_channel_version = 0;
     bt->lock = process_lock_init(key);
     assert(bt->lock);
-    bt->send_channels = idtable_init(BUS_MAX_TERMINAL_COUNT);
+    bt->send_channels = idtable_create(BUS_MAX_TERMINAL_COUNT);
     assert(bt->send_channels);
-    bt->recv_channels = idtable_init(BUS_MAX_TERMINAL_COUNT);
+    bt->recv_channels = idtable_create(BUS_MAX_TERMINAL_COUNT);
     assert(bt->recv_channels);
 
     // add lock
@@ -196,7 +196,7 @@ void bus_terminal_release(bus_terminal_t* bt)
     if (bt) {
         // release send channels
         if (bt->send_channels) {
-            it = idtable_iterator_init(bt->send_channels, 0);
+            it = idtable_iterator_create(bt->send_channels, 0);
             while (it) {
                 btc = (struct bus_terminal_channel_t*)idtable_iterator_value(it);
                 if (btc) {
@@ -212,7 +212,7 @@ void bus_terminal_release(bus_terminal_t* bt)
         }
         // release recv channels
         if (bt->recv_channels) {
-            it = idtable_iterator_init(bt->recv_channels, 0);
+            it = idtable_iterator_create(bt->recv_channels, 0);
             while (it) {
                 btc = (struct bus_terminal_channel_t*)idtable_iterator_value(it);
                 if (btc) {
@@ -402,7 +402,7 @@ int32_t bus_terminal_recv_all(bus_terminal_t* bt, char* buf,
     if (!bt || !buf || !buf_size || !from) {
         return bus_err_fail;
     }
-    it = idtable_iterator_init(bt->recv_channels, (index ++) % BUS_MAX_TERMINAL_COUNT);
+    it = idtable_iterator_create(bt->recv_channels, (index ++) % BUS_MAX_TERMINAL_COUNT);
     while (it) {
         btc = (struct bus_terminal_channel_t*)idtable_iterator_value(it);
         assert(btc);
@@ -444,7 +444,7 @@ void bus_terminal_dump(bus_terminal_t* bt, char* debug, size_t debug_size)
         }
 
         // dump recv channels
-        it = idtable_iterator_init(bt->recv_channels, 0);
+        it = idtable_iterator_create(bt->recv_channels, 0);
         while (it) {
             btc = idtable_iterator_value(it);
             assert(btc);
@@ -463,7 +463,7 @@ void bus_terminal_dump(bus_terminal_t* bt, char* debug, size_t debug_size)
         }
 
         // dump send channels
-        it = idtable_iterator_init(bt->send_channels, 0);
+        it = idtable_iterator_create(bt->send_channels, 0);
         while (it) {
             btc = idtable_iterator_value(it);
             assert(btc);

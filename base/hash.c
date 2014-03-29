@@ -2,23 +2,21 @@
 #include <string.h>
 #include "hash.h"
 
-typedef struct hash_node_t
-{
+typedef struct hash_node_t {
     void* m_data;
     struct hash_node_t* m_next;
 } hash_node_t;
 
-typedef struct hash_t
-{
+typedef struct hash_t {
     int32_t m_size;
     int32_t m_count;
     hash_func m_hash_func;
-    cmp_func m_cmp_func;
+    hash_cmp_func m_cmp_func;
     hash_node_t** m_table;
 } hash_t;
 
-hash_t* hash_init(hash_func hash, cmp_func cmp, int32_t hint_size)
-{
+hash_t*
+hash_create(hash_func hash, hash_cmp_func cmp, int32_t hint_size) {
     hash_t* htable;
     if (!hash || !cmp || hint_size <= 0) {
         return NULL;
@@ -46,8 +44,8 @@ HASH_FAIL:
     return NULL;
 }
 
-int32_t hash_release(hash_t* htable)
-{
+int32_t
+hash_release(hash_t* htable) {
     if (!htable) return -1;
     hash_clean(htable);
     FREE(htable->m_table);
@@ -55,13 +53,14 @@ int32_t hash_release(hash_t* htable)
     return 0;
 }
 
-int32_t hash_clean(hash_t* htable)
-{
+int32_t
+hash_clean(hash_t* htable) {
     int32_t i;
     hash_node_t* bak;
     hash_node_t* node;
-
-    if (!htable) return -1;
+    if (!htable) {
+        return -1;
+    }
     for (i = 0; i < htable->m_size; ++ i) {
         // free list node
         node = htable->m_table[i];
@@ -78,12 +77,13 @@ int32_t hash_clean(hash_t* htable)
     return 0;
 }
 
-void hash_loop(hash_t* htable, loop_func f, void* args)
-{
+void
+hash_loop(hash_t* htable, hash_loop_func f, void* args) {
     int32_t i;
     hash_node_t* node;
-    if (!htable || !f) return;
-
+    if (!htable || !f) {
+        return;
+    }
     for (i = 0; i < htable->m_size; ++ i) {
         node = htable->m_table[i];
         while (node) {
@@ -95,26 +95,25 @@ void hash_loop(hash_t* htable, loop_func f, void* args)
     }
 }
 
-int32_t hash_insert(hash_t* htable, void* data)
-{
+int32_t
+hash_insert(hash_t* htable, void* data) {
     uint32_t hash_key, index;
     hash_node_t* node;
     hash_node_t* prev;
-
-    if (!htable || !data) return -1;
+    if (!htable || !data) {
+        return -1;
+    }
     hash_key = htable->m_hash_func(data);
     index = hash_key % htable->m_size;
     node = htable->m_table[index];
     prev = 0;
     while (node) {
-        // exist items
         if (0 == htable->m_cmp_func(node->m_data, data)) {
             return -1;
         }
         prev = node;
         node = node->m_next;
     }
-
     node = (hash_node_t*)MALLOC(sizeof(hash_node_t));
     if (!node) return -1;
     node->m_data = data;
@@ -128,18 +127,18 @@ int32_t hash_insert(hash_t* htable, void* data)
     return 0;
 }
 
-int32_t hash_remove(hash_t* htable, void* data)
-{
+int32_t
+hash_remove(hash_t* htable, void* data) {
     uint32_t hash_key, index;
     hash_node_t* node;
     hash_node_t* prev;
-
-    if (!htable || !data) return -1;
+    if (!htable || !data) {
+        return -1;
+    }
     hash_key = htable->m_hash_func(data);
     index = hash_key % htable->m_size;
     node = htable->m_table[index];
     prev = 0;
-
     while (node) {
         if (0 == htable->m_cmp_func(node->m_data, data)) {
             if (prev) {
@@ -158,19 +157,19 @@ int32_t hash_remove(hash_t* htable, void* data)
     return -1;
 }
 
-int32_t hash_count(hash_t* htable)
-{
-    if (!htable) return -1;
-    return htable->m_count;
+int32_t
+hash_count(hash_t* htable) {
+    return htable ? htable->m_count : -1;
 }
 
 
-void* hash_find(hash_t* htable, void* data)
-{
+void*
+hash_find(hash_t* htable, void* data) {
     uint32_t hash_key;
     hash_node_t* node;
-
-    if (!htable || !data) return NULL;
+    if (!htable || !data) {
+        return NULL;
+    }
     hash_key = htable->m_hash_func(data);
     node = htable->m_table[hash_key % htable->m_size];
     while (node) {
@@ -254,5 +253,4 @@ uint32_t hash_jhash(const void* key, uint32_t length)
     __jhash_mix(a, b, c);
     return c;
 }
-
 

@@ -17,7 +17,9 @@ typedef void* (*connbuffer_malloc)(size_t);
 typedef void (*connbuffer_free)(void*);
 
 // buffer_size hint: 4 * max pkg size
-struct connbuffer_t* connbuffer_init(int buffer_size, connbuffer_malloc buffer_malloc, connbuffer_free buffer_free);
+struct connbuffer_t* connbuffer_create(int buffer_size,
+                                       connbuffer_malloc malloc_func,
+                                       connbuffer_free free_func);
 int connbuffer_release(struct connbuffer_t* connbuffer);
 
 int connbuffer_read(struct connbuffer_t* connbuffer, char* dest, int len);

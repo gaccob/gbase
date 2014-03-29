@@ -18,7 +18,7 @@ extern "C" {
 
 struct conhash_t;
 
-struct conhash_t* conhash_init(hash_func key_hash, hash_func node_hash);
+struct conhash_t* conhash_create(hash_func key_hash, hash_func node_hash);
 void conhash_release(struct conhash_t* ch);
 int32_t conhash_add_node(struct conhash_t* ch, void* node);
 void conhash_erase_node(struct conhash_t* ch, void* node);

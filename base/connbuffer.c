@@ -1,177 +1,178 @@
 #include "connbuffer.h"
 
-typedef struct connbuffer_t
-{
+typedef struct connbuffer_t {
     char* buffer;
     int buffer_size;
     int read_pos;
     int write_pos;
     int drift_threshold;
-    connbuffer_malloc buffer_malloc;
-    connbuffer_free buffer_free;
-}connbuffer_t;
+    connbuffer_malloc malloc_func;
+    connbuffer_free free_func;
+} connbuffer_t;
 
 // buffer_size hint: 4 * max pkg size
-connbuffer_t* connbuffer_init(int buffer_size, connbuffer_malloc buffer_malloc, connbuffer_free buffer_free)
-{
-    connbuffer_t* connbuffer;
-    if(buffer_size <= 0)
+connbuffer_t*
+connbuffer_create(int buffer_size, connbuffer_malloc malloc_func,
+                  connbuffer_free free_func) {
+    connbuffer_t* cb;
+    if (buffer_size <= 0) {
         return NULL;
-
-    connbuffer = (connbuffer_t*)MALLOC(sizeof(connbuffer_t));
-    assert(connbuffer);
-    connbuffer->buffer_size = buffer_size;
-    connbuffer->read_pos = 0;
-    connbuffer->write_pos = 0;
-    connbuffer->drift_threshold = buffer_size / 2;
-    if(buffer_malloc)
-        connbuffer->buffer_malloc = buffer_malloc;
-    else
-        connbuffer->buffer_malloc = MALLOC;
-    if(buffer_free)
-        connbuffer->buffer_free = buffer_free;
-    else
-        connbuffer->buffer_free = FREE;
-    connbuffer->buffer = (char*)connbuffer->buffer_malloc(buffer_size);
-    assert(connbuffer->buffer);
-
-    return connbuffer;
+    }
+    cb = (connbuffer_t*)MALLOC(sizeof(connbuffer_t));
+    assert(cb);
+    cb->buffer_size = buffer_size;
+    cb->read_pos = 0;
+    cb->write_pos = 0;
+    cb->drift_threshold = buffer_size / 2;
+    cb->malloc_func = malloc_func ? malloc_func : MALLOC;
+    cb->free_func = free_func ? free_func : FREE;
+    cb->buffer = (char*)cb->malloc_func(buffer_size);
+    assert(cb->buffer);
+    return cb;
 }
 
-int connbuffer_release(connbuffer_t* connbuffer)
-{
-    if(connbuffer)
-    {
-        connbuffer->buffer_free(connbuffer->buffer);
-        FREE(connbuffer);
+int
+connbuffer_release(connbuffer_t* cb) {
+    if (cb) {
+        cb->free_func(cb->buffer);
+        FREE(cb);
     }
     return 0;
 }
 
 // read data in buffer to dest
 // return: read bytes
-int connbuffer_read(connbuffer_t* connbuffer, char* dest, int len)
-{
-    if(!connbuffer || !dest || len < 0)
+int
+connbuffer_read(connbuffer_t* cb, char* dest, int len) {
+    if (!cb|| !dest || len < 0) {
         return -1;
-    if(0 == len)
+    }
+    if (0 == len) {
         return 0;
-
-    if(len > connbuffer_read_len(connbuffer))
-        return connbuffer_read(connbuffer, dest, connbuffer_read_len(connbuffer));
-
-    memcpy(dest, connbuffer_read_buffer(connbuffer), len);
-    return connbuffer_read_nocopy(connbuffer, len);
+    }
+    if (len > connbuffer_read_len(cb)) {
+        return connbuffer_read(cb, dest, connbuffer_read_len(cb));
+    }
+    memcpy(dest, connbuffer_read_buffer(cb), len);
+    return connbuffer_read_nocopy(cb, len);
 }
 
-int connbuffer_read_nocopy(connbuffer_t* connbuffer, int len)
-{
-    if(!connbuffer || len < 0)
+int
+connbuffer_read_nocopy(connbuffer_t* cb, int len) {
+    if (!cb || len < 0) {
         return -1;
-
-    if(len > connbuffer_read_len(connbuffer))
-        return connbuffer_read_nocopy(connbuffer, connbuffer_read_len(connbuffer));
-
-    connbuffer->read_pos += len;
-    assert(connbuffer->write_pos >= connbuffer->read_pos);
-
-    // check drift threshold
-    if(connbuffer->read_pos > connbuffer->drift_threshold)
-    {
-        const char* shift = connbuffer_read_buffer(connbuffer);
-        // threshold is half size, so memcpy src & dst will never overlap to escape memmove
-        memcpy(connbuffer->buffer, shift, connbuffer->write_pos - connbuffer->read_pos);
-        connbuffer->write_pos -= connbuffer->read_pos;
-        connbuffer->read_pos = 0;
     }
-
+    if (len > connbuffer_read_len(cb)) {
+        return connbuffer_read_nocopy(cb, connbuffer_read_len(cb));
+    }
+    cb->read_pos += len;
+    assert(cb->write_pos >= cb->read_pos);
+    // check drift threshold
+    if (cb->read_pos > cb->drift_threshold) {
+        const char* shift = connbuffer_read_buffer(cb);
+        // threshold is half size, so memcpy src & dst will never overlap to escape memmove
+        memcpy(cb->buffer, shift, cb->write_pos - cb->read_pos);
+        cb->write_pos -= cb->read_pos;
+        cb->read_pos = 0;
+    }
     return len;
 }
 
 // only read and not pick out
 // return: read bytes
-int connbuffer_peek(connbuffer_t* connbuffer, char* dest, int len)
-{
-    if(!connbuffer || len < 0 || !dest)
+int
+connbuffer_peek(connbuffer_t* cb, char* dest, int len) {
+    if (!cb || len < 0 || !dest) {
         return -1;
-    if(0 == len)
+    }
+    if (0 == len) {
         return 0;
-    if(len > connbuffer_read_len(connbuffer))
-        return connbuffer_peek(connbuffer, dest, connbuffer_read_len(connbuffer));
-    memcpy(dest, connbuffer_read_buffer(connbuffer), len);
+    }
+    if (len > connbuffer_read_len(cb)) {
+        return connbuffer_peek(cb, dest, connbuffer_read_len(cb));
+    }
+    memcpy(dest, connbuffer_read_buffer(cb), len);
     return len;
 }
 
 // write data from src to connbuffer
 // return: write bytes
-int connbuffer_write(connbuffer_t* connbuffer, const char* src, int len)
-{
-    if(!connbuffer || !src || len < 0)
+int
+connbuffer_write(connbuffer_t* cb, const char* src, int len) {
+    if (!cb || !src || len < 0) {
         return -1;
-    if(0 == len)
+    }
+    if (0 == len) {
         return 0;
-    if(connbuffer_write_len(connbuffer) < len)
-        return connbuffer_write(connbuffer, src, connbuffer_write_len(connbuffer));
-    memcpy(connbuffer_write_buffer(connbuffer), src, len);
-    return connbuffer_write_nocopy(connbuffer, len);
+    }
+    if (connbuffer_write_len(cb) < len) {
+        return connbuffer_write(cb, src, connbuffer_write_len(cb));
+    }
+    memcpy(connbuffer_write_buffer(cb), src, len);
+    return connbuffer_write_nocopy(cb, len);
 }
 
-int connbuffer_write_nocopy(connbuffer_t* connbuffer, int len)
-{
-    if(connbuffer_write_len(connbuffer) < len)
-        return connbuffer_write_nocopy(connbuffer, connbuffer_write_len(connbuffer));
-    if(len < 0)
+int
+connbuffer_write_nocopy(connbuffer_t* cb, int len) {
+    if (connbuffer_write_len(cb) < len) {
+        return connbuffer_write_nocopy(cb, connbuffer_write_len(cb));
+    }
+    if (len < 0) {
         return -1;
-    connbuffer->write_pos += len;
-    assert(connbuffer->write_pos <= connbuffer->buffer_size);
+    }
+    cb->write_pos += len;
+    assert(cb->write_pos <= cb->buffer_size);
     return len;
 }
 
-int connbuffer_reset(connbuffer_t* connbuffer)
-{
-    if(!connbuffer)
+int
+connbuffer_reset(connbuffer_t* cb) {
+    if (!cb) {
         return -1;
-    connbuffer->read_pos = connbuffer->write_pos = 0;
+    }
+    cb->read_pos = cb->write_pos = 0;
     return 0;
 }
 
-const char* connbuffer_debug(connbuffer_t* connbuffer)
-{
+const char*
+connbuffer_debug(connbuffer_t* cb) {
     static char debug_str[64];
-
-    if(!connbuffer)
+    if (!cb) {
         return NULL;
+    }
     memset(debug_str, 0, sizeof(debug_str));
     snprintf(debug_str, sizeof(debug_str),
         "size=%d, read_pos=%d, write_pos=%d",
-        connbuffer->buffer_size,
-        connbuffer->read_pos,
-        connbuffer->write_pos);
+        cb->buffer_size,
+        cb->read_pos,
+        cb->write_pos);
     return debug_str;
 }
 
-char* connbuffer_read_buffer(connbuffer_t* connbuffer)
-{
-    return connbuffer->buffer + connbuffer->read_pos;
+char*
+connbuffer_read_buffer(connbuffer_t* cb) {
+    return cb->buffer + cb->read_pos;
 }
 
-char* connbuffer_write_buffer(connbuffer_t* connbuffer)
-{
-    return connbuffer->buffer + connbuffer->write_pos;
+char*
+connbuffer_write_buffer(connbuffer_t* cb) {
+    return cb->buffer + cb->write_pos;
 }
 
-int connbuffer_read_len(connbuffer_t* connbuffer)
-{
-    if(!connbuffer)
+int
+connbuffer_read_len(connbuffer_t* cb) {
+    if (!cb) {
         return -1;
-    return connbuffer->write_pos > connbuffer->read_pos ?
-        (connbuffer->write_pos - connbuffer->read_pos) : 0;
+    }
+    return cb->write_pos > cb->read_pos
+        ?  (cb->write_pos - cb->read_pos) : 0;
 }
 
-int connbuffer_write_len(connbuffer_t* connbuffer)
-{
-    if(!connbuffer)
+int
+connbuffer_write_len(connbuffer_t* cb) {
+    if (!cb) {
         return -1;
-    return connbuffer->buffer_size - connbuffer->write_pos;
+    }
+    return cb->buffer_size - cb->write_pos;
 }
 

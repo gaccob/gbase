@@ -117,7 +117,7 @@ uint32_t conhash_node_hash(const void* node)
 }
 int32_t test_conhash()
 {
-    struct conhash_t* ch = conhash_init(conhash_key_hash, conhash_node_hash);
+    struct conhash_t* ch = conhash_create(conhash_key_hash, conhash_node_hash);
     assert(ch);
     struct node_t node[10];
     struct node_t* n;

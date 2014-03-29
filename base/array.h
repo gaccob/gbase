@@ -14,7 +14,7 @@ extern "C" {
 struct array_t;
 typedef void (*array_fn)(void* data, void* args);
 
-struct array_t* array_init(int32_t size);
+struct array_t* array_create(int32_t size);
 int32_t array_add(struct array_t* array, void* data);
 int32_t array_del(struct array_t* array, void* data);
 int32_t array_has(struct array_t* array, void* data);

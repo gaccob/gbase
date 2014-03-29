@@ -1,7 +1,7 @@
 #include <assert.h>
 #include "base/heap.h"
 
-int heap_cmp_func(void* data1, void* data2)
+int heap_cmp(void* data1, void* data2)
 {
     assert(data1 && data2);
     return *(int*)data1 - *(int*)data2;
@@ -17,7 +17,7 @@ int main()
     int* key;
     struct heap_t* heap;
     
-    heap = heap_init(heap_cmp_func);
+    heap = heap_create(heap_cmp);
     assert(heap);
 
     data = (int*)MALLOC(sizeof(int) * LOOP);

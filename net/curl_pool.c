@@ -50,7 +50,7 @@ curl_pool_t* curl_pool_init()
     cp->free_list = slist_init();
     if (!cp->free_list) goto CURL_FAIL1;
 
-    cp->clients = hash_init(_curl_pool_hash, _curl_pool_cmp, cp->size * 13);
+    cp->clients = hash_create(_curl_pool_hash, _curl_pool_cmp, cp->size * 13);
     if (!cp->clients) goto CURL_FAIL2;
 
     cp->mhandle = curl_multi_init();

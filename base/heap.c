@@ -2,18 +2,16 @@
 #include "heap.h"
 
 // minimum heap
-typedef struct heap_node_t
-{
+typedef struct heap_node_t {
     void* data;
     int heap_key;
 } heap_node_t;
 
-typedef struct heap_t
-{
+typedef struct heap_t {
     heap_node_t* array;
     size_t size;
     size_t count;
-    heap_cmp cmp_func;
+    heap_cmp_func cmp_func;
     int next_key;
     int* key_table;
 } heap_t;
@@ -24,8 +22,8 @@ typedef struct heap_t
 #define HEAP_LEFT_CHILD(pos) (((pos) << 1) + 1)
 #define HEAP_RIGHT_CHILD(pos) (((pos) << 1) + 2)
 
-heap_t* heap_init(heap_cmp cmp)
-{
+heap_t*
+heap_create(heap_cmp_func cmp) {
     size_t index;
     heap_t* heap;
 
@@ -58,8 +56,8 @@ HEAP_FAIL:
     return NULL;
 }
 
-void heap_release(heap_t* heap)
-{
+void
+heap_release(heap_t* heap) {
     if (heap) {
         FREE(heap->key_table);
         FREE(heap->array);
@@ -67,8 +65,8 @@ void heap_release(heap_t* heap)
     }
 }
 
-void _heap_swap(heap_t* heap, int pos1, int pos2)
-{
+static void
+_heap_swap(heap_t* heap, int pos1, int pos2) {
     void* temp_data = heap->array[pos1].data;
     int temp_key = heap->array[pos1].heap_key;
 
@@ -83,13 +81,13 @@ void _heap_swap(heap_t* heap, int pos1, int pos2)
     heap->array[pos2].heap_key = temp_key;
 }
 
-int _heap_full(heap_t* heap)
-{
+static int
+_heap_full(heap_t* heap) {
     return (heap && heap->size == heap->count) ? 0: -1;
 }
 
-int _heap_realloc(heap_t* heap)
-{
+static int
+_heap_realloc(heap_t* heap) {
     size_t index, new_size;
     heap_node_t* new_array;
     int* new_key_table;
@@ -123,8 +121,8 @@ int _heap_realloc(heap_t* heap)
     return 0;
 }
 
-void _heap_set_next_key(heap_t* heap)
-{
+static void
+_heap_set_next_key(heap_t* heap) {
     int key;
     assert(heap);
     for (key = (heap->next_key + 1) % heap->size;
@@ -135,13 +133,12 @@ void _heap_set_next_key(heap_t* heap)
             return;
         }
     }
-
     // heap is full
     heap->next_key = heap->size;
 }
 
-void _heap_rotdown(heap_t* heap, int pos)
-{
+static void
+_heap_rotdown(heap_t* heap, int pos) {
     int pos_left, pos_right;
     if (!heap) return;
 
@@ -185,8 +182,8 @@ void _heap_rotdown(heap_t* heap, int pos)
 
 //  return >= 0, success, return key which used to erase data
 //  return < 0, fail
-int heap_insert(heap_t* heap, void* data)
-{
+int
+heap_insert(heap_t* heap, void* data) {
     int pos, pos_up, res;
     heap_node_t* node;
 
@@ -221,15 +218,14 @@ int heap_insert(heap_t* heap, void* data)
     return res;
 }
 
-void* heap_erase(heap_t* heap, int key)
-{
+void*
+heap_erase(heap_t* heap, int key) {
     int index;
     void* data;
     if (!heap || heap->key_table[key] < 0) {
         return NULL;
     }
 
-    // get key data
     index = heap->key_table[key];
     data = heap->array[index].data;
 
@@ -238,70 +234,62 @@ void* heap_erase(heap_t* heap, int key)
         heap->next_key = key;
     }
 
-    // swap index and head
     _heap_swap(heap, index, heap->count - 1);
     heap->count --;
 
-    // rotate down
     _heap_rotdown(heap, index);
 
-    // reset key flag
     heap->key_table[key] = -1;
     return data;
 }
 
-void heap_update(heap_t* heap, int key, void* data)
-{
+void
+heap_update(heap_t* heap, int key, void* data) {
     int index;
     if (!heap || !data) return;
-
-    // get key
     index = heap->key_table[key];
     if (index < 0) return;
     heap->array[index].data = data;
-    // rotate down
     _heap_rotdown(heap, index);
 }
 
-int heap_count(heap_t* heap)
-{
-    if (!heap) return -1;
-    return (int)heap->count;
+int
+heap_count(heap_t* heap) {
+    return heap ? (int)heap->count : -1;
 }
 
-void* heap_top(heap_t* heap)
-{
+void*
+heap_top(heap_t* heap) {
     if (heap && heap->count > 0) {
         return heap->array[0].data;
     }
     return NULL;
 }
 
-void* heap_pop(heap_t* heap)
-{
+void*
+heap_pop(heap_t* heap) {
     void* res;
     if (!heap || 0 == heap->count) {
         return NULL;
     }
     res = heap->array[0].data;
-
     // swap tail and head
     _heap_swap(heap, 0, heap->count - 1);
     heap->count --;
-
-    // rotate down
     _heap_rotdown(heap, 0);
     return res;
 }
 
-#if 0
-void _heap_debug(heap_t* heap)
-{
+# if 0
+static void
+_heap_debug(heap_t* heap) {
     int i;
     printf("DEBUG: ");
-    for(i = 0; i<heap->count; i++)
+    for (i = 0; i<heap->count; i++) {
         printf("%d[%d] ", *(int*)heap->array[i].data, heap->array[i].heap_key);
+    }
     printf("\n");
 }
 #endif
+
 
