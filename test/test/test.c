@@ -9,6 +9,7 @@
 #include "test_bitset.inl"
 #include "test_heap.inl"
 #include "test_rbtree.inl"
+#include "test_rbuffer.inl"
 
 int
 main(int argc, char** argv) {
@@ -25,12 +26,13 @@ main(int argc, char** argv) {
             "\t<fsm>\n"
             "\t<bitset>\n"
             "\t<heap>\n"
-            "\t<rbtree>\n");
+            "\t<rbtree>\n"
+            "\t<rbuffer>\n");
         return 0;
     }
 
     if (0 == strcmp(argv[1], "base64")) {
-        test_base64();   
+        test_base64();
     } else if (0 == strcmp(argv[1], "wscode")) {
         test_wscode();
     } else if (0 == strcmp(argv[1], "random")) {
@@ -55,6 +57,8 @@ main(int argc, char** argv) {
         test_heap();
     } else if (0 == strcmp(argv[1], "rbtree")) {
         test_rbtree();
+    } else if (0 == strcmp(argv[1], "rbuffer")) {
+        test_rbuffer();
     }
     return 0;
 }

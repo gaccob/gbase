@@ -53,7 +53,7 @@ bus_terminal_channel_t* bus_terminal_channel_init(int32_t shmkey, bus_addr_t fro
     }
 
     // init ring buffer
-    btc->r = rbuffer_init_mem((char*)btc->bc + sizeof(bus_channel_t),
+    btc->r = rbuffer_attach((char*)btc->bc + sizeof(bus_channel_t),
         btc->bc->channel_size + rbuffer_head_size());
     if (!btc->r) {
         FREE(btc);

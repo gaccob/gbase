@@ -3,23 +3,20 @@
 #include "core/atom.h"
 #include "rbuffer.h"
 
-typedef struct rbuffer_t
-{
+typedef struct rbuffer_t {
     uint32_t size;
     volatile atom_t read_pos;
     volatile atom_t write_pos;
     char buffer[0];
 } rbuffer_t;
 
-rbuffer_t* rbuffer_init(uint32_t size)
-{
+rbuffer_t*
+rbuffer_create(uint32_t size) {
 	rbuffer_t* r;
-
     // round up by 2^n
     if (size & (size - 1)) {
         size = ROUNDUP(size);
     }
-
 	// malloc
     r = (rbuffer_t*)MALLOC(sizeof(rbuffer_t) + size);
     if (!r) { return NULL; }
@@ -29,11 +26,10 @@ rbuffer_t* rbuffer_init(uint32_t size)
     return r;
 }
 
-rbuffer_t* rbuffer_init_mem(void* mem, size_t mem_size)
-{
+rbuffer_t*
+rbuffer_attach(void* mem, size_t mem_size) {
     rbuffer_t* r;
     uint32_t size;
-
     if (!mem || mem_size < sizeof(struct rbuffer_t)) {
         return NULL;
     }
@@ -44,7 +40,6 @@ rbuffer_t* rbuffer_init_mem(void* mem, size_t mem_size)
     if (size == 0) {
         return NULL;
     }
-
     // assignment
     r = (rbuffer_t*)mem;
     r->size = size;
@@ -53,23 +48,23 @@ rbuffer_t* rbuffer_init_mem(void* mem, size_t mem_size)
     return r;
 }
 
-void rbuffer_release(rbuffer_t* r)
-{
+void
+rbuffer_release(rbuffer_t* r) {
     if (r) { FREE(r); }
 }
 
-size_t rbuffer_size(rbuffer_t* r)
-{
+size_t
+rbuffer_size(rbuffer_t* r) {
     return r ? r->size : 0;
 }
 
-size_t rbuffer_head_size()
-{
+size_t
+rbuffer_head_size() {
     return sizeof(rbuffer_t);
 }
 
-uint32_t rbuffer_read_bytes(rbuffer_t* r)
-{
+uint32_t
+rbuffer_read_bytes(rbuffer_t* r) {
     uint32_t write_pos = r->write_pos;
     uint32_t read_pos = r->read_pos;
     uint32_t min_len = sizeof(uint32_t);
@@ -80,8 +75,8 @@ uint32_t rbuffer_read_bytes(rbuffer_t* r)
     return 0;
 }
 
-uint32_t rbuffer_write_bytes(rbuffer_t* r)
-{
+uint32_t
+rbuffer_write_bytes(rbuffer_t* r) {
     uint32_t write_pos = r->write_pos;
     uint32_t read_pos = r->read_pos;
     uint32_t min_len = sizeof(uint32_t);
@@ -91,8 +86,8 @@ uint32_t rbuffer_write_bytes(rbuffer_t* r)
     return r->size - min_len - (write_pos - read_pos);
 }
 
-int rbuffer_read(rbuffer_t* r, char* buf, size_t* buf_size)
-{
+int
+rbuffer_read(rbuffer_t* r, char* buf, size_t* buf_size) {
     int ret = rbuffer_peek(r, buf, buf_size);
     if (0 == ret) {
         atom_add(&r->read_pos, (sizeof(uint32_t) + *buf_size));
@@ -100,16 +95,16 @@ int rbuffer_read(rbuffer_t* r, char* buf, size_t* buf_size)
     return ret;
 }
 
-int rbuffer_peek(rbuffer_t* r, char* buf, size_t* buf_size)
-{
+int
+rbuffer_peek(rbuffer_t* r, char* buf, size_t* buf_size) {
     uint32_t read_to_tail, least, read_to_tail_least, read_len, read_to_tail_bytes;
-
     if (!r || !buf || !buf_size) {
         return -1;
     }
     if (0 == rbuffer_read_bytes(r)) {
         return -1;
     }
+
     read_to_tail = r->size - (r->read_pos & (r->size - 1));
     least = sizeof(uint32_t);
     read_to_tail_least = (read_to_tail < least ? read_to_tail : least);
@@ -141,8 +136,8 @@ int rbuffer_peek(rbuffer_t* r, char* buf, size_t* buf_size)
     return 0;
 }
 
-int rbuffer_write(rbuffer_t* r, const char* buf, size_t buf_size)
-{
+int
+rbuffer_write(rbuffer_t* r, const char* buf, size_t buf_size) {
     uint32_t len_size, nwrites, write_to_tail, min_len_size, write_to_tail_bytes;
     if (!r || !buf) return -1;
     if (0 == buf_size) return 0;

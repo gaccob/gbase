@@ -14,12 +14,12 @@ extern "C" {
 
 struct rbuffer_t;
 
-struct rbuffer_t* rbuffer_init(uint32_t size);
+struct rbuffer_t* rbuffer_create(uint32_t size);
 void rbuffer_release(struct rbuffer_t* r);
 
-// init from an allocated memory
-// if inited from memory, usually we don't need to release it
-struct rbuffer_t* rbuffer_init_mem(void* mem, size_t mem_size);
+// create from an allocated memory
+// if create from memory, usually we don't need to release it
+struct rbuffer_t* rbuffer_attach(void* mem, size_t mem_size);
 
 size_t rbuffer_size(struct rbuffer_t* r);
 size_t rbuffer_head_size();
