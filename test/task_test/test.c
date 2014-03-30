@@ -134,7 +134,7 @@ void on_fail(struct task_t* t, int timeout)
 
 int main(int argc, char** argv)
 {
-	struct heaptimer_t* timer;
+	struct timer_t* timer;
 	struct task_t* t;
 	struct task_step_t* t1, *t2, *t3;
 	struct timeval timeout;
@@ -145,7 +145,7 @@ int main(int argc, char** argv)
     cp = curl_pool_init();
     assert(cp);
 
-    timer = timer_init();
+    timer = timer_create();
     assert(timer);
 
     t = task_init(on_success, on_fail, (void*)&loop);

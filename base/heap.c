@@ -9,8 +9,8 @@ typedef struct heap_node_t {
 
 typedef struct heap_t {
     heap_node_t* array;
+    size_t cap;
     size_t size;
-    size_t count;
     heap_cmp_func cmp_func;
     int next_key;
     int* key_table;
@@ -30,18 +30,18 @@ heap_create(heap_cmp_func cmp) {
     heap = (heap_t*)MALLOC(sizeof(heap_t));
     if (!heap) goto HEAP_FAIL;
 
-    heap->size = HEAP_DEFAULT_SIZE;
-    heap->array = (heap_node_t*)MALLOC(sizeof(heap_node_t) * heap->size);
+    heap->cap = HEAP_DEFAULT_SIZE;
+    heap->array = (heap_node_t*)MALLOC(sizeof(heap_node_t) * heap->cap);
     if (!heap->array) goto HEAP_FAIL1;
 
-    heap->count = 0;
+    heap->size = 0;
     heap->cmp_func = cmp;
     heap->next_key = 0;
 
-    heap->key_table = (int*)MALLOC(sizeof(int) * heap->size);
+    heap->key_table = (int*)MALLOC(sizeof(int) * heap->cap);
     if (!heap->key_table) goto HEAP_FAIL2;
 
-    for (index = 0; index < heap->size; index ++) {
+    for (index = 0; index < heap->cap; index ++) {
         heap->array[index].data = 0;
         heap->array[index].heap_key = -1;
         heap->key_table[index] = -1;
@@ -83,7 +83,7 @@ _heap_swap(heap_t* heap, int pos1, int pos2) {
 
 static int
 _heap_full(heap_t* heap) {
-    return (heap && heap->size == heap->count) ? 0: -1;
+    return (heap && heap->cap == heap->size) ? 0: -1;
 }
 
 static int
@@ -92,7 +92,7 @@ _heap_realloc(heap_t* heap) {
     heap_node_t* new_array;
     int* new_key_table;
 
-    new_size = heap->size * 2;
+    new_size = heap->cap * 2;
     new_array = (heap_node_t*)MALLOC(sizeof(heap_node_t) * new_size);
     if (!new_array) return -1;
 
@@ -102,12 +102,12 @@ _heap_realloc(heap_t* heap) {
         return -1;
     }
 
-    for (index = 0; index < heap->size; index ++) {
+    for (index = 0; index < heap->cap; index ++) {
         new_array[index].data = heap->array[index].data;
         new_array[index].heap_key = heap->array[index].heap_key;
         new_key_table[index] = heap->key_table[index];
     }
-    for(index = heap->size; index < new_size; index ++) {
+    for(index = heap->cap; index < new_size; index ++) {
         new_array[index].data = 0;
         new_array[index].heap_key = -1;
         new_key_table[index] = -1;
@@ -117,7 +117,7 @@ _heap_realloc(heap_t* heap) {
 
     heap->array = new_array;
     heap->key_table = new_key_table;
-    heap->size = new_size;
+    heap->cap = new_size;
     return 0;
 }
 
@@ -125,16 +125,16 @@ static void
 _heap_set_next_key(heap_t* heap) {
     int key;
     assert(heap);
-    for (key = (heap->next_key + 1) % heap->size;
+    for (key = (heap->next_key + 1) % heap->cap;
         key != heap->next_key;
-        key = (key + 1) % heap->size) {
+        key = (key + 1) % heap->cap) {
         if (heap->key_table[key] < 0) {
             heap->next_key = key;
             return;
         }
     }
     // heap is full
-    heap->next_key = heap->size;
+    heap->next_key = heap->cap;
 }
 
 static void
@@ -143,15 +143,15 @@ _heap_rotdown(heap_t* heap, int pos) {
     if (!heap) return;
 
     // rotate down
-    while (pos < (int)heap->count) {
+    while (pos < (int)heap->size) {
         pos_left = HEAP_LEFT_CHILD(pos);
         pos_right = HEAP_RIGHT_CHILD(pos);
         // no left & right
-        if (pos_left >= (int)heap->count) {
+        if (pos_left >= (int)heap->size) {
             break;
         }
         // no right, left < pos
-        else if (pos_right >= (int)heap->count) {
+        else if (pos_right >= (int)heap->size) {
             if (heap->cmp_func(heap->array[pos_left].data, heap->array[pos].data) < 0) {
                 _heap_swap(heap, pos, pos_left);
                 pos = pos_left;
@@ -196,17 +196,17 @@ heap_insert(heap_t* heap, void* data) {
     }
 
     // insert data
-    node = &heap->array[heap->count ++];
+    node = &heap->array[heap->size ++];
     node->data = data;
     node->heap_key = heap->next_key;
     res = node->heap_key;
 
     // set key flag
-    heap->key_table[node->heap_key] = heap->count - 1;
+    heap->key_table[node->heap_key] = heap->size - 1;
     _heap_set_next_key(heap);
 
     // rotate up
-    pos = heap->count - 1;
+    pos = heap->size - 1;
     while (pos > 0) {
         pos_up = HEAP_PARENT(pos);
         if (heap->cmp_func(heap->array[pos].data, heap->array[pos_up].data) >= 0) {
@@ -230,12 +230,12 @@ heap_erase(heap_t* heap, int key) {
     data = heap->array[index].data;
 
     // set heap next heap key
-    if (heap->next_key == (int)heap->size) {
+    if (heap->next_key == (int)heap->cap) {
         heap->next_key = key;
     }
 
-    _heap_swap(heap, index, heap->count - 1);
-    heap->count --;
+    _heap_swap(heap, index, heap->size - 1);
+    heap->size --;
 
     _heap_rotdown(heap, index);
 
@@ -254,13 +254,13 @@ heap_update(heap_t* heap, int key, void* data) {
 }
 
 int
-heap_count(heap_t* heap) {
-    return heap ? (int)heap->count : -1;
+heap_size(heap_t* heap) {
+    return heap ? (int)heap->size : -1;
 }
 
 void*
 heap_top(heap_t* heap) {
-    if (heap && heap->count > 0) {
+    if (heap && heap->size > 0) {
         return heap->array[0].data;
     }
     return NULL;
@@ -269,13 +269,13 @@ heap_top(heap_t* heap) {
 void*
 heap_pop(heap_t* heap) {
     void* res;
-    if (!heap || 0 == heap->count) {
+    if (!heap || 0 == heap->size) {
         return NULL;
     }
     res = heap->array[0].data;
     // swap tail and head
-    _heap_swap(heap, 0, heap->count - 1);
-    heap->count --;
+    _heap_swap(heap, 0, heap->size - 1);
+    heap->size --;
     _heap_rotdown(heap, 0);
     return res;
 }
@@ -285,7 +285,7 @@ static void
 _heap_debug(heap_t* heap) {
     int i;
     printf("DEBUG: ");
-    for (i = 0; i<heap->count; i++) {
+    for (i = 0; i<heap->size; i++) {
         printf("%d[%d] ", *(int*)heap->array[i].data, heap->array[i].heap_key);
     }
     printf("\n");

@@ -85,7 +85,7 @@ struct task_step_t* task_get_step(struct task_t*, uint32_t id);
 void* task_data(struct task_t*);
 
 // if no timer, set timer=NULL, timeout=NULL to ignore
-void task_run(struct task_t*, struct heaptimer_t* timer,
+void task_run(struct task_t*, struct timer_t* timer,
               struct timeval* timeout);
 
 void task_release(struct task_t*);

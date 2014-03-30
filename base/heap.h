@@ -20,7 +20,7 @@ void heap_release(struct heap_t* heap);
 int heap_insert(struct heap_t* heap, void* data);
 void* heap_erase(struct heap_t* heap, int key);
 void heap_update(struct heap_t* heap, int key, void* data);
-int heap_count(struct heap_t* heap);
+int heap_size(struct heap_t* heap);
 void* heap_top(struct heap_t* heap);
 void* heap_pop(struct heap_t* heap);
 

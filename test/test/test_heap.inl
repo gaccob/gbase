@@ -35,7 +35,7 @@ test_heap() {
         //_heap_debug(heap);
     }
 */
-    while (heap_count(heap) > 0) {
+    while (heap_size(heap) > 0) {
         val = (int*)heap_pop(heap);
         printf("%d ", *val);
         // _heap_debug(heap);

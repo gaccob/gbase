@@ -11,6 +11,7 @@
 #include "test_rbtree.inl"
 #include "test_rbuffer.inl"
 #include "test_slist.inl"
+#include "test_timer.inl"
 
 int
 main(int argc, char** argv) {
@@ -29,7 +30,8 @@ main(int argc, char** argv) {
             "\t<heap>\n"
             "\t<rbtree>\n"
             "\t<rbuffer>\n"
-            "\t<slist>\n");
+            "\t<slist>\n"
+            "\t<timer>\n");
         return 0;
     }
 
@@ -63,6 +65,8 @@ main(int argc, char** argv) {
         test_rbuffer();
     } else if (0 == strcmp(argv[1], "slist")) {
         test_slist();
+    } else if (0 == strcmp(argv[1], "timer")) {
+        test_timer();
     }
     return 0;
 }

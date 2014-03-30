@@ -43,7 +43,7 @@ typedef struct task_t
     void* data;
 
     // timer
-    struct heaptimer_t* timer;
+    struct timer_t* timer;
     int32_t timer_id;
 } task_t;
 
@@ -250,7 +250,7 @@ void* task_data(task_t* t)
     return t ? t->data : NULL;
 }
 
-void task_run(task_t* t, struct heaptimer_t* timer, struct timeval* timeout)
+void task_run(task_t* t, struct timer_t* timer, struct timeval* timeout)
 {
     if (!t || !t->head) return;
     t->current = t->head;
