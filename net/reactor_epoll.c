@@ -26,7 +26,7 @@ int epoll_init(struct reactor_t* reactor)
     if (epoll->epoll_fd < 0) goto EPOLL_FAIL1;
     memset(epoll->events, 0, sizeof(epoll->events));
 
-    epoll->expired = slist_init();
+    epoll->expired = slist_create();
     if (!epoll->expired) goto EPOLL_FAIL2;
 
     reactor->data = (void*)epoll;

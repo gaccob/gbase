@@ -48,7 +48,7 @@ int select_init(struct reactor_t* reactor)
     s->handler_table = hash_create(_handle_hash, _handle_cmp, SELECT_SIZE * 3);
     if (!s->handler_table) goto SELECT_FAIL1;
 
-    s->expired = slist_init();
+    s->expired = slist_create();
     if (!s->expired) goto SELECT_FAIL2;
 
     printf("select support max fd=%d\n", (int)SELECT_SIZE);

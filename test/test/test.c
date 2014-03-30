@@ -10,6 +10,7 @@
 #include "test_heap.inl"
 #include "test_rbtree.inl"
 #include "test_rbuffer.inl"
+#include "test_slist.inl"
 
 int
 main(int argc, char** argv) {
@@ -27,7 +28,8 @@ main(int argc, char** argv) {
             "\t<bitset>\n"
             "\t<heap>\n"
             "\t<rbtree>\n"
-            "\t<rbuffer>\n");
+            "\t<rbuffer>\n"
+            "\t<slist>\n");
         return 0;
     }
 
@@ -59,6 +61,8 @@ main(int argc, char** argv) {
         test_rbtree();
     } else if (0 == strcmp(argv[1], "rbuffer")) {
         test_rbuffer();
+    } else if (0 == strcmp(argv[1], "slist")) {
+        test_slist();
     }
     return 0;
 }

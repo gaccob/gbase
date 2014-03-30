@@ -1,9 +1,7 @@
 #ifndef SLIST_H_
 #define SLIST_H_
 
-//
 // easy single list
-//
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,7 +10,7 @@ extern "C" {
 #include "core/os_def.h"
 
 struct slist_t;
-struct slist_t* slist_init();
+struct slist_t* slist_create();
 void slist_release(struct slist_t* sl);
 
 // more effective than push_back
@@ -25,7 +23,7 @@ void* slist_pop_back(struct slist_t* sl);
 int slist_remove(struct slist_t* sl, void* data);
 int slist_find(struct slist_t* sl, void* data);
 int slist_clean(struct slist_t* sl);
-int slist_count(struct slist_t* sl);
+int slist_size(struct slist_t* sl);
 
 #ifdef __cplusplus
 }

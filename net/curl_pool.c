@@ -47,7 +47,7 @@ curl_pool_t* curl_pool_init()
     memset(cp, 0, sizeof(*cp));
 
     cp->size = CURL_POOL_DEFAULT_SIZE;
-    cp->free_list = slist_init();
+    cp->free_list = slist_create();
     if (!cp->free_list) goto CURL_FAIL1;
 
     cp->clients = hash_create(_curl_pool_hash, _curl_pool_cmp, cp->size * 13);
@@ -82,7 +82,7 @@ struct curl_client_t* _curl_pool_client_alloc(curl_pool_t* cp)
     struct curl_client_t* cc = NULL;
     if (!cp || !cp->free_list) { return NULL; }
 
-    if (slist_count(cp->free_list) > 0) {
+    if (slist_size(cp->free_list) > 0) {
         cc = slist_pop_front(cp->free_list);
         return cc;
     }

@@ -27,7 +27,7 @@ int kqueue_init(struct reactor_t* reactor)
     if (kq->kqueue_fd < 0) goto KQ_FAIL1;
     memset(kq->events, 0, sizeof(kq->events));
 
-    kq->expired = slist_init();
+    kq->expired = slist_create();
     if (!kq->expired) goto KQ_FAIL2;
 
     reactor->data = (void*)kq;

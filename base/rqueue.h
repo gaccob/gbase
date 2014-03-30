@@ -1,10 +1,8 @@
 #ifndef RQUEUE_H_
 #define RQUEUE_H_
 
-//
 // it's a ring queue
 // likes a ring buffer, it's also lock-free
-//
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,7 +12,7 @@ extern "C" {
 
 struct rqueue_t;
 
-struct rqueue_t* rqueue_init(size_t size);
+struct rqueue_t* rqueue_create(size_t size);
 void rqueue_release(struct rqueue_t* q);
 void* rqueue_push_back(struct rqueue_t* q, void* data);
 void* rqueue_pop_front(struct rqueue_t* q);
