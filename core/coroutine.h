@@ -1,11 +1,9 @@
 #ifndef COROUTINE_H_
 #define COROUTINE_H_
 
-//
 // a simple coroutine monitor
 // copy stack while switch conext, so it's not fit for heavy context
 // now only works under linux (not for unix and mac)
-//
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,7 +21,7 @@ extern "C" {
 struct crt_t;
 typedef void (*crt_func_t)(struct crt_t*, void* arg);
 
-struct crt_t* crt_init(int crt_stack_size);
+struct crt_t* crt_create(int crt_stack_size);
 void crt_release(struct crt_t*);
 int crt_new(struct crt_t*, crt_func_t, void* arg);
 void crt_resume(struct crt_t*, int id);

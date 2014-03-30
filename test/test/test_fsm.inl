@@ -65,7 +65,7 @@ test_fsm() {
     struct fsm_t* fsm;
     int ret;
 
-    fsm = fsm_init(4);
+    fsm = fsm_create(4);
     assert(fsm);
 
     FSM_STATUS(fsm, S_INIT, test_fsm_init_enter, test_fsm_init_exit);

@@ -18,8 +18,7 @@ struct fsm_t;
 #define FSM_NOT_EXISTED -3
 #define FSM_FULL -4
 
-struct fsm_t* fsm_init(int size);
-
+struct fsm_t* fsm_create(int size);
 void fsm_release(struct fsm_t* fsm);
 
 // status > 0

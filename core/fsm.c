@@ -55,14 +55,14 @@ typedef struct fsm_t {
     struct hash_t* rules_table;
 } fsm_t;
 
-uint32_t _fsm_rule_hash(const void* data)
-{
+static uint32_t
+_fsm_rule_hash(const void* data) {
     fsm_rule_t* rule = (fsm_rule_t*)data;
     return hash_jhash((void*)&rule->input, sizeof(rule->input));
 }
 
-int _fsm_rule_cmp(const void* data1, const void* data2)
-{
+static int
+_fsm_rule_cmp(const void* data1, const void* data2) {
     fsm_rule_t* rule1 = (fsm_rule_t*)data1;
     fsm_rule_t* rule2 = (fsm_rule_t*)data2;
     return (rule1->input.status < rule2->input.status)
@@ -77,8 +77,8 @@ int _fsm_rule_cmp(const void* data1, const void* data2)
 #define FSM_EVENTS_SIZE(nsize) (((nsize) * ((nsize) - 1)) >> 1)
 #define FSM_RULES_SIZE(nsize) (((nsize) * ((nsize) - 1)) << 1)
 
-fsm_t* fsm_init(int size)
-{
+fsm_t*
+fsm_create(int size) {
     fsm_t* fsm;
     if (size <= 0) {
         return NULL;
@@ -105,8 +105,8 @@ fsm_t* fsm_init(int size)
     return fsm;
 }
 
-void fsm_release(struct fsm_t* fsm)
-{
+void
+fsm_release(struct fsm_t* fsm) {
     if (fsm) {
         if (fsm->status_table) {
             idtable_release(fsm->status_table);
@@ -136,10 +136,10 @@ void fsm_release(struct fsm_t* fsm)
     }
 }
 
-int fsm_register_status(fsm_t* fsm, int status,
-                        fsm_status_func_t enter,
-                        fsm_status_func_t exit)
-{
+int
+fsm_register_status(fsm_t* fsm, int status,
+                    fsm_status_func_t enter,
+                    fsm_status_func_t exit) {
     fsm_status_t* st;
     int ret;
 
@@ -162,9 +162,9 @@ int fsm_register_status(fsm_t* fsm, int status,
     return FSM_OK;
 }
 
-int fsm_register_event(fsm_t* fsm, int event,
-                       fsm_event_func_t handle)
-{
+int
+fsm_register_event(fsm_t* fsm, int event,
+                   fsm_event_func_t handle) {
     fsm_event_t* et;
     int ret;
 
@@ -186,9 +186,9 @@ int fsm_register_event(fsm_t* fsm, int event,
     return FSM_OK;
 }
 
-int fsm_register_rule(struct fsm_t* fsm, int event, int ret_code,
-                      int from_status, int to_status)
-{
+int
+fsm_register_rule(struct fsm_t* fsm, int event, int ret_code,
+                  int from_status, int to_status) {
     fsm_rule_t* rule;
     int ret;
 
@@ -223,8 +223,8 @@ int fsm_register_rule(struct fsm_t* fsm, int event, int ret_code,
     return FSM_OK;
 }
 
-int fsm_start(struct fsm_t* fsm, int status)
-{
+int
+fsm_start(struct fsm_t* fsm, int status) {
     if (!fsm || !idtable_get(fsm->status_table, status)) {
         return FSM_FAIL;
     }
@@ -232,8 +232,8 @@ int fsm_start(struct fsm_t* fsm, int status)
     return FSM_OK;
 }
 
-int fsm_trigger(struct fsm_t* fsm, int event, void* args)
-{
+int
+fsm_trigger(struct fsm_t* fsm, int event, void* args) {
     fsm_rule_t* rule;
     fsm_event_t* ev;
     fsm_status_t* st;

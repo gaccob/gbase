@@ -13,7 +13,7 @@ extern "C" {
 #include "core/os_def.h"
 
 struct spin_lock_t;
-struct spin_lock_t* spin_init();
+struct spin_lock_t* spin_create();
 void spin_release(struct spin_lock_t* lock);
 void spin_lock(struct spin_lock_t* lock);
 int spin_trylock(struct spin_lock_t* lock);

@@ -7,8 +7,7 @@
 #include "core/bevtree.h"
 #include "core/os_def.h"
 
-enum bvt_tType
-{
+enum BVTNodeType {
     BVT_NODE_SELECTOR,
     BVT_NODE_SEQUENCE,
     BVT_NODE_PARALLEL,
@@ -16,55 +15,45 @@ enum bvt_tType
     BVT_NODE_ACTION,
 };
 
-enum BVTParallelType
-{
+enum BVTParallelType {
     BVT_PARALLEL_ALL, // all ok, then ok
     BVT_PARALLEL_ONE, // one ok, then ok
 };
 
-enum BVTSelectorType
-{
+enum BVTSelectorType {
     BVT_SELECTOR_COND, // condition selector
     BVT_SELECTOR_WEIGHT, // selector by weight
 };
 
 #define BVT_DEFAULT_TABLE_SIZE 1024
-typedef struct bvt_callback_table
-{
+typedef struct bvt_cbtable_t {
     size_t size;
-    bvt_callback* table;
-} bvt_callback_table;
+    bvt_func* table;
+} bvt_cbtable_t;
 
 #define BVT_MAX_NAME_LEN 128
-typedef struct bvt_t
-{
+typedef struct bvt_t {
     char name[BVT_MAX_NAME_LEN];
-    enum bvt_tType type;
+    enum BVTNodeType type;
     int32_t weight;
-
     union {
         struct {
             int32_t callback_id;
         } act_args;
-
         struct {
             int32_t callback_id;
         } con_args;
-
         struct {
             enum BVTParallelType type;
         } par_args;
-
         struct {
             enum BVTSelectorType type;
         } sel_args;
     };
-
     struct bvt_t* next;
     struct bvt_t* condition;
     struct bvt_t* child;
-
-    struct bvt_callback_table* cb_table;
+    bvt_cbtable_t* cb_table;
 } bvt_t;
 
 #ifdef BVT_DEBUG
@@ -95,10 +84,10 @@ typedef struct bvt_t
     #define BVT_DEBUG_LOG(node) (void)(node)
 #endif
 
-int32_t _bvt_run(bvt_t* n, bvt_callback_table* t, void* input);
+static int32_t _bvt_run(bvt_t* n, bvt_cbtable_t* t, void* input);
 
-int32_t _bvt_run_select(bvt_t* n, bvt_callback_table* t, void* input)
-{
+static int32_t
+_bvt_run_select(bvt_t* n, bvt_cbtable_t* t, void* input) {
     bvt_t* c = NULL;
     int32_t ret, sum, res;
 
@@ -114,8 +103,7 @@ int32_t _bvt_run_select(bvt_t* n, bvt_callback_table* t, void* input)
 
     // children
     c = n->child;
-    if (!c)
-        return BVT_ERROR;
+    if (!c) return BVT_ERROR;
 
     // condition selector
     if (n->sel_args.type == BVT_SELECTOR_COND) {
@@ -148,13 +136,12 @@ int32_t _bvt_run_select(bvt_t* n, bvt_callback_table* t, void* input)
             return _bvt_run(c, t, input);
         }
     }
-
     return BVT_ERROR;
 }
 
-int32_t _bvt_run_condition(bvt_t* n, bvt_callback_table* t, void* input)
-{
-    bvt_callback check;
+static int32_t
+_bvt_run_condition(bvt_t* n, bvt_cbtable_t* t, void* input) {
+    bvt_func check;
     BVT_DEBUG_LOG(n);
     if (n->con_args.callback_id < 0 ||
         n->con_args.callback_id >= (int)t->size)
@@ -164,8 +151,8 @@ int32_t _bvt_run_condition(bvt_t* n, bvt_callback_table* t, void* input)
     return (*check)(input);
 }
 
-int32_t _bvt_run_sequence(bvt_t* n, bvt_callback_table* t, void* input)
-{
+static int32_t
+_bvt_run_sequence(bvt_t* n, bvt_cbtable_t* t, void* input) {
     bvt_t* c = NULL;
     int32_t ret;
 
@@ -178,8 +165,7 @@ int32_t _bvt_run_sequence(bvt_t* n, bvt_callback_table* t, void* input)
     }
 
     c = n->child;
-    if (!c)
-        return BVT_SEQUENCE_ERROR;
+    if (!c) return BVT_SEQUENCE_ERROR;
     while (c) {
         ret = _bvt_run(c, t, input);
         if (ret != BVT_SUCCESS)
@@ -189,8 +175,8 @@ int32_t _bvt_run_sequence(bvt_t* n, bvt_callback_table* t, void* input)
     return BVT_SUCCESS;
 }
 
-int32_t _bvt_run_parallel(bvt_t* n, bvt_callback_table* t, void* input)
-{
+static int32_t
+_bvt_run_parallel(bvt_t* n, bvt_cbtable_t* t, void* input) {
     bvt_t* c = NULL;
     int32_t ret, cret;
 
@@ -203,8 +189,8 @@ int32_t _bvt_run_parallel(bvt_t* n, bvt_callback_table* t, void* input)
     }
 
     c = n->child;
-    if (!c)
-        return BVT_PARALLEL_ERROR;
+    if (!c) return BVT_PARALLEL_ERROR;
+
     ret = BVT_ERROR;
     while (c) {
         cret = _bvt_run(c, t, input);
@@ -225,16 +211,16 @@ int32_t _bvt_run_parallel(bvt_t* n, bvt_callback_table* t, void* input)
     return ret;
 }
 
-int32_t _bvt_run_action(bvt_t* n, bvt_callback_table* t, void* input)
-{
-    bvt_callback action;
+static int32_t
+_bvt_run_action(bvt_t* n, bvt_cbtable_t* t, void* input) {
+    bvt_func action;
     int32_t ret;
 
     BVT_DEBUG_LOG(n);
     if (n->act_args.callback_id < 0 ||
-        n->act_args.callback_id >= (int)t->size)
+        n->act_args.callback_id >= (int)t->size) {
         return BVT_ACTION_ERROR;
-
+    }
     action = t->table[n->act_args.callback_id];
     ret = (*action)(input);
     if (ret == BVT_SUCCESS) {
@@ -243,8 +229,8 @@ int32_t _bvt_run_action(bvt_t* n, bvt_callback_table* t, void* input)
     return ret;
 }
 
-void _bvt_release_node(bvt_t* n)
-{
+static void
+_bvt_release_node(bvt_t* n) {
     if (n) {
         if (n->child) {
             bvt_t* c = n->child;
@@ -266,8 +252,8 @@ void _bvt_release_node(bvt_t* n)
     }
 }
 
-void bvt_release(bvt_t* n)
-{
+void
+bvt_release(bvt_t* n) {
     if (n) {
         if (n->cb_table) {
             if (n->cb_table->table)
@@ -279,8 +265,8 @@ void bvt_release(bvt_t* n)
     }
 }
 
-void _bvt_debug(bvt_t* b, int32_t indent)
-{
+static void
+_bvt_debug(bvt_t* b, int32_t indent) {
     bvt_t* c = NULL;
     int32_t i = indent;
     while (i --) {
@@ -317,7 +303,8 @@ void _bvt_debug(bvt_t* b, int32_t indent)
     }
 }
 
-void bvt_debug(bvt_t* b) {
+void
+bvt_debug(bvt_t* b) {
     if (b) {
         printf("\n================\n");
         _bvt_debug(b, 0);
@@ -325,36 +312,37 @@ void bvt_debug(bvt_t* b) {
     }
 }
 
-int32_t bvt_register_callback(bvt_t* n, bvt_callback cb, int32_t id)
-{
+int32_t
+bvt_register_callback(bvt_t* n, bvt_func cb, int32_t id) {
     if (!n || !cb || id < 0)
         return BVT_ERROR;
 
     if (!n->cb_table) {
-        n->cb_table = (bvt_callback_table*)MALLOC(sizeof(bvt_callback_table));
-        memset(n->cb_table, 0, sizeof(bvt_callback_table));
+        n->cb_table = (bvt_cbtable_t*)MALLOC(sizeof(bvt_cbtable_t));
+        memset(n->cb_table, 0, sizeof(bvt_cbtable_t));
         n->cb_table->size = BVT_DEFAULT_TABLE_SIZE > id ? BVT_DEFAULT_TABLE_SIZE : (id + 1);
-        n->cb_table->table = (bvt_callback*)MALLOC(sizeof(bvt_callback) * n->cb_table->size);
-        memset(n->cb_table->table, 0, sizeof(bvt_callback) * n->cb_table->size);
+        n->cb_table->table = (bvt_func*)MALLOC(sizeof(bvt_func) * n->cb_table->size);
+        memset(n->cb_table->table, 0, sizeof(bvt_func) * n->cb_table->size);
     } else if ((int)n->cb_table->size <= id) {
-        bvt_callback* c = n->cb_table->table;
+        bvt_func* c = n->cb_table->table;
         size_t oldsize = n->cb_table->size;
         while ((int)n->cb_table->size <= id) {
             n->cb_table->size *= 2;
         }
-        n->cb_table->table = (bvt_callback*)MALLOC(sizeof(bvt_callback) * n->cb_table->size);
-        memset(n->cb_table->table, 0, sizeof(bvt_callback) * n->cb_table->size);
-        memcpy(n->cb_table->table, c, sizeof(bvt_callback) * oldsize);
+        n->cb_table->table = (bvt_func*)MALLOC(sizeof(bvt_func) * n->cb_table->size);
+        memset(n->cb_table->table, 0, sizeof(bvt_func) * n->cb_table->size);
+        memcpy(n->cb_table->table, c, sizeof(bvt_func) * oldsize);
     }
 
-    if (n->cb_table->table[id])
+    if (n->cb_table->table[id]) {
         return BVT_CALLBACK_DUPLICATED;
+    }
     n->cb_table->table[id] = cb;
     return BVT_SUCCESS;
 }
 
-int32_t _bvt_run(bvt_t* n, bvt_callback_table* t, void* input)
-{
+static int32_t
+_bvt_run(bvt_t* n, bvt_cbtable_t* t, void* input) {
     if (n) {
         switch (n->type) {
             case BVT_NODE_SELECTOR:
@@ -372,14 +360,13 @@ int32_t _bvt_run(bvt_t* n, bvt_callback_table* t, void* input)
     return BVT_ERROR;
 }
 
-int32_t bvt_run(bvt_t* n, void* input)
-{
+int32_t
+bvt_run(bvt_t* n, void* input) {
     if (n) {
         return _bvt_run(n, n->cb_table, input);
     }
     return BVT_ERROR;
 }
-
 
 // add gliffy extension
 #include "bevtree_gliffy.ext"

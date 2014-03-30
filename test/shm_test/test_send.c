@@ -11,7 +11,7 @@ int main()
     assert(shm);
     printf("shm size:%d addr:%p\n", (int)shm_size(shm), (char*)shm_mem(shm));
 
-    pl = process_lock_init(shmkey);
+    pl = process_lock_create(shmkey);
     assert(pl);
 
     memset(buf, 0, sizeof(buf));

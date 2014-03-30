@@ -46,7 +46,8 @@ typedef struct bvt_graph_t {
 } bvt_graph_t;
 
 // trim html tags
-void _bvt_load_gliffy_html(const char* html, char* dst, size_t dstlen)
+static void
+_bvt_load_gliffy_html(const char* html, char* dst, size_t dstlen)
 {
     int32_t flag = 0;
     int32_t trans = 0;
@@ -75,13 +76,13 @@ void _bvt_load_gliffy_html(const char* html, char* dst, size_t dstlen)
         } \
     } while (0)
 
-bvt_graph_node_t* _bvt_load_gliffy_node(cJSON* js)
-{
+static bvt_graph_node_t*
+_bvt_load_gliffy_node(cJSON* js) {
     cJSON* js_id, *js_graphic, *js_type, *js_children, *c;
     cJSON* js_child_graphic, *js_child_type, *js_child_text, *js_child_text_html;
     bvt_graph_node_t* node = NULL;
-    cJSON* js_cst, *js_cst_start, *js_cst_start_pos, *js_cst_start_id,
-        *js_cst_end, *js_cst_end_pos, *js_cst_end_id;
+    cJSON* js_cst, *js_cst_start, *js_cst_start_pos, *js_cst_start_id;
+    cJSON* js_cst_end, *js_cst_end_pos, *js_cst_end_id;
 
     js_id = js;
     BVT_JSON_GO_DOWN(js_id, cJSON_Number, BVT_GLIFFY_TYPE_ID);
@@ -192,8 +193,8 @@ GLIFFY_FAIL:
     return NULL;
 }
 
-int32_t _bvt_load_gliffy_parse_name(bvt_t* node, char* name) 
-{
+static int32_t
+_bvt_load_gliffy_parse_name(bvt_t* node, char* name) {
     const char* split = BVT_GLIFFY_SPLIT;
     char* p = 0;
     if (!node || !name) return BVT_ERROR;
@@ -255,8 +256,8 @@ BVT_PARSE_WEIGHT:
     return BVT_SUCCESS;
 }
 
-struct bvt_t* _bvt_load_gliffy_graph_node(int32_t id, bvt_graph_node_t** list)
-{
+static struct bvt_t*
+_bvt_load_gliffy_graph_node(int32_t id, bvt_graph_node_t** list) {
     bvt_graph_node_t* node, *prev;
     bvt_t* b = NULL;
     bvt_graph_node_t* line = NULL;
@@ -324,8 +325,9 @@ struct bvt_t* _bvt_load_gliffy_graph_node(int32_t id, bvt_graph_node_t** list)
     return b;
 }
 
-void _bvt_debug_graph(bvt_graph_t* g)
-{
+#if 0
+static void
+_bvt_debug_graph(bvt_graph_t* g) {
     // printf debug
     bvt_graph_node_t* n = g->head;
     while (n) {
@@ -337,10 +339,11 @@ void _bvt_debug_graph(bvt_graph_t* g)
         n = n->next;
     }
 }
+#endif
 
 // init bvt by graph
-bvt_t* _bvt_load_gliffy_graph(bvt_graph_t* g)
-{
+static bvt_t*
+_bvt_load_gliffy_graph(bvt_graph_t* g) {
     // get root id
     bvt_graph_node_t* n = g->head;
     bvt_graph_node_t* find = NULL;
@@ -373,8 +376,8 @@ bvt_t* _bvt_load_gliffy_graph(bvt_graph_t* g)
 
 // gliffy is also json format, but with lots of view info
 // we need to get what we need
-bvt_t* _bvt_load_gliffy(cJSON* js)
-{
+static bvt_t*
+_bvt_load_gliffy(cJSON* js) {
     bvt_graph_node_t* node, *head;
     cJSON* c = NULL;
     bvt_graph_t g;
@@ -414,8 +417,8 @@ bvt_t* _bvt_load_gliffy(cJSON* js)
 }
 
 // init by gliffy file (also json format, but with lots of vision info)
-struct bvt_t* bvt_load_gliffy(const char* cfg)
-{
+struct bvt_t*
+bvt_load_gliffy(const char* cfg) {
     int fd;
     off_t size;
     char* src = NULL;

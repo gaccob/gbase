@@ -40,8 +40,8 @@ typedef struct crt_unit_t {
     char* stack;
 } crt_unit_t;
 
-crt_unit_t* _crt_unit_init(crt_t* c, crt_func_t func, void* arg)
-{
+static crt_unit_t*
+_crt_unit_create(crt_t* c, crt_func_t func, void* arg) {
     int ret;
     crt_unit_t* cu = (crt_unit_t*)MALLOC(sizeof(*cu));
     assert(cu);
@@ -59,8 +59,8 @@ crt_unit_t* _crt_unit_init(crt_t* c, crt_func_t func, void* arg)
     return cu;
 }
 
-void _crt_unit_release(crt_unit_t* cu)
-{
+static void
+_crt_unit_release(crt_unit_t* cu) {
     if (cu) {
         if (cu->stack) {
             cu->stack -= CRT_UNIT_RESERVED_SIZE;
@@ -72,8 +72,8 @@ void _crt_unit_release(crt_unit_t* cu)
     }
 }
 
-crt_t* crt_init(int crt_stack_size)
-{
+crt_t*
+crt_create(int crt_stack_size) {
     assert(crt_stack_size > 0);
     crt_t* c = (crt_t*)MALLOC(sizeof(*c));
     assert(c);
@@ -87,13 +87,13 @@ crt_t* crt_init(int crt_stack_size)
     c->units = (crt_unit_t**)MALLOC(sizeof(crt_unit_t*) * c->capacity);
     assert(c->units);
     memset(c->units, 0, sizeof(crt_unit_t*) * c->capacity);
-    c->freelst = slist_init();
+    c->freelst = slist_create();
     assert(c->freelst);
     return c;
 }
 
-void crt_release(crt_t* c)
-{
+void
+crt_release(crt_t* c) {
     int i;
     crt_unit_t* cu;
     void* vcu;
@@ -117,12 +117,12 @@ void crt_release(crt_t* c)
     }
 }
 
-int crt_new(crt_t* c, crt_func_t func, void* arg)
-{
+int
+crt_new(crt_t* c, crt_func_t func, void* arg) {
     int i, id;
     struct crt_unit_t* cu = slist_pop_back(c->freelst);
     if (!cu) {
-        cu = _crt_unit_init(c, func, arg);
+        cu = _crt_unit_create(c, func, arg);
     } else {
         cu->status = CRT_INIT;
     }
@@ -160,8 +160,8 @@ int crt_new(crt_t* c, crt_func_t func, void* arg)
 }
 
 // this is coroutine running context: call register function
-static void _crt_main(uint32_t low32, uint32_t hi32)
-{
+static void
+_crt_main(uint32_t low32, uint32_t hi32) {
     uintptr_t ptr = (uintptr_t)low32 | ((uintptr_t)hi32 << 32);
     crt_t* c = (crt_t*)ptr;
     int id = c->current;
@@ -176,12 +176,11 @@ static void _crt_main(uint32_t low32, uint32_t hi32)
     c->current = CRT_INVALID_ID;
 }
 
-void crt_resume(crt_t* c, int id)
-{
+void
+crt_resume(crt_t* c, int id) {
     assert(c && c->current < 0 && id >= 0 && id < c->capacity);
     crt_unit_t* cu = c->units[id];
     if (!cu) return;
-
     switch (cu->status) {
         case CRT_INIT:
             getcontext(&cu->ctx);
@@ -207,8 +206,8 @@ void crt_resume(crt_t* c, int id)
     }
 }
 
-void crt_yield(crt_t* c)
-{
+void
+crt_yield(crt_t* c) {
     assert(c);
     int id = c->current;
     assert(id >= 0);
@@ -218,25 +217,24 @@ void crt_yield(crt_t* c)
     swapcontext(&cu->ctx, &c->main);
 }
 
-int crt_status(crt_t* c, int id)
-{
+int
+crt_status(crt_t* c, int id) {
     assert(id >= 0 && id < c->capacity);
     if (c->units[id] == NULL)
         return CRT_DEAD;
     return c->units[id]->status;
 }
 
-int crt_current(crt_t* c)
-{
+int
+crt_current(crt_t* c) {
     assert(c);
     return c->current;
 }
 
-char* crt_current_stack_top(crt_t* c)
-{
+char*
+crt_current_stack_top(crt_t* c) {
     assert(c);
-    if (c->current >= 0)
-    {
+    if (c->current >= 0) {
         return c->units[c->current]->stack + c->stack_size;
     }
     return NULL;

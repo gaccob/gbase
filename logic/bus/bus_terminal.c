@@ -157,7 +157,7 @@ bus_terminal_t* bus_terminal_init(int16_t key, bus_addr_t ba)
     bt->self = ba;
     bt->local_terminal_version = 0;
     bt->local_channel_version = 0;
-    bt->lock = process_lock_init(key);
+    bt->lock = process_lock_create(key);
     assert(bt->lock);
     bt->send_channels = idtable_create(BUS_MAX_TERMINAL_COUNT);
     assert(bt->send_channels);

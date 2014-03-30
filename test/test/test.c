@@ -12,6 +12,9 @@
 #include "test_rbuffer.inl"
 #include "test_slist.inl"
 #include "test_timer.inl"
+#include "test_atom.inl"
+#include "test_spin.inl"
+#include "test_lock.inl"
 
 int
 main(int argc, char** argv) {
@@ -31,7 +34,10 @@ main(int argc, char** argv) {
             "\t<rbtree>\n"
             "\t<rbuffer>\n"
             "\t<slist>\n"
-            "\t<timer>\n");
+            "\t<timer>\n"
+            "\t<atom>\n"
+            "\t<spin>\n"
+            "\t<lock>\n");
         return 0;
     }
 
@@ -67,6 +73,12 @@ main(int argc, char** argv) {
         test_slist();
     } else if (0 == strcmp(argv[1], "timer")) {
         test_timer();
+    } else if (0 == strcmp(argv[1], "atom")) {
+        test_atom();
+    } else if (0 == strcmp(argv[1], "spin")) {
+        test_spin();
+    } else if (0 == strcmp(argv[1], "lock")) {
+        test_lock();
     }
     return 0;
 }

@@ -11,8 +11,8 @@
     #endif
 #endif
 
-atom_t atom_inc(atom_t volatile* a)
-{
+atom_t
+atom_inc(atom_t volatile* a) {
 #if defined(OS_WIN)
     return InterlockedIncrement(a);
 #elif defined(OS_LINUX) || defined(OS_MAC)
@@ -20,8 +20,8 @@ atom_t atom_inc(atom_t volatile* a)
 #endif
 }
 
-atom_t atom_dec(atom_t volatile* a)
-{
+atom_t
+atom_dec(atom_t volatile* a) {
 #if defined(OS_WIN)
     return InterlockedDecrement(a);
 #elif defined(OS_LINUX) || defined(OS_MAC)
@@ -30,8 +30,8 @@ atom_t atom_dec(atom_t volatile* a)
 }
 
 // return old value
-atom_t atom_set(atom_t volatile* a, uint32_t val)
-{
+atom_t
+atom_set(atom_t volatile* a, uint32_t val) {
 #if defined(OS_WIN)
     return InterlockedCompareExchange(a, val, val);
 #elif defined(OS_LINUX) || defined(OS_MAC)
@@ -39,8 +39,8 @@ atom_t atom_set(atom_t volatile* a, uint32_t val)
 #endif
 }
 
-atom_t atom_add(atom_t volatile* a, uint32_t val)
-{
+atom_t
+atom_add(atom_t volatile* a, uint32_t val) {
 #if defined(OS_WIN)
     return InterlockedExchangeAdd(a, val);
 #elif defined(OS_LINUX) || defined(OS_MAC)
@@ -48,8 +48,8 @@ atom_t atom_add(atom_t volatile* a, uint32_t val)
 #endif
 }
 
-atom_t atom_sub(atom_t volatile* a, uint32_t val)
-{
+atom_t
+atom_sub(atom_t volatile* a, uint32_t val) {
 #if defined(OS_WIN)
     LONG delta = - ((LONG) val);
     return InterlockedExchangeAdd(a, delta);
@@ -58,8 +58,8 @@ atom_t atom_sub(atom_t volatile* a, uint32_t val)
 #endif
 }
 
-atom_ptr_t atom_ptr_set(atom_ptr_t volatile* ap, void* data)
-{
+atom_ptr_t
+atom_ptr_set(atom_ptr_t volatile* ap, void* data) {
 #if defined(OS_WIN)
     return (atom_ptr_t)InterlockedCompareExchangePointer((volatile PVOID*)&ap, (atom_ptr_t)data, (atom_ptr_t)data);
 #elif defined(OS_LINUX) || defined(OS_MAC)
@@ -67,13 +67,12 @@ atom_ptr_t atom_ptr_set(atom_ptr_t volatile* ap, void* data)
 #endif
 }
 
-atom_ptr_t atom_ptr_cas(atom_ptr_t volatile* ap, void* cmp, void* val)
-{
+atom_ptr_t
+atom_ptr_cas(atom_ptr_t volatile* ap, void* cmp, void* val) {
 #if defined(OS_WIN)
     return (atom_ptr_t)InterlockedCompareExchangePointer((volatile PVOID*)&ap, (atom_ptr_t)val, (atom_ptr_t)cmp);
 #elif defined(OS_LINUX) || defined(OS_MAC)
     return (atom_ptr_t)__sync_val_compare_and_swap(&ap, (atom_ptr_t)cmp, (atom_ptr_t)val);
 #endif
 }
-
 

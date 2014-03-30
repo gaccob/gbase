@@ -6,7 +6,7 @@ int main()
     struct process_lock_t* pl;
     struct shm_t* shm = shm_create(shmkey, size, 1);
     assert(shm);
-    pl = process_lock_init(shmkey);
+    pl = process_lock_create(shmkey);
     assert(pl);
 
     printf("shm size:%d addr:%p\n", (int)shm_size(shm), (char*)shm_mem(shm));

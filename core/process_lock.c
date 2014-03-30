@@ -17,8 +17,8 @@ typedef struct process_lock_t {
 #endif
 } process_lock_t;
 
-struct process_lock_t* process_lock_init(int key)
-{
+struct process_lock_t*
+process_lock_create(int key) {
     process_lock_t* pl = (process_lock_t*)MALLOC(sizeof(*pl));
     pl->key = key;
 #if defined (OS_WIN)
@@ -54,8 +54,8 @@ struct process_lock_t* process_lock_init(int key)
     return pl;
 }
 
-int process_lock_lock(struct process_lock_t* pl)
-{
+int
+process_lock_lock(struct process_lock_t* pl) {
     if (pl) {
 #if defined (OS_WIN)
         return WaitForSingleObject(pl->mutex, INFINITE) == WAIT_OBJECT_0 ? 0 : -1;
@@ -70,8 +70,8 @@ int process_lock_lock(struct process_lock_t* pl)
     return -1;
 }
 
-int process_lock_try_lock(struct process_lock_t* pl)
-{
+int
+process_lock_try_lock(struct process_lock_t* pl) {
     if (pl) {
 #if defined (OS_WIN)
         return WaitForSingleObject(pl->mutex, 0) == WAIT_OBJECT_0 ? 0 : -1;
@@ -87,8 +87,8 @@ int process_lock_try_lock(struct process_lock_t* pl)
 
 }
 
-int process_lock_unlock(struct process_lock_t* pl)
-{
+int
+process_lock_unlock(struct process_lock_t* pl) {
     if (pl) {
 #if defined (OS_WIN)
         return ReleaseMutex(pl->mutex) == TRUE ? 0 : -1;
@@ -103,15 +103,15 @@ int process_lock_unlock(struct process_lock_t* pl)
     return -1;
 }
 
-void process_lock_release(struct process_lock_t* pl)
-{
+void
+process_lock_release(struct process_lock_t* pl) {
     if (pl) {
         FREE(pl);
     }
 }
 
-void process_lock_destroy(struct process_lock_t* pl)
-{
+void
+process_lock_destroy(struct process_lock_t* pl) {
     if (pl) {
 #if defined (OS_WIN)
         // nothing to do
