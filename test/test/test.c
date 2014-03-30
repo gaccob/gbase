@@ -8,6 +8,7 @@
 #include "test_fsm.inl"
 #include "test_bitset.inl"
 #include "test_heap.inl"
+#include "test_rbtree.inl"
 
 int
 main(int argc, char** argv) {
@@ -23,7 +24,8 @@ main(int argc, char** argv) {
 #endif
             "\t<fsm>\n"
             "\t<bitset>\n"
-            "\t<heap>\n");
+            "\t<heap>\n"
+            "\t<rbtree>\n");
         return 0;
     }
 
@@ -51,6 +53,8 @@ main(int argc, char** argv) {
         test_bitset();
     } else if (0 == strcmp(argv[1], "heap")) {
         test_heap();
+    } else if (0 == strcmp(argv[1], "rbtree")) {
+        test_rbtree();
     }
     return 0;
 }

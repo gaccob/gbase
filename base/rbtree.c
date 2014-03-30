@@ -2,37 +2,6 @@
 #include "rbtree.h"
 
 /*
- *  @author:   gaccob <weiye.zhang@qq.com>
- *  @date:     2010-12-16
- *  @function: rbtree header(object container, memcpy object)
- *  @performance:
-
- gprof results of    100w times insert + find + delete
- Each sample counts as 0.01 seconds.
-   %   cumulative    self              self       total
-  time     seconds   seconds      calls   s/call   s/call  name
-  44.86      1.76      1.76    2000000     0.00     0.00  rbtree_find_node
-  24.98      2.74      0.98    1000000     0.00     0.00  rbtree_insert
-  17.08      3.42      0.67     76763792     0.00     0.00  cmp(void const*, void const*, void*)
-   3.82      3.57      0.15     750940     0.00     0.00  rbtree_delete_adjust
-   3.57      3.71      0.14     536020     0.00     0.00  rbtree_min
-   1.53      3.77      0.06     999463     0.00     0.00  rbtree_delete_node
-   1.27      3.82      0.05     999462     0.00     0.00  rbtree_insert_adjust
-   1.27      3.87      0.05          1     0.05     3.90  perf_test(gz::rbtree**, int)
-   0.76      3.90      0.03                               func_test(gz::rbtree**)
-   0.51      3.92      0.02    1000000     0.00     0.00  rbtree_find
-   0.25      3.93      0.01    1000000     0.00     0.00  rbtree_delete
-   0.25      3.94      0.01                               frame_dummy
-   0.00      3.94      0.00     536020     0.00     0.00  rbtree_next
-   0.00      3.94      0.00     516754     0.00     0.00  rbtree_rotl
-   0.00      3.94      0.00     488069     0.00     0.00  rbtree_rotr
-   0.00      3.94      0.00          1     0.00     0.00  global constructors keyed to _Z4funcPKvPv
-   0.00      3.94      0.00          1     0.00     0.00  __static_initialization_and_destruction_0(int, int)
-   0.00      3.94      0.00          1     0.00     0.00  rbtree_create
-   0.00      3.94      0.00          1     0.00     0.00  rbtree_destroy
-  granularity: each sample hit covers 2 byte(s) for 0.25% of 3.94 seconds
-
-
  *  @ 1. rbtree is first a binary tree
  *  @    2. each is either red or black
  *  @ 3. root node is black
@@ -43,8 +12,7 @@
 #define RBTREE_BLACK    0
 #define RBTREE_RED      1
 
-typedef struct rbtree_node_t
-{
+typedef struct rbtree_node_t {
     struct rbtree_node_t* parent;
     struct rbtree_node_t* left;
     struct rbtree_node_t* right;
@@ -52,14 +20,13 @@ typedef struct rbtree_node_t
     int color;
 } rbtree_node_t;
 
-typedef struct rbtree_t
-{
+typedef struct rbtree_t {
     rbtree_node_t* root;
     rbtree_cmp cmp;
 } rbtree_t;
 
-rbtree_t* rbtree_init(rbtree_cmp cmp)
-{
+rbtree_t*
+rbtree_create(rbtree_cmp cmp) {
     rbtree_t* tree = (rbtree_t*)MALLOC(sizeof(rbtree_t));
     if (!tree) return NULL;
     tree->root = 0;
@@ -67,8 +34,8 @@ rbtree_t* rbtree_init(rbtree_cmp cmp)
     return tree;
 }
 
-rbtree_node_t* _rbtree_min_node(rbtree_node_t* node)
-{
+static inline rbtree_node_t*
+_rbtree_min_node(rbtree_node_t* node) {
     rbtree_node_t* p;
     if (node) {
         p = node;
@@ -80,8 +47,8 @@ rbtree_node_t* _rbtree_min_node(rbtree_node_t* node)
     return NULL;
 }
 
-rbtree_node_t* _rbtree_max_node(rbtree_node_t* node)
-{
+static inline rbtree_node_t*
+_rbtree_max_node(rbtree_node_t* node) {
     rbtree_node_t* p;
     if (node) {
         p = node;
@@ -93,8 +60,8 @@ rbtree_node_t* _rbtree_max_node(rbtree_node_t* node)
     return NULL;
 }
 
-rbtree_node_t* _rbtree_next_node(rbtree_node_t* node)
-{
+static rbtree_node_t*
+_rbtree_next_node(rbtree_node_t* node) {
     rbtree_node_t *source, *dest;
     if (!node) return NULL;
 
@@ -112,8 +79,9 @@ rbtree_node_t* _rbtree_next_node(rbtree_node_t* node)
     return dest;
 }
 
-rbtree_node_t* _rbtree_prev_node(rbtree_node_t* node)
-{
+#if 0
+static rbtree_node_t*
+_rbtree_prev_node(rbtree_node_t* node) {
     rbtree_node_t *source, *dest;
     if (!node) return NULL;
 
@@ -130,7 +98,7 @@ rbtree_node_t* _rbtree_prev_node(rbtree_node_t* node)
     }
     return dest;
 }
-
+#endif
 
 /* left rotate, node's right child not null
 *
@@ -143,8 +111,8 @@ rbtree_node_t* _rbtree_prev_node(rbtree_node_t* node)
 *
 *   rotate x
 */
-void _rbtree_rotl(rbtree_t* tree, rbtree_node_t* node)
-{
+static void
+_rbtree_rotl(rbtree_t* tree, rbtree_node_t* node) {
     rbtree_node_t *x, *y;
     assert(tree && node);
 
@@ -180,8 +148,8 @@ void _rbtree_rotl(rbtree_t* tree, rbtree_node_t* node)
 *            a   b                   b    c
 * rotate y
 */
-void _rbtree_rotr(rbtree_t* tree, rbtree_node_t* node)
-{
+static void
+_rbtree_rotr(rbtree_t* tree, rbtree_node_t* node) {
     rbtree_node_t *x, *y;
     assert(tree && node);
 
@@ -209,8 +177,8 @@ void _rbtree_rotr(rbtree_t* tree, rbtree_node_t* node)
 }
 
 
-int _rbtree_insert_adjust(rbtree_t* tree, rbtree_node_t* node)
-{
+static int
+_rbtree_insert_adjust(rbtree_t* tree, rbtree_node_t* node) {
     rbtree_node_t *y, *z;
     if (!node || !tree) {
         return -1;
@@ -276,8 +244,8 @@ int _rbtree_insert_adjust(rbtree_t* tree, rbtree_node_t* node)
 }
 
 
-int rbtree_insert(rbtree_t* tree, void* data)
-{
+int
+rbtree_insert(rbtree_t* tree, void* data) {
     rbtree_node_t* parent, *dest, *node;
     if (!tree || !data) return -1;
 
@@ -329,10 +297,8 @@ int rbtree_insert(rbtree_t* tree, void* data)
     return _rbtree_insert_adjust(tree, node);
 }
 
-rbtree_node_t* _rbtree_find_node(rbtree_t* tree,
-                                        rbtree_node_t* node,
-                                        void* data)
-{
+static rbtree_node_t*
+_rbtree_find_node(rbtree_t* tree, rbtree_node_t* node, void* data) {
     int ret;
     if (!tree || !node || !data) return NULL;
 
@@ -346,8 +312,8 @@ rbtree_node_t* _rbtree_find_node(rbtree_t* tree,
     }
 }
 
-void* rbtree_find(rbtree_t* tree, void* data)
-{
+void*
+rbtree_find(rbtree_t* tree, void* data) {
     rbtree_node_t* node;
     if (!tree || !data || !tree->root) return NULL;
 
@@ -358,8 +324,9 @@ void* rbtree_find(rbtree_t* tree, void* data)
     return NULL;
 }
 
-void _rbtree_delete_adjust(rbtree_t* tree, rbtree_node_t* node, rbtree_node_t* parent)
-{
+static void
+_rbtree_delete_adjust(rbtree_t* tree, rbtree_node_t* node,
+                      rbtree_node_t* parent) {
     rbtree_node_t *x, *w;
     assert(tree);
 
@@ -447,8 +414,8 @@ void _rbtree_delete_adjust(rbtree_t* tree, rbtree_node_t* node, rbtree_node_t* p
     }
 }
 
-void _rbtree_delete_node(rbtree_t* tree, rbtree_node_t* node)
-{
+static void
+_rbtree_delete_node(rbtree_t* tree, rbtree_node_t* node) {
     rbtree_node_t *p, *ch, *next;
     if (!tree || !node) return;
 
@@ -460,8 +427,7 @@ void _rbtree_delete_node(rbtree_t* tree, rbtree_node_t* node)
              /   \
             #     #
     #endif
-    if (!node->left && !node->right)
-    {
+    if (!node->left && !node->right) {
         // dest node is root
         if (tree->root == node) {
             FREE(tree->root);
@@ -574,8 +540,8 @@ void _rbtree_delete_node(rbtree_t* tree, rbtree_node_t* node)
     }
 }
 
-void* rbtree_delete(rbtree_t* tree, void* data)
-{
+void*
+rbtree_delete(rbtree_t* tree, void* data) {
     rbtree_node_t* node;
     void* res;
     if (!tree || !data || !tree->root) {
@@ -590,8 +556,8 @@ void* rbtree_delete(rbtree_t* tree, void* data)
     return res;
 }
 
-void _rbtree_loop_node(rbtree_node_t* node, rbtree_func func)
-{
+static void
+_rbtree_loop_node(rbtree_node_t* node, rbtree_loop_func func) {
     if (node) {
         if (node->left) {
             _rbtree_loop_node(node->left, func);
@@ -603,16 +569,16 @@ void _rbtree_loop_node(rbtree_node_t* node, rbtree_func func)
     }
 }
 
-void rbtree_loop(rbtree_t* tree, rbtree_func func)
-{
+void
+rbtree_loop(rbtree_t* tree, rbtree_loop_func func) {
     if (!tree || !tree->root) {
         return;
     }
     _rbtree_loop_node(tree->root, func);
 }
 
-void _rbtree_release_node(rbtree_node_t* node)
-{
+static void
+_rbtree_release_node(rbtree_node_t* node) {
     if (node) {
         if (node->left) {
             _rbtree_release_node(node->left);
@@ -625,8 +591,8 @@ void _rbtree_release_node(rbtree_node_t* node)
     }
 }
 
-void rbtree_release(rbtree_t* tree)
-{
+void
+rbtree_release(rbtree_t* tree) {
     if (tree) {
         if (tree->root) {
             _rbtree_release_node(tree->root);
