@@ -11,8 +11,6 @@ extern "C" {
 
 #include "core/os_def.h"
 
-// #if !defined OS_WIN
-
 #include "list.h"
 #include "hash.h"
 
@@ -23,8 +21,6 @@ void conhash_release(struct conhash_t* ch);
 int32_t conhash_add_node(struct conhash_t* ch, void* node);
 void conhash_erase_node(struct conhash_t* ch, void* node);
 void* conhash_node(struct conhash_t* ch, void* key);
-
-// #endif
 
 #ifdef __cplusplus
 }
