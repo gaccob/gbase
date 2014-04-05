@@ -2,7 +2,8 @@
 #define SLAB_H_
 //
 // when we need to malloc and free small memories frequently, slab works.
-// slab requires memory by page size from OS, and organized it by list,
+
+// slab requires memory in page size from OS, and organize by list,
 // in order to reduce memory fragment
 //
 // allocation align by 8 byes

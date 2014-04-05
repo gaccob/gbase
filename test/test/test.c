@@ -17,6 +17,7 @@
 #include "test_lock.inl"
 #include "test_task.inl"
 #include "test_shm.inl"
+#include "test_slab.inl"
 
 int
 main(int argc, char** argv) {
@@ -42,7 +43,8 @@ main(int argc, char** argv) {
             "\t<lock>\n"
             "\t<task>\n"
             "\t<shm_send>\n"
-            "\t<shm_recv>\n");
+            "\t<shm_recv>\n"
+            "\t<slab>\n");
         return 0;
     }
 
@@ -90,6 +92,8 @@ main(int argc, char** argv) {
         test_shm_send();
     } else if (0 == strcmp(argv[1], "shm_recv")) {
         test_shm_recv();
+    } else if (0 == strcmp(argv[1], "slab")) {
+        test_slab();
     }
     return 0;
 }
