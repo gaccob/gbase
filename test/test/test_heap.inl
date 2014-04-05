@@ -6,7 +6,7 @@ heap_cmp(void* data1, void* data2) {
     return *(int*)data1 - *(int*)data2;
 }
 
-#define LOOP 33
+#define HEAP_LOOP 33
 
 int
 test_heap() {
@@ -19,17 +19,17 @@ test_heap() {
     heap = heap_create(heap_cmp);
     assert(heap);
 
-    data = (int*)MALLOC(sizeof(int) * LOOP);
-    key = (int*)MALLOC(sizeof(int) * LOOP);
-    for (i=0; i<LOOP; i++) {
-        data[i] = rand() % (LOOP * 2);
+    data = (int*)MALLOC(sizeof(int) * HEAP_LOOP);
+    key = (int*)MALLOC(sizeof(int) * HEAP_LOOP);
+    for (i=0; i<HEAP_LOOP; i++) {
+        data[i] = rand() % (HEAP_LOOP * 2);
         key[i] = heap_insert(heap, &data[i]);
         printf("%d ", data[i]);
         //_heap_debug(heap);
     }
     printf("\n");
 /*
-    for (i = 0; i < LOOP; i++) {
+    for (i = 0; i < HEAP_LOOP; i++) {
         val = (int*)heap_erase(heap, key[i]);
         printf("%d ", *val);
         //_heap_debug(heap);
