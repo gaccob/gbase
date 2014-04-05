@@ -1,7 +1,7 @@
 #include <assert.h>
 #include "mm/shm.h"
 #include "core/atom.h"
-#include "core/process_lock.h"
+#include "core/lock.h"
 #include "base/idtable.h"
 #include "base/rbuffer.h"
 #include "logic/bus/bus_channel.h"
@@ -36,7 +36,7 @@ typedef struct bus_terminal_t
     int local_terminal_count;
     bus_addr_t local_terminals[BUS_MAX_TERMINAL_COUNT];
 
-    struct process_lock_t* lock;
+    struct lock_t* lock;
 
     struct idtable_t* send_channels;
     struct idtable_t* recv_channels;
@@ -157,7 +157,7 @@ bus_terminal_t* bus_terminal_init(int16_t key, bus_addr_t ba)
     bt->self = ba;
     bt->local_terminal_version = 0;
     bt->local_channel_version = 0;
-    bt->lock = process_lock_create(key);
+    bt->lock = lock_create(key);
     assert(bt->lock);
     bt->send_channels = idtable_create(BUS_MAX_TERMINAL_COUNT);
     assert(bt->send_channels);
@@ -165,13 +165,13 @@ bus_terminal_t* bus_terminal_init(int16_t key, bus_addr_t ba)
     assert(bt->recv_channels);
 
     // add lock
-    process_lock_lock(bt->lock);
+    lock_lock(bt->lock);
 
     // create shm
     if (_bus_terminal_init_create(bt, key) == 0) {
         _bus_terminal_update_terminals(bt);
         _bus_terminal_update_channels(bt);
-        process_lock_unlock(bt->lock);
+        lock_unlock(bt->lock);
         return bt;
     }
 
@@ -179,12 +179,12 @@ bus_terminal_t* bus_terminal_init(int16_t key, bus_addr_t ba)
     if (_bus_terminal_init_attach(bt, key) == 0) {
         _bus_terminal_update_terminals(bt);
         _bus_terminal_update_channels(bt);
-        process_lock_unlock(bt->lock);
+        lock_unlock(bt->lock);
         return bt;
     }
 
     // terminal init fail
-    process_lock_unlock(bt->lock);
+    lock_unlock(bt->lock);
     FREE(bt);
     return NULL;
 }
@@ -240,17 +240,17 @@ void bus_terminal_tick(bus_terminal_t* bt)
     // update terminals
     terminal_version = bt->bus->terminal_version;
     if (terminal_version != bt->local_terminal_version) {
-        process_lock_lock(bt->lock);
+        lock_lock(bt->lock);
         _bus_terminal_update_terminals(bt);
-        process_lock_unlock(bt->lock);
+        lock_unlock(bt->lock);
     }
 
     // udpate channels
     channel_version = bt->bus->channel_version;
     if (channel_version != bt->local_channel_version) {
-        process_lock_lock(bt->lock);
+        lock_lock(bt->lock);
         _bus_terminal_update_channels(bt);
-        process_lock_unlock(bt->lock);
+        lock_unlock(bt->lock);
     }
 }
 
@@ -265,15 +265,15 @@ int32_t _bus_terminal_register_channel(bus_terminal_t* bt, bus_addr_t to, size_t
     bus_terminal_tick(bt);
 
     // add lock
-    process_lock_lock(bt->lock);
+    lock_lock(bt->lock);
     if (bt->local_channel_version != bt->bus->channel_version) {
-        process_lock_unlock(bt->lock);
+        lock_unlock(bt->lock);
         return bus_err_fail;
     }
 
     // no left free channel
     if (bt->bus->channel_count >= BUS_MAX_CHANNLE_COUNT) {
-        process_lock_unlock(bt->lock);
+        lock_unlock(bt->lock);
         return bus_err_channel_full;
     }
 
@@ -286,13 +286,13 @@ int32_t _bus_terminal_register_channel(bus_terminal_t* bt, bus_addr_t to, size_t
         }
     }
     if (found) {
-        process_lock_unlock(bt->lock);
+        lock_unlock(bt->lock);
         return bus_err_peek_fail;
     }
 
     // check not self (no loop bus)
     if (to == bt->self) {
-        process_lock_unlock(bt->lock);
+        lock_unlock(bt->lock);
         return bus_err_peek_fail;
     }
 
@@ -304,7 +304,7 @@ int32_t _bus_terminal_register_channel(bus_terminal_t* bt, bus_addr_t to, size_t
     bc->channel_size = sz;
     btc = bus_terminal_channel_init(bc->shmkey, bc->from, bc->to, bc->channel_size, 0);
     if (!btc) {
-        process_lock_unlock(bt->lock);
+        lock_unlock(bt->lock);
         return bus_err_channel_fail;
     }
 
@@ -315,7 +315,7 @@ int32_t _bus_terminal_register_channel(bus_terminal_t* bt, bus_addr_t to, size_t
     // add channel version
     ++ bt->bus->channel_count;
     atom_inc(&bt->bus->channel_version);
-    process_lock_unlock(bt->lock);
+    lock_unlock(bt->lock);
     bt->local_channel_version = bt->bus->channel_version;
     return bus_ok;
 }

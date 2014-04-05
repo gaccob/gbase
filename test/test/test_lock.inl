@@ -1,4 +1,4 @@
-#include "core/process_lock.h"
+#include "core/lock.h"
 
 #include "test.h"
 
