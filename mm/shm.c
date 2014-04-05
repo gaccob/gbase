@@ -8,16 +8,15 @@
     #include <sys/ipc.h>
 #endif
 
-typedef struct shm_t
-{
+typedef struct shm_t {
     shm_id_t id;
     size_t size;
     void* mem;
 } shm_t;
 
-// excl equals 0: if exist return null
-struct shm_t* shm_create(int shmkey, size_t size, int excl)
-{
+// excl == 0: means return null if shm exists
+struct shm_t*
+shm_create(int shmkey, size_t size, int excl) {
 #if defined(OS_WIN)
     char name[64];
 #else
@@ -78,23 +77,23 @@ struct shm_t* shm_create(int shmkey, size_t size, int excl)
 #endif
 }
 
-shm_id_t shm_id(struct shm_t* shm)
-{
+inline shm_id_t
+shm_id(struct shm_t* shm) {
     return shm ? shm->id : SHM_INVALID_ID;
 }
 
-size_t shm_size(struct shm_t* shm)
-{
+inline size_t
+shm_size(struct shm_t* shm) {
     return shm ? shm->size : 0;
 }
 
-void* shm_mem(struct shm_t* shm)
-{
+inline void*
+shm_mem(struct shm_t* shm) {
     return shm ? shm->mem : NULL;
 }
 
-void shm_destroy(struct shm_t* shm)
-{
+void
+shm_destroy(struct shm_t* shm) {
 #if defined(OS_WIN)
     if (shm) {
         UnmapViewOfFile(shm->mem);
@@ -110,8 +109,8 @@ void shm_destroy(struct shm_t* shm)
 #endif
 }
 
-void shm_release(struct shm_t* shm)
-{
+inline void
+shm_release(struct shm_t* shm) {
     if (shm) FREE(shm);
 }
 

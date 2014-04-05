@@ -1,11 +1,10 @@
 #include "thread.h"
 
-void* thread_lock_alloc()
-{
+void*
+thread_lock_alloc() {
 #if defined(OS_WIN)
     CRITICAL_SECTION* lock = (CRITICAL_SECTION*)MALLOC(sizeof(CRITICAL_SECTION));
     if (!lock) return NULL;
-
     if (InitializeCriticalSectionAndSpinCount(lock, THREAD_SPIN_COUNT) == 0) {
         FREE(lock);
         return NULL;
@@ -14,19 +13,17 @@ void* thread_lock_alloc()
 #elif defined(OS_LINUX) || defined(OS_MAC)
     pthread_mutex_t* lock = (pthread_mutex_t*)MALLOC(sizeof(pthread_mutex_t));
     if(!lock) return NULL;
-
     if(pthread_mutex_init(lock, NULL)) {
         FREE(lock);
         return NULL;
     }
     return lock;
 #endif
-
     return NULL;
 }
 
-void thread_lock_free(void* lock)
-{
+void
+thread_lock_free(void* lock) {
 #if defined(OS_WIN)
     CRITICAL_SECTION* thread_lock = (CRITICAL_SECTION*)lock;
     DeleteCriticalSection(thread_lock);
@@ -40,8 +37,8 @@ void thread_lock_free(void* lock)
 #endif
 }
 
-int thread_lock(void* lock)
-{
+int
+thread_lock(void* lock) {
 #if defined(OS_WIN)
     CRITICAL_SECTION* thread_lock = (CRITICAL_SECTION*)lock;
     EnterCriticalSection(thread_lock);
@@ -50,12 +47,11 @@ int thread_lock(void* lock)
     pthread_mutex_t* thread_lock = (pthread_mutex_t*)lock;
     return pthread_mutex_lock(thread_lock);
 #endif
-
     return -1;
 }
 
-int thread_unlock(void* lock)
-{
+int
+thread_unlock(void* lock) {
 #if defined(OS_WIN)
     CRITICAL_SECTION* thread_lock = (CRITICAL_SECTION*)lock;
     LeaveCriticalSection(thread_lock);
@@ -77,14 +73,13 @@ struct Win32ThreadCond {
 };
 #endif
 
-void* thread_cond_alloc()
-{
+void*
+thread_cond_alloc() {
 #if defined(OS_WIN)
     int32_t ret;
     struct Win32ThreadCond* cond;
     cond = (struct Win32ThreadCond*)MALLOC(sizeof(struct Win32ThreadCond));
     if (!cond) return NULL;
-
     ret = InitializeCriticalSectionAndSpinCount(&cond->lock, THREAD_SPIN_COUNT);
     if (0 == ret) {
         FREE(cond);
@@ -102,7 +97,6 @@ void* thread_cond_alloc()
 #elif defined(OS_LINUX) || defined(OS_MAC)
     pthread_cond_t* cond = (pthread_cond_t*)MALLOC(sizeof(pthread_cond_t));
     if(!cond) return NULL;
-
     if(pthread_cond_init(cond, NULL)) {
         FREE(cond);
         return NULL;
@@ -111,8 +105,8 @@ void* thread_cond_alloc()
 #endif
 }
 
-void thread_cond_free(void* cond)
-{
+void
+thread_cond_free(void* cond) {
 #if defined(OS_WIN)
     struct Win32ThreadCond* thread_cond = (struct Win32ThreadCond*)cond;
     DeleteCriticalSection(&thread_cond->lock);
@@ -125,8 +119,8 @@ void thread_cond_free(void* cond)
 #endif
 }
 
-int thread_cond_signal(void* cond, int broadcast)
-{
+int
+thread_cond_signal(void* cond, int broadcast) {
 #if defined(OS_WIN)
     struct Win32ThreadCond* thread_cond = (struct Win32ThreadCond*)cond;
     EnterCriticalSection(&thread_cond->lock);
@@ -150,8 +144,8 @@ int thread_cond_signal(void* cond, int broadcast)
     return -1;
 }
 
-int thread_cond_wait(void* cond, void* lock, const struct timeval* tv)
-{
+int
+thread_cond_wait(void* cond, void* lock, const struct timeval* tv) {
 #if defined(OS_WIN)
     struct Win32ThreadCond* thread_cond = (struct Win32ThreadCond*)cond;
     CRITICAL_SECTION* thread_lock = (CRITICAL_SECTION*)lock;
@@ -173,7 +167,6 @@ int thread_cond_wait(void* cond, void* lock, const struct timeval* tv)
         DWORD res;
         res = WaitForSingleObject(thread_cond->event, ms);
         EnterCriticalSection(&thread_cond->lock);
-
         if(thread_cond->n_to_wake && thread_cond->generation != generation_at_start) {
             -- thread_cond->n_to_wake;
             -- thread_cond->n_waiting;
@@ -196,13 +189,11 @@ int thread_cond_wait(void* cond, void* lock, const struct timeval* tv)
                 ms = startTime + ms_orig - endTime;
             }
         }
-
         // If we make it here, we are still waiting.
         if (thread_cond->n_to_wake == 0) {
             // There is nobody else who should wake up; reset the event.
             ResetEvent(thread_cond->event);
         }
-
     FINISH:
         LeaveCriticalSection(&thread_cond->lock);
     } while(waiting);
@@ -218,7 +209,6 @@ int thread_cond_wait(void* cond, void* lock, const struct timeval* tv)
     int32_t ret;
     pthread_cond_t* thread_cond = (pthread_cond_t*)cond;
     pthread_mutex_t* thread_lock = (pthread_mutex_t*)lock;
-
     if (tv) {
         // calculate end-time
         struct timeval now;
@@ -230,7 +220,6 @@ int thread_cond_wait(void* cond, void* lock, const struct timeval* tv)
             ts.tv_sec ++;
             ts.tv_nsec -= 1000000000;
         }
-
         ret = pthread_cond_timedwait(thread_cond, thread_lock, &ts);
         if (ETIMEDOUT == ret) return 1;
         else if (ret) return -1;
@@ -240,7 +229,6 @@ int thread_cond_wait(void* cond, void* lock, const struct timeval* tv)
         return ret ? -1 : 0;
     }
 #endif
-
     return -1;
 }
 

@@ -35,7 +35,7 @@ extern "C" {
 
 struct buddy_t;
 
-struct buddy_t* buddy_init(size_t size, size_t min_alloc_size);
+struct buddy_t* buddy_create(size_t size, size_t min_alloc_size);
 int buddy_release(struct buddy_t* buddy);
 void* buddy_alloc(struct buddy_t* buddy, size_t nbytes);
 void* buddy_realloc(struct buddy_t* buddy, void* mem, size_t nbytes);

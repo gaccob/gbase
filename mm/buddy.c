@@ -2,8 +2,7 @@
 #include <stddef.h>
 #include "mm/buddy.h"
 
-typedef struct buddy_t
-{
+typedef struct buddy_t {
     int pool_size;
 
     // min alloc unit size
@@ -40,8 +39,8 @@ typedef struct buddy_t
 
 #define BUDDY_MIN_SIZE 4
 
-buddy_t* buddy_init(size_t size, size_t min_alloc_size)
-{
+buddy_t*
+buddy_init(size_t size, size_t min_alloc_size) {
     size_t real_size, real_min_size;
     buddy_t* buddy;
     int index;
@@ -96,8 +95,8 @@ BUDDY_FAIL:
     return NULL;
 }
 
-int buddy_release(buddy_t* buddy)
-{
+int
+buddy_release(buddy_t* buddy) {
     if (buddy) {
         FREE(buddy->tree);
         FREE(buddy->pool);
@@ -106,19 +105,17 @@ int buddy_release(buddy_t* buddy)
     return 0;
 }
 
-void* buddy_realloc(buddy_t* buddy, void* mem, size_t nbytes)
-{
+void*
+buddy_realloc(buddy_t* buddy, void* mem, size_t nbytes) {
     int offset, index, step, current;
     size_t mem_size;
     void* new_mem;
-
     if (!buddy) return NULL;
     if (!mem) return buddy_alloc(buddy, nbytes);
     if (nbytes == 0) {
         buddy_free(buddy, mem);
         return NULL;
     }
-
     // calculate original size
 #ifdef __x86_64__
     offset = (int)((uint64_t)mem - (uint64_t)buddy->pool);
@@ -153,8 +150,8 @@ void* buddy_realloc(buddy_t* buddy, void* mem, size_t nbytes)
     return new_mem;
 }
 
-void* buddy_alloc(buddy_t* buddy, size_t nbytes)
-{
+void*
+buddy_alloc(buddy_t* buddy, size_t nbytes) {
     size_t malloc_size, mem_size;
     char* mem;
     int index, left, right;
@@ -238,8 +235,8 @@ void* buddy_alloc(buddy_t* buddy, size_t nbytes)
     return NULL;
 }
 
-void buddy_free(buddy_t* buddy, void* mem)
-{
+void
+buddy_free(buddy_t* buddy, void* mem) {
     int offset, index, step, current, loop, left, right;
     if (!mem || !buddy) {
         return;
@@ -297,8 +294,8 @@ void buddy_free(buddy_t* buddy, void* mem)
     }
 }
 
-void _buddy_debug_unit(buddy_t* buddy, int index)
-{
+static void
+_buddy_debug_unit(buddy_t* buddy, int index) {
     int shift, size;
     assert(buddy);
     switch (buddy->tree[index]) {
@@ -331,10 +328,11 @@ void _buddy_debug_unit(buddy_t* buddy, int index)
     }
 }
 
-void buddy_debug(buddy_t* buddy)
-{
-    if (!buddy)  return;
-    _buddy_debug_unit(buddy, 1);
-    printf("\n");
+void
+buddy_debug(buddy_t* buddy) {
+    if (buddy) {
+        _buddy_debug_unit(buddy, 1);
+        printf("\n");
+    }
 }
 

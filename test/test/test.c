@@ -16,6 +16,7 @@
 #include "test_spin.inl"
 #include "test_lock.inl"
 #include "test_task.inl"
+#include "test_shm.inl"
 
 int
 main(int argc, char** argv) {
@@ -39,7 +40,9 @@ main(int argc, char** argv) {
             "\t<atom>\n"
             "\t<spin>\n"
             "\t<lock>\n"
-            "\t<task>\n");
+            "\t<task>\n"
+            "\t<shm_send>\n"
+            "\t<shm_recv>\n");
         return 0;
     }
 
@@ -83,6 +86,10 @@ main(int argc, char** argv) {
         test_lock();
     } else if (0 == strcmp(argv[1], "task")) {
         test_task();
+    } else if (0 == strcmp(argv[1], "shm_send")) {
+        test_shm_send();
+    } else if (0 == strcmp(argv[1], "shm_recv")) {
+        test_shm_recv();
     }
     return 0;
 }
