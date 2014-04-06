@@ -45,4 +45,6 @@ int test_dh();
 int test_echo_svr();
 int test_echo_cli();
 
+int test_curl();
+
 #endif

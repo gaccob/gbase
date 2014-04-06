@@ -6,8 +6,7 @@
 #include "base/slist.h"
 #include "base/hash.h"
 
-typedef struct curl_pool_t
-{
+typedef struct curl_pool_t {
     int32_t size;
     int32_t running;
     CURLM* mhandle;
@@ -15,21 +14,21 @@ typedef struct curl_pool_t
     struct hash_t* clients;
 } curl_pool_t;
 
-uint32_t _curl_pool_hash(const void* data)
-{
+static uint32_t
+_curl_pool_hash(const void* data) {
     struct curl_client_t* cc = (struct curl_client_t*)(data);
     return (ptrdiff_t)(curl_client_handle(cc));
 }
 
-int32_t _curl_pool_cmp(const void* data1, const void* data2)
-{
+static int32_t
+_curl_pool_cmp(const void* data1, const void* data2) {
     CURL* c1 = curl_client_handle((struct curl_client_t*)data1);
     CURL* c2 = curl_client_handle((struct curl_client_t*)data2);
     return (ptrdiff_t)c1 - (ptrdiff_t)c2;
 }
 
-void _curl_loop_release_client(void* data, void* args)
-{
+static void
+_curl_loop_release_client(void* data, void* args) {
     curl_pool_t* cp = (curl_pool_t*)(args);
     struct curl_client_t* cc = (struct curl_client_t*)(data);
     if (cp && cc) {
@@ -38,8 +37,8 @@ void _curl_loop_release_client(void* data, void* args)
     }
 }
 
-curl_pool_t* curl_pool_init()
-{
+curl_pool_t*
+curl_pool_create() {
     int32_t i = 0;
     struct curl_client_t* cc = NULL;
     curl_pool_t* cp = (curl_pool_t*)MALLOC(sizeof(*cp));
@@ -57,9 +56,8 @@ curl_pool_t* curl_pool_init()
     if (!cp->mhandle) goto CURL_FAIL3;
 
     // pre allocate client
-    for (i = 0; i < cp->size; ++ i)
-    {
-        cc = curl_client_init();
+    for (i = 0; i < cp->size; ++ i) {
+        cc = curl_client_create();
         if (cc) {
             slist_push_front(cp->free_list, cc);
             hash_insert(cp->clients, cc);
@@ -77,36 +75,33 @@ CURL_FAIL:
     return NULL;
 }
 
-struct curl_client_t* _curl_pool_client_alloc(curl_pool_t* cp)
-{
+static struct curl_client_t*
+_curl_pool_client_alloc(curl_pool_t* cp) {
     struct curl_client_t* cc = NULL;
     if (!cp || !cp->free_list) { return NULL; }
-
     if (slist_size(cp->free_list) > 0) {
         cc = slist_pop_front(cp->free_list);
         return cc;
     }
-
     cp->size ++;
-    cc = curl_client_init();
+    cc = curl_client_create();
     if (cc) {
         hash_insert(cp->clients, cc);
     }
     return cc;
 }
 
-void _curl_pool_client_gc(curl_pool_t* cp,
-                          struct curl_client_t* cc)
-{
+static void
+_curl_pool_client_gc(curl_pool_t* cp, struct curl_client_t* cc) {
     if (cp && cc && cp->free_list) {
         curl_multi_remove_handle(cp->mhandle, curl_client_handle(cc));
-        curl_client_finish_req(cc);
+        curl_client_finish(cc);
         slist_push_front(cp->free_list, cc);
     }
 }
 
-void curl_pool_release(curl_pool_t* cp)
-{
+void
+curl_pool_release(curl_pool_t* cp) {
     if (cp) {
         if (cp->free_list) {
             slist_release(cp->free_list);
@@ -123,82 +118,71 @@ void curl_pool_release(curl_pool_t* cp)
     }
 }
 
-int32_t curl_pool_add_get_req(curl_pool_t* cp, const char* req,
-                              CURL_CALLBACK cb, void* args,
-                              const char* cookie)
-{
+int32_t
+curl_pool_add_get(curl_pool_t* cp, const char* req, CURL_CALLBACK cb,
+                  void* args, const char* cookie) {
     struct curl_client_t* cc = NULL;
     int32_t ret;
     CURLMcode mret;
-
     if (!cp || !req || !cb) return -1;
     cc = _curl_pool_client_alloc(cp);
     if (!cc) return -1;
-
-    ret = curl_client_init_get_req(cc, req, cb, args, cookie);
+    ret = curl_client_init_get(cc, req, cb, args, cookie);
     if (ret < 0) {
         _curl_pool_client_gc(cp, cc);
         return -1;
     }
-
     mret = curl_multi_add_handle(cp->mhandle, curl_client_handle(cc));
     if (mret != CURLM_OK) {
         _curl_pool_client_gc(cp, cc);
         return -1;
     }
-
     cp->running ++;
     return 0;
 }
 
-int32_t curl_pool_add_post_req(curl_pool_t* cp, const char* req,
-                               const char* post, size_t post_len,
-                               CURL_CALLBACK cb, void* args,
-                               const char* cookie)
-{
+int32_t
+curl_pool_add_post(curl_pool_t* cp, const char* req, const char* post,
+                   size_t post_len, CURL_CALLBACK cb, void* args,
+                   const char* cookie) {
     struct curl_client_t* cc = NULL;
     int32_t ret;
     CURLMcode mret;
-
     if (!cp || !req || !cb) return -1;
     cc = _curl_pool_client_alloc(cp);
     if (!cc) return -1;
-
-    ret = curl_client_init_post_req(cc, req, post, post_len, cb, args, cookie);
+    ret = curl_client_init_post(cc, req, post, post_len, cb, args, cookie);
     if (ret < 0) {
         _curl_pool_client_gc(cp, cc);
         return -1;
     }
-
     mret = curl_multi_add_handle(cp->mhandle, curl_client_handle(cc));
     if (mret != CURLM_OK) {
         _curl_pool_client_gc(cp, cc);
         return -1;
     }
-
     cp->running ++;
     return 0;
 }
 
-void curl_pool_run(curl_pool_t* cp)
-{
+void
+curl_pool_run(curl_pool_t* cp) {
     int32_t num = 0;
     CURLMsg* msg = NULL;
     CURL* h = NULL;
     struct curl_client_t* cc = NULL;
     struct curl_client_t* tmp = NULL;
     if (!cp || !cp->mhandle) { return; }
-
     if (CURLM_OK == curl_multi_perform(cp->mhandle, &num)) {
         while ((msg = curl_multi_info_read(cp->mhandle, &num)) != NULL) {
             if (CURLMSG_DONE == msg->msg) {
-                tmp = curl_client_raw_init();
+                tmp = curl_client_raw_create();
                 assert(tmp);
                 h = msg->easy_handle;
                 curl_client_set_handle(tmp, h);
                 cc = hash_find(cp->clients, tmp);
                 if (cc) {
-                    curl_client_set_err_code(cc, msg->data.result);
+                    curl_client_set_ret(cc, msg->data.result);
                     curl_client_on_res(cc);
                     _curl_pool_client_gc(cp, cc);
                     cp->running --;
@@ -209,8 +193,8 @@ void curl_pool_run(curl_pool_t* cp)
     }
 }
 
-int32_t curl_pool_running_count(curl_pool_t* cp)
-{
+inline int32_t
+curl_pool_running_count(curl_pool_t* cp) {
     return cp ? cp->running : 0;
 }
 

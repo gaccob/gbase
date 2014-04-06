@@ -40,7 +40,8 @@ main(int argc, char** argv) {
             "\t<thread>\n"
             "\t<json> <text | file | create>\n"
             "\t<dh> [perf]\n"
-            "\t<echo> <client | server>\n");
+            "\t<echo> <client | server>\n"
+            "\t<curl>\n");
         return 0;
     }
 
@@ -122,6 +123,8 @@ main(int argc, char** argv) {
                 test_echo_svr();
             }
         }
+    } else if (0 == strcmp(argv[1], "curl")) {
+        test_curl();
     }
     return 0;
 }
