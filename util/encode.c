@@ -1,7 +1,7 @@
 #include "encode.h"
 
-int _get_unicode(const char* str, int n)
-{
+static int
+_get_unicode(const char* str, int n) {
     int i;
     int unicode = str[0] & ((1 << (8-n)) - 1);
     for (i=1; i<n; i++) {
@@ -10,8 +10,8 @@ int _get_unicode(const char* str, int n)
     return unicode;
 }
 
-int get_unicode(char** utf8, int* unicode)
-{
+int
+get_unicode(char** utf8, int* unicode) {
     uint8_t c;
     if (!utf8 || !(*utf8) || !unicode) {
         return -1;

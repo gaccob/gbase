@@ -24,7 +24,6 @@
  *
  */
 
-
 #ifndef MD5_H_
 #define MD5_H_
 
@@ -41,6 +40,7 @@ extern "C" {
 
 typedef uint8_t md5_hash_t[MD5_HASH_BYTES];
 
+// length_b means bits length
 void md5(md5_hash_t dest, const void* msg, uint32_t length_b);
 
 #ifdef __cpluplus
@@ -48,3 +48,4 @@ void md5(md5_hash_t dest, const void* msg, uint32_t length_b);
 #endif
 
 #endif
+

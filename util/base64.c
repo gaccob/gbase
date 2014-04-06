@@ -1,8 +1,7 @@
 #include <ctype.h>
 #include "base64.h"
 
-const char _base64_table[64] =
-{
+const char _base64_table[64] = {
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
     'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
     'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
@@ -19,8 +18,8 @@ const char _base64_table[64] =
     a4[2] = ((b3[1] & 0x0f) << 2) | ((b3[2] & 0xc0) >> 6); \
     a4[3] = b3[2] & 0x3f;
 
-int32_t base64_encode(char* dst, const char* src, size_t sz)
-{
+int32_t
+base64_encode(char* dst, const char* src, size_t sz) {
     size_t idx = 0, i = 0, j;
     uint8_t a[4], b[3];
     if (!dst || !src || sz == 0) return -1;
@@ -57,8 +56,8 @@ int32_t base64_encode(char* dst, const char* src, size_t sz)
     a3[1] = ((b4[1] & 0x0f) << 4) + ((b4[2] & 0x3c) >> 2); \
     a3[2] = ((b4[2] & 0x03) << 6) + b4[3];
 
-int32_t base64_decode(char* dst, const char* src, size_t sz)
-{
+int32_t
+base64_decode(char* dst, const char* src, size_t sz) {
 	size_t i = 0, idx = 0, j;
     uint8_t a[3], b[4];
 	if (!dst || !src || sz == 0) return -1;

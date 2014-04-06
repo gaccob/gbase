@@ -1,9 +1,7 @@
 #ifndef RANDOM_H_
 #define RANDOM_H_
 
-//
 // random algorithm: MT19937
-//
 
 #ifdef __cplusplus
 extern "C" {

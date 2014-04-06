@@ -73,3 +73,4 @@ typedef struct {
 void sha1(void *dest, const void* msg, uint32_t length_b);
 
 #endif /*SHA1_H_*/
+

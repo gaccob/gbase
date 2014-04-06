@@ -22,20 +22,19 @@ uint32_t util_str2int(const char* key);
     #define vsnprintf _vsnprintf
     #endif
 
-    inline int strcasecmp(const char *s1, const char *s2)
-    {
-       while  (TOUPPER((unsigned char)*s1) == TOUPPER((unsigned char)*s2++))
+    inline int strcasecmp(const char *s1, const char *s2) {
+        while (TOUPPER((unsigned char)*s1) == TOUPPER((unsigned char)*s2++)) {
            if (*s1++ == 0) return 0;
-       return(TOUPPER((unsigned char)*s1) - TOUPPER((unsigned char)*--s2));
-    }
-    inline int strncasecmp(const char *s1, const char *s2, register int n)
-    {
-      while (--n >= 0 && TOUPPER((unsigned char)*s1) == TOUPPER((unsigned char)*s2++))
-          if (*s1++ == 0)  return 0;
-      return(n < 0 ? 0 : TOUPPER((unsigned char)*s1) - TOUPPER((unsigned char)*--s2));
+        }
+        return(TOUPPER((unsigned char)*s1) - TOUPPER((unsigned char)*--s2));
     }
 
-#elif defined(OS_LINUX) || defined(OS_MAC)
+    inline int strncasecmp(const char *s1, const char *s2, register int n) {
+        while (--n >= 0 && TOUPPER((unsigned char)*s1) == TOUPPER((unsigned char)*s2++)) {
+            if (*s1++ == 0)  return 0;
+        }
+        return(n < 0 ? 0 : TOUPPER((unsigned char)*s1) - TOUPPER((unsigned char)*--s2));
+    }
 
 #endif
 
@@ -58,7 +57,6 @@ void util_uri_unescape(char** dst, char** src, size_t sz);
 size_t util_html_escape(char* dst, const char* src, size_t sz);
 
 void util_hex_dump(char* dst, char* src, size_t sz);
-
 
 #ifdef __cplusplus
 }
