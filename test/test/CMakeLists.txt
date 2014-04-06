@@ -9,8 +9,8 @@ include_directories("${OPENSSL_ROOT}/include")
 link_directories("${OPENSSL_ROOT}/lib")
 
 # link
-add_executable("${TEST_NAME}" "${TEST_SOURCES}")
-target_link_libraries("${TEST_NAME}" ${GBASE_LIB} ${GBASE_LIB_LINK} crypto)
+add_executable(${TEST_NAME} ${TEST_SOURCES})
+target_link_libraries(${TEST_NAME} ${GBASE_LIB} ${GBASE_LIB_LINK} crypto)
 
 # copy test source file
 set(TEST_CONFIG_FILE

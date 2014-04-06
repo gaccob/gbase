@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <assert.h>
 #include "core/fsm.h"
 
 #define S_INIT 1

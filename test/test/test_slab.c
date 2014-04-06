@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <mm/slab.h>
 #include <util/random.h>
 #include <util/util_time.h>

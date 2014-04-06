@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "base/rbtree.h"
 
 #define RB_LOOP 32

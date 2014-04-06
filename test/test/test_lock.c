@@ -1,3 +1,5 @@
+#include <assert.h>
+#include "core/thread.h"
 #include "core/lock.h"
 
 #include "test.h"
@@ -27,7 +29,7 @@ lock_func(void* arg) {
     THREAD_RETURN;
 }
 
-void
+int
 test_lock() {
     threadlock = thread_lock_alloc();
     assert(threadlock);
@@ -54,5 +56,6 @@ test_lock() {
     FREE(tid);
 
     thread_lock_free(threadlock);
+    return 0;
 }
 

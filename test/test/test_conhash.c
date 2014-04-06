@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "base/conhash.h"
 
 struct key_t {

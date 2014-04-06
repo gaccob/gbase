@@ -2,26 +2,14 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "test_coroutine.inl"
-#include "test_util.inl"
-#include "test_conhash.inl"
-#include "test_fsm.inl"
-#include "test_bitset.inl"
-#include "test_heap.inl"
-#include "test_rbtree.inl"
-#include "test_rbuffer.inl"
-#include "test_slist.inl"
-#include "test_timer.inl"
-#include "test_atom.inl"
-#include "test_spin.inl"
-#include "test_lock.inl"
-#include "test_task.inl"
-#include "test_shm.inl"
-#include "test_slab.inl"
-#include "test_dirty.inl"
-#include "test_thread.inl"
-#include "test_cjson.inl"
-#include "test_ssl_dh.inl"
+#include "test.h"
+
+int
+get_process_time(struct timeval* from) {
+    struct timeval tv;
+    util_gettimeofday(&tv,NULL);
+    return ((tv.tv_sec - from->tv_sec)*1000+(tv.tv_usec - from->tv_usec)/1000);
+}
 
 int
 main(int argc, char** argv) {
@@ -51,7 +39,8 @@ main(int argc, char** argv) {
             "\t<dirty>\n"
             "\t<thread>\n"
             "\t<json> <text | file | create>\n"
-            "\t<dh> [perf]\n");
+            "\t<dh> [perf]\n"
+            "\t<echo> <client | server>\n");
         return 0;
     }
 
@@ -124,6 +113,14 @@ main(int argc, char** argv) {
             test_dh_perf();
         } else {
             test_dh();
+        }
+    } else if (0 == strcmp(argv[1], "echo")) {
+        if (argc >= 3) {
+            if (0 == strcmp(argv[2], "client")) {
+                test_echo_cli();
+            } else if (0 == strcmp(argv[2], "server")) {
+                test_echo_svr();
+            }
         }
     }
     return 0;

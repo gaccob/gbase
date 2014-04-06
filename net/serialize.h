@@ -9,7 +9,7 @@ extern "C" {
 
 struct serial_t;
 
-struct serial_t* serial_init(char* buffer, size_t size);
+struct serial_t* serial_create(char* buffer, size_t size);
 void serial_release(struct serial_t* s);
 
 int serial_write8(struct serial_t* s, uint8_t src);

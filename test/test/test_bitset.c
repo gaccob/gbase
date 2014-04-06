@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "base/bitset.h"
 
 int

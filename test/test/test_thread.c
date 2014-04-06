@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "core/thread.h"
 
 int THREAD_VAL = 0;

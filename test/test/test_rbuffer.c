@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "base/rbuffer.h"
 #include "core/thread.h"
 

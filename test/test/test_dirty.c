@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "logic/dirty/dirty.h"
 #include "util/util_time.h"
 

@@ -7,33 +7,31 @@ extern "C" {
 
 #include "net/reactor.h"
 
-typedef struct reactor_t
-{
+typedef struct reactor_t {
     const char* name;
     void* data;
     const struct reactor_impl_t* impl;
 } reactor_t;
 
-typedef struct reactor_impl_t
-{
-    int (*init)(struct reactor_t*);
-    void (*release)(struct reactor_t*);
-    int (*add)(struct reactor_t*, struct handler_t*, int);
-    int (*remove)(struct reactor_t*, struct handler_t*);
-    int (*modify)(struct reactor_t*, struct handler_t*, int);
+typedef struct reactor_impl_t {
+    int (*create)(reactor_t*);
+    void (*release)(reactor_t*);
+    int (*add)(reactor_t*, handler_t*, int);
+    int (*remove)(reactor_t*, handler_t*);
+    int (*modify)(reactor_t*, handler_t*, int);
 
     //  return = 0, success & process
     //  return < 0, fail
     //  return > 0, noting to do
-    int (*dispatch)(struct reactor_t*, int);
+    int (*dispatch)(reactor_t*, int);
 } reactor_impl_t;
 
 #if defined(OS_LINUX)
-extern struct reactor_impl_t reactor_epoll;
+extern reactor_impl_t reactor_epoll;
 #elif defined(OS_MAC)
-extern struct reactor_impl_t reactor_kqueue;
+extern reactor_impl_t reactor_kqueue;
 #endif
-extern struct reactor_impl_t reactor_select;
+extern reactor_impl_t reactor_select;
 
 #ifdef __cpluplus
 }

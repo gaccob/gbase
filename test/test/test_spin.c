@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "core/thread.h"
 #include "core/spin.h"
 
@@ -28,7 +29,7 @@ spin_func(void* arg) {
     THREAD_RETURN;
 }
 
-void
+int
 test_spin() {
     spinlock = spin_create();
     assert(spinlock);
@@ -55,5 +56,6 @@ test_spin() {
     FREE(tid);
 
     spin_release(spinlock);
+    return 0;
 }
 

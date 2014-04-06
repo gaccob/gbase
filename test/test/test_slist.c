@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "base/slist.h"
 
 #define SLIST_LOOP 32

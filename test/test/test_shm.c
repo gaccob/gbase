@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "mm/shm.h"
 #include "core/lock.h"
 

@@ -102,10 +102,10 @@ int main()
     if(!con_table) return 0;
 
     stop_flag = 0;
-    r = reactor_init();
+    r = reactor_create();
     if(!r) return -1;
 
-    acc = acceptor_init(r, accept_read, NULL);
+    acc = acceptor_create(r, accept_read, NULL);
     if(!acc)
         return -1;
 

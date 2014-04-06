@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "core/thread.h"
 #include "core/atom.h"
 

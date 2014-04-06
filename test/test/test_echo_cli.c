@@ -1,9 +1,12 @@
-#include "tcp_test.h"
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
+#include "core/os_def.h"
+#include "net/sock.h"
+#include "test.h"
 
-int main()
-{
+int
+test_echo_cli() {
     int res;
     sock_t sock;
     char buffer[1024];
@@ -11,47 +14,47 @@ int main()
     size_t nsend, nread;
 
     sock = sock_tcp();
-    if(sock < 0)
-        return -1;
+    assert(sock >= 0);
 
-    res = sock_connect(sock, server_addr, server_port);
-    if(res < 0)
-        return -1;
+    res = sock_connect(sock, ECHO_IP, ECHO_PORT);
+    assert(0 == res);
 
     printf("\n===========================================\n");
-    while(1)
-    {
+    while (1) {
         printf("send msg to server(q->quit, enter->input): ");
 
-        /* get input */
         fgets(buffer, sizeof(buffer) - 1, stdin);
         buflen = strlen(buffer);
-        if(buflen == 2 && buffer[0] == 'q' && buffer[1] == '\n')
+        if (buflen == 2 && buffer[0] == 'q' && buffer[1] == '\n') {
             break;
+        }
         nsend = 0;
-        while(nsend < buflen)
-        {
+        while (nsend < buflen) {
             res = sock_write(sock, buffer, buflen);
-            if(res > 0)
+            if(res > 0) {
                 nsend += res;
-            else
+            } else {
                 SLEEP(1);
+            }
         }
 
         memset(buffer, 0, sizeof(buffer));
         dest_buflen = buflen;
         buflen = sizeof(buffer);
         nread = 0;
-        while(nread < dest_buflen)
-        {
+        while (nread < dest_buflen) {
             res = sock_read(sock, buffer + nread, sizeof(buffer) - nread);
-            if(res > 0)
+            if (res > 0) {
                 nread += res;
-            else
+            } else if (res == 0) {
+                printf("\necho server quit.\n");
+                return 0;
+            } else {
                 SLEEP(1);
+            }
         }
 
-        printf("\necho: %s===========================================\n", buffer);
+        printf("\necho: %s=========================\n", buffer);
     }
 
     sock_close(sock);

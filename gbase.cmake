@@ -40,3 +40,4 @@ foreach(GBASE_TEST_DIR ${GBASE_TEST_DIRS})
     CommonEcho(COLOR CYAN "===> directory: ${GBASE_TEST_DIR}")
     add_subdirectory(${GBASE_TEST_DIR})
 endforeach()
+
