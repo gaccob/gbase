@@ -20,6 +20,7 @@
 #include "test_slab.inl"
 #include "test_dirty.inl"
 #include "test_thread.inl"
+#include "test_cjson.inl"
 
 int
 main(int argc, char** argv) {
@@ -44,11 +45,11 @@ main(int argc, char** argv) {
             "\t<spin>\n"
             "\t<lock>\n"
             "\t<task>\n"
-            "\t<shm_send>\n"
-            "\t<shm_recv>\n"
+            "\t<shm> <send | recv>\n"
             "\t<slab>\n"
             "\t<dirty>\n"
-            "\t<thread>\n");
+            "\t<thread>\n"
+            "\t<json> <text | file | create>\n");
         return 0;
     }
 
@@ -92,16 +93,30 @@ main(int argc, char** argv) {
         test_lock();
     } else if (0 == strcmp(argv[1], "task")) {
         test_task();
-    } else if (0 == strcmp(argv[1], "shm_send")) {
-        test_shm_send();
-    } else if (0 == strcmp(argv[1], "shm_recv")) {
-        test_shm_recv();
+    } else if (0 == strcmp(argv[1], "shm")) {
+        if (argc >= 3) {
+            if (0 == strcmp(argv[2], "send")) {
+                test_shm_send();
+            } else if (0 == strcmp(argv[2], "recv")) {
+                test_shm_recv();
+            }
+        }
     } else if (0 == strcmp(argv[1], "slab")) {
         test_slab();
     } else if (0 == strcmp(argv[1], "dirty")) {
         test_dirty();
     } else if (0 == strcmp(argv[1], "thread")) {
         test_thread();
+    } else if (0 == strcmp(argv[1], "json")) {
+        if (argc >= 3) {
+            if (0 == strcmp(argv[2], "text")) {
+                test_json_text();
+            } else if (0 == strcmp(argv[2], "file")) {
+                test_json_file();
+            } else if (0 == strcmp(argv[2], "create")) {
+                test_json_create();
+            }
+        }
     }
     return 0;
 }
