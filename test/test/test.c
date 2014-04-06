@@ -21,6 +21,7 @@
 #include "test_dirty.inl"
 #include "test_thread.inl"
 #include "test_cjson.inl"
+#include "test_ssl_dh.inl"
 
 int
 main(int argc, char** argv) {
@@ -49,7 +50,8 @@ main(int argc, char** argv) {
             "\t<slab>\n"
             "\t<dirty>\n"
             "\t<thread>\n"
-            "\t<json> <text | file | create>\n");
+            "\t<json> <text | file | create>\n"
+            "\t<dh> [perf]\n");
         return 0;
     }
 
@@ -116,6 +118,12 @@ main(int argc, char** argv) {
             } else if (0 == strcmp(argv[2], "create")) {
                 test_json_create();
             }
+        }
+    } else if (0 == strcmp(argv[1], "dh")) {
+        if (argc >= 3 && 0 == strcmp(argv[2], "perf")) {
+            test_dh_perf();
+        } else {
+            test_dh();
         }
     }
     return 0;

@@ -10,39 +10,51 @@
 #define DH_PARAMETER_LEN  256
 #define DH_PEM_FILE "dh.pem"
 
-void test_dh_perf()
-{
+#define DH_LOOP 100
+
+static void
+_test_dh_perf() {
     DH* dh;
     uint8_t* key;
     int ret, errcode;
-
     dh = DH_new();
     assert(dh);
-
     ret = DH_generate_parameters_ex(dh, DH_PARAMETER_LEN, DH_GENERATOR_2, NULL);
     assert(ret == 1);
-
     ret = DH_check(dh, &errcode);
     assert(ret);
-
     ret = DH_generate_key(dh);
     assert(ret == 1);
-
     ret = DH_check_pub_key(dh, dh->pub_key, &errcode);
     assert(ret == 1);
-
     key = (uint8_t*)calloc(DH_size(dh), sizeof(uint8_t));
     assert(key);
-
     ret = DH_compute_key(key, dh->pub_key, dh);
     assert(ret > 0);
-
     DH_free(dh);
     free(key);
 }
 
-void test_dh(int save_pem)
+int
+test_dh_perf()
 {
+    int i;
+    struct timeval tv;
+    char timestamp[64];
+    util_gettimeofday(&tv, NULL);
+    util_timestamp(&tv, timestamp, 64);
+    printf("%s\n", timestamp);
+    for (i = 0; i < DH_LOOP; ++ i) {
+        _test_dh_perf();
+    }
+    util_gettimeofday(&tv, NULL);
+    util_timestamp(&tv, timestamp, 64);
+    printf("%s\n", timestamp);
+    return 0;
+}
+
+void
+test_dh() {
     DH* server = NULL;
     DH* client = NULL;
     int i, ret, errcode;
@@ -54,7 +66,6 @@ void test_dh(int save_pem)
         server = PEM_read_DHparams(pem, NULL, NULL, NULL);
     } else {
         server = DH_new();
-
         // generator dh parameters
         ret = DH_generate_parameters_ex(server, DH_PARAMETER_LEN,
             DH_GENERATOR_2, NULL);
@@ -62,7 +73,6 @@ void test_dh(int save_pem)
             printf("server generate parameters fail: %d\n", ret);
             goto DH_FAIL;
         }
-
         // check parameters
         ret = DH_check(server, &errcode);
         if (ret != 1) {
@@ -138,7 +148,7 @@ void test_dh(int save_pem)
     printf("\n\n");
 
     // save pem file if first time
-    if (!pem && save_pem == 0) {
+    if (!pem) {
         pem = fopen(DH_PEM_FILE, "w");
         if (pem) {
             PEM_write_DHparams(pem, server);
@@ -154,30 +164,5 @@ DH_FAIL:
     if (pem) {
         fclose(pem);
     }
-}
-
-int main(int argc, char** argv)
-{
-    int i;
-    struct timeval tv;
-    char timestamp[64];
-
-    if (argc == 2) {
-        // peformance test
-        util_gettimeofday(&tv, NULL);
-        util_timestamp(&tv, timestamp, 64);
-        printf("%s\n", timestamp);
-        for (i = 0; i < atoi(argv[1]); ++ i) {
-            test_dh_perf();
-        }
-        util_gettimeofday(&tv, NULL);
-        util_timestamp(&tv, timestamp, 64);
-        printf("%s\n", timestamp);
-    } else {
-        // logic test
-        test_dh(0);
-    }
-
-    return 0;
 }
 
