@@ -1,11 +1,13 @@
-#include <assert.h>
 #include "logic/dirty/dirty.h"
 #include "util/util_time.h"
 
-#define MAX_LOOP 100000
+#define DIRTY_LOOP 10
 
-int main(int argc, char** argv)
-{
+#define DIRTY_CFG_FILE "dirty_cfg_words"
+#define DIRTY_TEST_FILE "dirty_test_words"
+
+int
+test_dirty() {
     struct dirty_ctx_t* ctx;
     char source[1024 * 8];
     char tmp[1024 * 8];
@@ -14,17 +16,12 @@ int main(int argc, char** argv)
     struct timeval tv;
     int i, ret;
 
-    if (argc != 3) {
-        printf("usage: ./dirty cfg_file check_file\n");
-        return 0;
-    }
-
-    ctx = dirty_init(argv[1]);
+    ctx = dirty_create(DIRTY_CFG_FILE);
     assert(ctx);
     printf("dirty check init success\n");
 
     memset(source, 0, sizeof(source));
-    fp = fopen(argv[2], "r");
+    fp = fopen(DIRTY_TEST_FILE, "r");
     if (!fp) {
         return -1;
     }
@@ -42,7 +39,7 @@ int main(int argc, char** argv)
     util_timestamp(&tv, logtime, sizeof(logtime));
     printf("start %s\n", logtime);
 
-    for (i = 0; i < MAX_LOOP; ++ i) {
+    for (i = 0; i < DIRTY_LOOP; ++ i) {
         snprintf(tmp, sizeof(tmp), "%s", source);
         ret = dirty_replace(ctx, tmp, strlen(tmp));
         assert(ret == 0);

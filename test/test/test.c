@@ -18,6 +18,7 @@
 #include "test_task.inl"
 #include "test_shm.inl"
 #include "test_slab.inl"
+#include "test_dirty.inl"
 
 int
 main(int argc, char** argv) {
@@ -44,7 +45,8 @@ main(int argc, char** argv) {
             "\t<task>\n"
             "\t<shm_send>\n"
             "\t<shm_recv>\n"
-            "\t<slab>\n");
+            "\t<slab>\n"
+            "\t<dirty>\n");
         return 0;
     }
 
@@ -94,6 +96,8 @@ main(int argc, char** argv) {
         test_shm_recv();
     } else if (0 == strcmp(argv[1], "slab")) {
         test_slab();
+    } else if (0 == strcmp(argv[1], "dirty")) {
+        test_dirty();
     }
     return 0;
 }

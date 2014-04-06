@@ -25,7 +25,7 @@
 
 struct dirty_ctx_t;
 
-struct dirty_ctx_t* dirty_init(const char* dirty_cfg);
+struct dirty_ctx_t* dirty_create(const char* dirty_cfg);
 
 int dirty_reload(struct dirty_ctx_t**, const char* dirty_cfg);
 

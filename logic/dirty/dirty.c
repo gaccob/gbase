@@ -11,15 +11,13 @@
 // else, single byte
 const uint8_t GB_SPEC_CHAR = (uint8_t)(0x80);
 
-typedef struct dirty_t
-{
+typedef struct dirty_t {
     char word[MAX_DIRTY_WORDS_LEN];
     int prev;
     int next;
 } dirty_t;
 
-typedef struct dirty_ctx_t
-{
+typedef struct dirty_ctx_t {
     int table_size;
     dirty_t table[MAX_DIRTY_WORDS_COUNT];
     int hash[MAX_DIRTY_WORDS_HASH_COUNT];
@@ -30,8 +28,8 @@ typedef struct dirty_ctx_t
 #define RESET_DIRTY_FLAG(index, len)    (index &= ~(1 << len))
 #define CHECK_DIRTY_FLAG(index, len)    (index & (1 << len))
 
-dirty_ctx_t* _dirty_init_table(const char* cfg)
-{
+static dirty_ctx_t*
+_dirty_init_table(const char* cfg) {
     dirty_ctx_t* ctx;
     dirty_t* dirty;
     FILE* fp;
@@ -77,8 +75,8 @@ dirty_ctx_t* _dirty_init_table(const char* cfg)
     return ctx;
 }
 
-int _dirty_init_hash(dirty_ctx_t* ctx)
-{
+static int
+_dirty_init_hash(dirty_ctx_t* ctx) {
     int i, hindex, windex;
     uint32_t hkey;
     size_t len;
@@ -106,8 +104,8 @@ int _dirty_init_hash(dirty_ctx_t* ctx)
     return 0;
 }
 
-int _dirty_init_index(dirty_ctx_t* ctx)
-{
+static int
+_dirty_init_index(dirty_ctx_t* ctx) {
     int i;
     size_t len;
     char* word;
@@ -126,8 +124,8 @@ int _dirty_init_index(dirty_ctx_t* ctx)
     return 0;
 }
 
-dirty_ctx_t* dirty_init(const char* cfg)
-{
+dirty_ctx_t*
+dirty_create(const char* cfg) {
     dirty_ctx_t* ctx;
     int ret;
     ctx = _dirty_init_table(cfg);
@@ -139,18 +137,18 @@ dirty_ctx_t* dirty_init(const char* cfg)
     return ctx;
 }
 
-int dirty_reload(dirty_ctx_t** ctx, const char* dirty_cfg)
-{
+int
+dirty_reload(dirty_ctx_t** ctx, const char* dirty_cfg) {
     dirty_ctx_t* new_ctx;
-    new_ctx = dirty_init(dirty_cfg);
+    new_ctx = dirty_create(dirty_cfg);
     if (!new_ctx) return -1;
     dirty_release(*ctx);
     *ctx = new_ctx;
     return 0;
 }
 
-int dirty_hash_find(dirty_ctx_t* ctx, const char* src, size_t len)
-{
+int
+dirty_hash_find(dirty_ctx_t* ctx, const char* src, size_t len) {
     uint32_t hkey;
     dirty_t* dirty;
     int windex, hindex;
@@ -183,8 +181,8 @@ int dirty_hash_find(dirty_ctx_t* ctx, const char* src, size_t len)
 // return -1, has dirty words
 // return -2, encode error
 // return -3, invalid input
-int dirty_check(dirty_ctx_t* ctx, const char* src, int len)
-{
+int
+dirty_check(dirty_ctx_t* ctx, const char* src, int len) {
     static char lowcase[MAX_SOURCE_WORDS_LEN];
     int i, k, step, key;
     const uint8_t* from;
@@ -233,15 +231,14 @@ int dirty_check(dirty_ctx_t* ctx, const char* src, int len)
             }
         }
     }
-
     return 0;
 }
 
 // return 0, check success and no need to replace
 // return 1, check success and replace dirty words
 // return -1, fail
-int dirty_replace(dirty_ctx_t* ctx, char* src, int len)
-{
+int
+dirty_replace(dirty_ctx_t* ctx, char* src, int len) {
     static char lowcase[MAX_SOURCE_WORDS_LEN];
     int i, j, k, step, key;
     uint8_t* from;
@@ -297,8 +294,8 @@ int dirty_replace(dirty_ctx_t* ctx, char* src, int len)
     return 0;
 }
 
-int dirty_release(dirty_ctx_t* ctx)
-{
+int
+dirty_release(dirty_ctx_t* ctx) {
     if (ctx) {
         FREE(ctx);
         ctx = NULL;
