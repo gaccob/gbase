@@ -1,10 +1,8 @@
 #ifndef WSCONN_H_
 #define WSCONN_H_
 
-//
 // web socket wrapper
 // reference: http://www.gaccob.com/?p=1148
-//
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,16 +21,16 @@ typedef void (*wsconn_build_func)(int32_t fd);
 typedef void (*wsconn_close_func)(int32_t fd);
 
 struct wsconn_t;
-struct wsconn_t* wsconn_init(struct reactor_t* r,
-                             wsconn_build_func build_cb,
-                             wsconn_read_func read_cb,
-                             wsconn_close_func close_cb,
-                             struct connbuffer_t* read_buf,
-                             struct connbuffer_t* real_read_buf,
-                             struct connbuffer_t* write_buf,
-                             int32_t fd);
+struct wsconn_t* wsconn_create(struct reactor_t* r,
+                               wsconn_build_func build_cb,
+                               wsconn_read_func read_cb,
+                               wsconn_close_func close_cb,
+                               struct connbuffer_t* read_buf,
+                               struct connbuffer_t* real_read_buf,
+                               struct connbuffer_t* write_buf);
 int32_t wsconn_release(struct wsconn_t* con);
 int32_t wsconn_fd(struct wsconn_t* con);
+void wsconn_set_fd(struct wsconn_t* con, int fd);
 int32_t wsconn_start(struct wsconn_t* con);
 int32_t wsconn_stop(struct wsconn_t* con);
 int32_t wsconn_established(struct wsconn_t* con);

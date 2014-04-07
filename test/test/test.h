@@ -47,4 +47,8 @@ int test_echo_cli();
 
 int test_curl();
 
+#define WS_IP "127.0.0.1"
+#define WS_PORT 8000
+int test_ws_server();
+
 #endif

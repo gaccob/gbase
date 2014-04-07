@@ -17,6 +17,7 @@ set(TEST_CONFIG_FILE
     "dirty_cfg_words"
     "dirty_test_words"
     "json_test_file"
+    "ws_client.html"
 )
 foreach(f ${TEST_CONFIG_FILE})
     configure_file(${f} .)

@@ -41,7 +41,8 @@ main(int argc, char** argv) {
             "\t<json> <text | file | create>\n"
             "\t<dh> [perf]\n"
             "\t<echo> <client | server>\n"
-            "\t<curl>\n");
+            "\t<curl>\n"
+            "\t<wssvr>\n");
         return 0;
     }
 
@@ -125,6 +126,8 @@ main(int argc, char** argv) {
         }
     } else if (0 == strcmp(argv[1], "curl")) {
         test_curl();
+    } else if (0 == strcmp(argv[1], "wssvr")) {
+        test_ws_server();
     }
     return 0;
 }

@@ -5,59 +5,47 @@
 #include "net/acceptor.h"
 #include "net/wsconn.h"
 
-const char* server_addr = "10.0.253.112";
-int server_port = 8000;
+#include "test.h"
 
 #define TEST_BUFF_SIZE (1024 * 1024)
 
-int stop_flag;
 struct reactor_t* r;
 struct idtable_t* con_table;
 
-typedef struct WSCtx
-{
+typedef struct WSCtx {
     struct wsconn_t* con;
     struct connbuffer_t* read_buf;
     struct connbuffer_t* real_read_buf;
     struct connbuffer_t* write_buf;
-}WSCtx;
+} WSCtx;
 
-const char* const stop_cmd = "stop\n";
-const char word_cmd = '\n';
-
-int wscon_read(int fd, const char* buffer, int buflen)
-{
+static int
+_wscon_read(int fd, const char* buffer, int buflen) {
     struct WSCtx* ctx = idtable_get(con_table, fd);
-    if(!ctx)
-        return -1;
-
+    if(!ctx) return -1;
     printf("fd[%d] read %d bytes\n", fd, buflen);
-
-    if (wsconn_send(ctx->con, buffer, buflen) < 0)
-    {
+    if (wsconn_send(ctx->con, buffer, buflen) < 0) {
         printf("send back fail\n");
         return -1;
     }
-/*
     int32_t i = 0;
-    while (i < buflen)
+    while (i < buflen) {
         printf("%c", buffer[i++]);
+    }
     printf("\n");
-*/
     return buflen;
 }
 
-void wscon_build(int fd)
-{
+static void
+_wscon_build(int fd) {
     printf("fd[%d] complete handshake\n", fd);
 }
 
-void wscon_close(int fd)
-{
+static void
+_wscon_close(int fd) {
     struct WSCtx* ctx = idtable_get(con_table, fd);
     assert(ctx);
     printf("fd[%d] close \n", fd);
-
     connbuffer_release(ctx->read_buf);
     connbuffer_release(ctx->write_buf);
     connbuffer_release(ctx->real_read_buf);
@@ -66,57 +54,46 @@ void wscon_close(int fd)
     idtable_remove(con_table, fd);
 }
 
-int accept_read(int fd)
-{
+static int
+_accept_read(int fd) {
     int res;
     struct WSCtx* ctx = (struct WSCtx*)MALLOC(sizeof(struct WSCtx));
     assert(ctx);
-
     ctx->read_buf = connbuffer_create(TEST_BUFF_SIZE, MALLOC, FREE);
     ctx->real_read_buf = connbuffer_create(TEST_BUFF_SIZE, MALLOC, FREE);
     ctx->write_buf = connbuffer_create(TEST_BUFF_SIZE, MALLOC, FREE);
     assert(ctx->read_buf && ctx->write_buf && ctx->real_read_buf);
-
-    ctx->con = wsconn_init(r, wscon_build, wscon_read, wscon_close, ctx->read_buf,
-                           ctx->real_read_buf, ctx->write_buf, fd);
+    ctx->con = wsconn_create(r, _wscon_build, _wscon_read, _wscon_close, ctx->read_buf,
+                             ctx->real_read_buf, ctx->write_buf);
     assert(ctx->con);
-
+    wsconn_set_fd(ctx->con, fd);
     res = idtable_add(con_table, fd, ctx);
     assert(0 == res);
-
     res = wsconn_start(ctx->con);
     assert(0 == res);
-
     printf("fd[%d] connected\n", fd);
     return 0;
 }
 
-int main()
-{
+int
+test_ws_server() {
     int res, i;
     struct acceptor_t* acc;
     struct sockaddr_in addr;
     struct WSCtx* ctx;
-
     con_table = idtable_create(1024);
-    if(!con_table) return 0;
+    assert(con_table);
 
-    stop_flag = 0;
     r = reactor_create();
-    if(!r) return -1;
-
-    acc = acceptor_create(r, accept_read, NULL);
-    if(!acc)
-        return -1;
-
-    res = sock_addr_aton(server_addr, server_port, &addr);
-    if(res < 0) return -1;
-
+    assert(r);
+    acc = acceptor_create(r, _accept_read, NULL);
+    assert(acc);
+    res = sock_addr_aton(WS_IP, WS_PORT, &addr);
+    assert(res == 0);
     res = acceptor_start(acc, (struct sockaddr*)&addr);
-    if(res < 0) return -1;
+    assert(res == 0);
 
-    while(!stop_flag)
-    {
+    while (1) {
         res = reactor_dispatch(r, 1);
         if(res < 0) return -1;
         if(res > 0) SLEEP(1);
@@ -124,12 +101,9 @@ int main()
 
     acceptor_stop(acc);
     acceptor_release(acc);
-
-    for(i = 0; i < 1024; i++)
-    {
+    for (i = 0; i < 1024; i++) {
         ctx = idtable_get(con_table, i);
-        if(ctx)
-        {
+        if (ctx) {
             connbuffer_release(ctx->read_buf);
             connbuffer_release(ctx->write_buf);
             connbuffer_release(ctx->real_read_buf);
@@ -138,7 +112,6 @@ int main()
         }
     }
     idtable_release(con_table);
-
     reactor_release(r);
     return 0;
 }

@@ -14,7 +14,7 @@
                 // WebSocket needs to be set to IP of arduino.
                 try {
                     window.console.log("Setting up socket");
-                    ws = new WebSocket("ws://10.0.253.112:8000/");
+                    ws = new WebSocket("ws://localhost:8000/");
                     ws.onmessage = function(evt) {
                         window.console.log(evt.data);
                         $("#msg").append("<p>"+evt.data+"<p>");

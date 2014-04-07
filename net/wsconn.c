@@ -4,8 +4,7 @@
 #include "util/base64.h"
 #include "util/util_str.h"
 
-typedef struct wsconn_t
-{
+typedef struct wsconn_t {
     struct handler_t h;
     struct reactor_t* r;
     struct connbuffer_t* read_buf;
@@ -22,9 +21,6 @@ enum {
     WS_ESTABLISHED,
     WS_FINI,
 };
-
-#define LOWERCASE_ASSIGN(s, a) \
-    { s = ((a) >= 'A' && (a) <= 'Z') ? a - ('A' - 'a') : a; }
 
 #define WS_HANDSHAKE_MAX_SIZE 1024
 
@@ -85,8 +81,7 @@ const char* const WS_FIELD_SEC_ACCEPT = "sec-websocket-accept";
 const char* const WS_FIELD_SEC_LOCATION = "sec-websocket-location";
 const char* const WS_FIELD_SEC_PROTOCOL = "sec-websocket-protocol";
 
-typedef struct wsconn_request_t
-{
+typedef struct wsconn_request_t {
     int32_t flag;
     int32_t version;
     char key[32];
@@ -100,8 +95,8 @@ typedef struct wsconn_request_t
 
 // return 0, parse success
 // return -1, parse fail
-int32_t _wsconn_parse_request(struct wsconn_request_t* request, const char* data, int32_t sz)
-{
+static int32_t
+_wsconn_parse_request(wsconn_request_t* request, const char* data, int32_t sz) {
     char request_data[WS_HANDSHAKE_MAX_SIZE];
     char* delim = "\r\n";
     char* head_delim = " ";
@@ -121,7 +116,8 @@ int32_t _wsconn_parse_request(struct wsconn_request_t* request, const char* data
     if ((q = strstr(p, head_delim)) == NULL) return -1;
 
     q++;
-    while ((request->location[i++] = *q++) != *head_delim && i < sizeof(request->location));
+    while ((request->location[i++] = *q++) != *head_delim
+        && i < sizeof(request->location));
     request->location[i-1] = '\0';
 
     // head field
@@ -176,7 +172,6 @@ int32_t _wsconn_parse_request(struct wsconn_request_t* request, const char* data
             snprintf(request->key, sizeof(request->key), "%s", q);
         }
     }
-
     printf("websocket handshake request:\n"
             "   version: %d\n"
             "   key: %s\n"
@@ -216,12 +211,11 @@ websocket handshake for flash
         WebSocket-Origin: http://www.xx.com
         WebSocket-Location: ws://www.xx.com/ls
 */
-int32_t _wsconn_proc_flash_req(wsconn_t* con, struct wsconn_request_t* request)
-{
+static int32_t
+_wsconn_proc_flash_req(wsconn_t* con, wsconn_request_t* request) {
     char res[WS_HANDSHAKE_MAX_SIZE];
     int32_t nwrite, nres;
     if (!con || !request) return -1;
-
     snprintf(res, sizeof(res), "HTTP/1.1 101 Web Socket Protocol Handshake\r\n"
              "Upgrade: WebSocket\r\n"
              "Connection: Upgrade\r\n"
@@ -252,8 +246,8 @@ websocket handshake for version > 13: sha1 + base64 encrypt
         Connection: Upgrade
         Sec-WebSocket-Accept: mLDKNeBNWz6T9SxU+o0Fy/HgeSw=
 */
-int32_t _wsconn_proc_sha1_req(wsconn_t* con, struct wsconn_request_t* request)
-{
+static int32_t
+_wsconn_proc_sha1_req(wsconn_t* con, wsconn_request_t* request) {
     char res[WS_HANDSHAKE_MAX_SIZE];
     char key[64], sha[128], base64_code[128];
     int32_t nwrite, nres;
@@ -296,8 +290,8 @@ websocket handshake for no version: md5 encrypt
         Sec-WebSocket-Protocol: sample
         8jKS’y:G*Co,Wxa-
 */
-int32_t _wsconn_proc_md5_req(wsconn_t* con, struct wsconn_request_t* request)
-{
+static int32_t
+_wsconn_proc_md5_req(wsconn_t* con, wsconn_request_t* request) {
     uint8_t chrkey1[4];
     uint8_t chrkey2[4];
     uint8_t encrypt[17];
@@ -339,14 +333,12 @@ int32_t _wsconn_proc_md5_req(wsconn_t* con, struct wsconn_request_t* request)
 
 // return processed bytes
 // return < 0 means processed fail, reactor will close connection
-int32_t _wsconn_handshake(wsconn_t* con, char* data, int32_t sz)
-{
+static int32_t
+_wsconn_handshake(wsconn_t* con, char* data, int32_t sz) {
     wsconn_request_t request;
     int32_t ret;
-
     ret = _wsconn_parse_request(&request, data, sz);
-    if (ret < 0)
-        return -1;
+    if (ret < 0) return -1;
 
     if ((request.flag & WS_MD5) == WS_MD5) {
         ret = _wsconn_proc_md5_req(con, &request);
@@ -369,8 +361,7 @@ int32_t _wsconn_handshake(wsconn_t* con, char* data, int32_t sz)
     return -1;
 }
 
-typedef struct wsconn_frame_t
-{
+typedef struct wsconn_frame_t {
     int8_t is_fin;
     int8_t is_masked;
     int8_t opcode;
@@ -417,8 +408,8 @@ typedef struct wsconn_frame_t
 */
 // return processed bytes
 // return < 0 means fail, reactor will close connection
-int32_t _wsconn_frame(wsconn_t* con, char* data, int32_t sz)
-{
+static int32_t
+_wsconn_frame(wsconn_t* con, char* data, int32_t sz) {
     int32_t i, res, nread;
     char* buffer;
     wsconn_frame_t frame;
@@ -462,9 +453,11 @@ int32_t _wsconn_frame(wsconn_t* con, char* data, int32_t sz)
         b7 = (uint8_t)data[8];
         b8 = (uint8_t)data[9];
 #if defined(OS_LITTLE_ENDIAN)
-        frame.payload_len = (b1 << 56 | b2 << 48 | b3 << 40 | b4 << 32 | b5 << 24 | b6 << 16 | b7 << 8 | b8);
+        frame.payload_len = (b1 << 56 | b2 << 48 | b3 << 40
+            | b4 << 32 | b5 << 24 | b6 << 16 | b7 << 8 | b8);
 #elif defined(OS_BIG_ENDIAN)
-        frame.payload_len = (b1 | b2 << 8 | b3 << 16 | b4 << 24 | b5 << 32 | b6 << 40 | b7 << 48 | b8 << 56);
+        frame.payload_len = (b1 | b2 << 8 | b3 << 16 | b4 << 24
+            | b5 << 32 | b6 << 40 | b7 << 48 | b8 << 56);
 #endif
         frame.mask_shift = 10;
     }
@@ -511,12 +504,11 @@ int32_t _wsconn_frame(wsconn_t* con, char* data, int32_t sz)
     return (int32_t)frame.payload_len + frame.mask_shift + (frame.is_masked ? 4 : 0);
 }
 
-int32_t _wsconn_read(struct handler_t* h)
-{
+static int32_t
+_wsconn_read(struct handler_t* h) {
     char* buffer;
     int32_t nread, nwrite, res;
     wsconn_t* con = (wsconn_t*)h;
-
     nwrite = connbuffer_write_len(con->read_buf);
     assert(nwrite >= 0);
 
@@ -538,7 +530,7 @@ int32_t _wsconn_read(struct handler_t* h)
             return 0;
         } else {
             printf("fd[%d] read errno=%d\n", con->h.fd, ERRNO);
-            return -1;
+            return -ERRNO;
         }
     } else if (0 == res) {
         return -1;
@@ -568,15 +560,13 @@ int32_t _wsconn_read(struct handler_t* h)
     return 0;
 }
 
-int32_t _wsconn_write(struct handler_t* h)
-{
+static int32_t
+_wsconn_write(struct handler_t* h) {
     char* buffer;
     int32_t nwrite, res;
     wsconn_t* con = (wsconn_t*)h;
-
     nwrite = connbuffer_read_len(con->write_buf);
-    if (nwrite <= 0)
-        return 0;
+    if (nwrite <= 0) return 0;
     buffer = connbuffer_read_buffer(con->write_buf);
     res = sock_write(con->h.fd, buffer, nwrite);
     if (res < 0) {
@@ -585,7 +575,7 @@ int32_t _wsconn_write(struct handler_t* h)
             return 0;
         } else {
             printf("write %d errno=%d\n", con->h.fd, ERRNO);
-            return -1;
+            return -ERRNO;
         }
     } else if (0 == res) {
         return -1;
@@ -597,38 +587,25 @@ int32_t _wsconn_write(struct handler_t* h)
     return 0;
 }
 
-int32_t _wsconn_close(struct handler_t* h)
-{
+static int32_t
+_wsconn_close(struct handler_t* h) {
     wsconn_t* con = (wsconn_t*)h;
-#if 0 
-    int8_t finish_data[4];
-    finish_data[0] = 0x08;
-    finish_data[1] = 0x02;
-    finish_data[2] = 0x03;
-    finish_data[3] = 0xF1;
-    connbuffer_write(con->write_buf, (char*)finish_data, 4);
-    reactor_modify(con->r, &con->h, (EVENT_IN | EVENT_OUT));
-#endif
     if (con->close_cb) {
         con->close_cb(con->h.fd);
     }
     return 0;
 }
 
-wsconn_t* wsconn_init(struct reactor_t* r,
-                             wsconn_build_func build_cb,
-                             wsconn_read_func read_cb,
-                             wsconn_close_func close_cb,
-                             struct connbuffer_t* read_buf,
-                             struct connbuffer_t* real_read_buf,
-                             struct connbuffer_t* write_buf,
-                             int32_t fd)
-{
+wsconn_t*
+wsconn_create(struct reactor_t* r, wsconn_build_func build_cb,
+              wsconn_read_func read_cb, wsconn_close_func close_cb,
+              struct connbuffer_t* read_buf, struct connbuffer_t* real_read_buf,
+              struct connbuffer_t* write_buf) {
     wsconn_t* con;
-    if (!r || fd < 0 || !read_buf || !write_buf) return NULL;
+    if (!r || !read_buf || !write_buf) return NULL;
     con = (wsconn_t*)MALLOC(sizeof(wsconn_t));
     if (!con) return NULL;
-    con->h.fd = fd;
+    con->h.fd = -1;
     con->h.in_func = _wsconn_read;
     con->h.out_func = _wsconn_write;
     con->h.close_func = _wsconn_close;
@@ -643,8 +620,8 @@ wsconn_t* wsconn_init(struct reactor_t* r,
     return con;
 }
 
-int32_t wsconn_release(wsconn_t* con)
-{
+int32_t
+wsconn_release(wsconn_t* con) {
     if (con) {
         wsconn_stop(con);
         FREE(con);
@@ -652,14 +629,18 @@ int32_t wsconn_release(wsconn_t* con)
     return 0;
 }
 
-int32_t wsconn_fd(wsconn_t* con)
-{
-    if (con) return con->h.fd;
-    return -1;
+inline int32_t
+wsconn_fd(wsconn_t* con) {
+    return con ? con->h.fd : -1;
 }
 
-int32_t wsconn_start(wsconn_t* con)
-{
+inline void
+wsconn_set_fd(wsconn_t* con, int fd) {
+    if (con) con->h.fd = fd;
+}
+
+int32_t
+wsconn_start(wsconn_t* con) {
     if (!con || con->h.fd < 0) return -1;
     sock_set_nonblock(con->h.fd);
     sock_set_nodelay(con->h.fd);
@@ -668,8 +649,8 @@ int32_t wsconn_start(wsconn_t* con)
 
 // return = 0 success
 // return < 0, fail maybe full
-int32_t wsconn_send(wsconn_t* con, const char* buffer, int32_t buflen)
-{
+int32_t
+wsconn_send(wsconn_t* con, const char* buffer, int32_t buflen) {
     int32_t nwrite;
     int8_t head, sz, c;
     int16_t len;
@@ -723,8 +704,8 @@ int32_t wsconn_send(wsconn_t* con, const char* buffer, int32_t buflen)
     return 0;
 }
 
-int32_t wsconn_stop(wsconn_t* con)
-{
+int32_t
+wsconn_stop(wsconn_t* con) {
     if (!con || con->h.fd < 0) return -1;
     reactor_unregister(con->r, &con->h);
     sock_close(con->h.fd);
@@ -732,10 +713,8 @@ int32_t wsconn_stop(wsconn_t* con)
     return 0;
 }
 
-int32_t wsconn_established(wsconn_t* con)
-{
-    if (con) return con->status == WS_ESTABLISHED ? 0 : -1;
-    return -1;
+inline int32_t
+wsconn_established(wsconn_t* con) {
+    return con ? (con->status == WS_ESTABLISHED ? 0 : -1) : -1;
 }
-
 
