@@ -113,9 +113,9 @@ idtable_loop(idtable_t* table, idtable_loop_func func, void* arg, int start) {
     if (table) {
         start = (start < 0 ? -start : start) % table->count;
         for (int i = start; i < table->count + start; ++ i) {
-            if (table->table[i - start].id != IDTS_INVALID_ID) {
-                ret = func(table->table[i - start].ptr, arg);
-                if (ret < 0) return ret;
+            if (table->table[i % table->count].id != IDTS_INVALID_ID) {
+                ret = func(table->table[i % table->count].ptr, arg);
+                if (ret) return ret;
             }
         }
     }

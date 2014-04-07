@@ -112,7 +112,7 @@ _bus_head_create(bus_t* bt, int16_t key) {
     if (shm) {
         bt->head = (bus_head*)shm_mem(shm);
         assert(bt->head);
-        _bus_head_init(bt->head, key, bt->self);
+        _bus_head_init(bt->head, buskey, bt->self);
         return 0;
     }
     return -1;
@@ -260,10 +260,14 @@ _bus_register_pipe(bus_t* bt, bus_addr_t to, size_t sz) {
 
     // validate
     if (head->pcount >= BUS_MAX_PIPE_COUNT) goto PIPE_CREATE_FAIL;
+    int exist = -1;
     for (int i = 0; i < head->tcount; ++ i) {
-        if (head->terms[i] == to) goto PIPE_CREATE_FAIL;
+        if (head->terms[i] == to) {
+            exist = 0;
+            break;
+        }
     }
-    if (to == bt->self) goto PIPE_CREATE_FAIL;
+    if (exist != 0 || to == bt->self) goto PIPE_CREATE_FAIL;
 
     // create pipe 
     int key = head->key + (++ head->ckey);
@@ -365,7 +369,7 @@ bus_recv_all(bus_t* bt, char* buf, size_t* bufsz, bus_addr_t* from) {
     param.buf = buf;
     param.from = from;
     int ret = idtable_loop(bt->ipipes, _bus_recv_loop, &param, index ++);
-    return ret == 0 ? BUS_ERR_EMPTY : 0;
+    return ret == 0 ? BUS_ERR_EMPTY : BUS_OK;
 }
 
 typedef struct bus_dump_param_t {
