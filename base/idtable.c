@@ -107,73 +107,18 @@ idtable_release(idtable_t* table) {
     }
 }
 
-typedef struct idtable_iterator_t {
-    idtable_t* table;
-    int32_t start_idx;
-    int32_t end_idx;
-} idtable_iterator_t;
-
-// return NULL means empty, so no valid iterator
-idtable_iterator_t*
-idtable_iterator_create(idtable_t* table, int start_idx) {
+int
+idtable_loop(idtable_t* table, idtable_loop_func func, void* arg, int start) {
+    int ret = -1;
     if (table) {
-        idtable_iterator_t* it = (idtable_iterator_t*)MALLOC(sizeof(*it));
-        if (!it) return NULL;
-        it->table = table;
-        it->start_idx = start_idx % table->count;
-        it->end_idx = it->start_idx;
-        do {
-            if (it->table->table[it->start_idx].id != IDTS_INVALID_ID) {
-                break;
+        start = (start < 0 ? -start : start) % table->count;
+        for (int i = start; i < table->count + start; ++ i) {
+            if (table->table[i - start].id != IDTS_INVALID_ID) {
+                ret = func(table->table[i - start].ptr, arg);
+                if (ret < 0) return ret;
             }
-            it->start_idx = (it->start_idx + 1) % table->count;
-            // loop all, empty
-            if (it->start_idx == it->end_idx) {
-                return NULL;
-            }
-        } while (1);
-        return it;
-    }
-    return NULL;
-}
-
-int32_t
-idtable_iterator_next(idtable_iterator_t* it) {
-    do {
-        it->start_idx = (it->start_idx + 1) % it->table->count;
-        if (it->start_idx == it->end_idx) {
-            it->start_idx = -1;
-            return -1;
         }
-        if (it->table->table[it->start_idx].id != IDTS_INVALID_ID) {
-            return 0;
-        }
-    } while (1);
-    return -1;
-}
-
-void*
-idtable_iterator_value(idtable_iterator_t* it) {
-    if (it && it->start_idx >= 0) {
-        return it->table->table[it->start_idx].ptr;
     }
-    return NULL;
-}
-
-int32_t
-idtable_iterator_id(idtable_iterator_t* it) {
-    int32_t idx;
-    if (it) {
-        idx = (it->start_idx + it->table->count - 1) % it->table->count;
-        return it->table->table[idx].id;
-    }
-    return -1;
-}
-
-void
-idtable_iterator_release(idtable_iterator_t* it) {
-    if (it) {
-        FREE(it);
-    }
+    return 0;
 }
 

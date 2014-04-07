@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "logic/dirty/dirty.h"
+#include "logic/dirty.h"
 #include "util/util_time.h"
 
 #define DIRTY_LOOP 10

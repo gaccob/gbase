@@ -9,9 +9,7 @@ set(GBASE_DIR_UTIL "${CMAKE_SOURCE_DIR}/util")
 set(GBASE_DIR_TEST "${CMAKE_SOURCE_DIR}/test")
 set(GBASE_DIR_NET "${CMAKE_SOURCE_DIR}/net")
 set(GBASE_DIR_MM "${CMAKE_SOURCE_DIR}/mm")
-
-set(GBASE_DIR_LOGIC_DIRTY "${CMAKE_SOURCE_DIR}/logic/dirty")
-set(GBASE_DIR_LOGIC_BUS "${CMAKE_SOURCE_DIR}/logic/bus")
+set(GBASE_DIR_LOGIC "${CMAKE_SOURCE_DIR}/logic")
 
 set(GBASE_LIB gbase)
 
@@ -24,8 +22,7 @@ aux_source_directory(${GBASE_DIR_BASE} GBASE_SOURCE)
 aux_source_directory(${GBASE_DIR_NET} GBASE_SOURCE)
 aux_source_directory(${GBASE_DIR_UTIL} GBASE_SOURCE)
 aux_source_directory(${GBASE_DIR_MM} GBASE_SOURCE)
-aux_source_directory(${GBASE_DIR_LOGIC_DIRTY} GBASE_SOURCE)
-aux_source_directory(${GBASE_DIR_LOGIC_BUS} GBASE_SOURCE)
+aux_source_directory(${GBASE_DIR_LOGIC} GBASE_SOURCE)
 
 foreach(GBASE_SOURCE_FILE ${GBASE_SOURCE})
     CommonEcho(COLOR CYAN "===> source: ${GBASE_SOURCE_FILE}")
