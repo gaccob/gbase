@@ -31,6 +31,7 @@ int test_slab();
 int test_dirty();
 int test_thread();
 
+#define JSON_TEST_FILE "json_test_file"
 int test_json_text();
 int test_json_file();
 int test_json_create();
@@ -50,5 +51,12 @@ int test_curl();
 #define WS_IP "127.0.0.1"
 #define WS_PORT 8000
 int test_ws_server();
+
+#define BUS_KEY 0x1234
+int test_bus();
+
+#define BEV_LOOP 1000
+#define BEV_FILE "json_test_file"
+int test_bevtree();
 
 #endif

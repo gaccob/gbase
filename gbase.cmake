@@ -31,10 +31,6 @@ endforeach()
 # 编译lib
 add_library(${GBASE_LIB} ${GBASE_SOURCE})
 
-# 递归增加test
-file(GLOB GBASE_TEST_DIRS ${GBASE_DIR_TEST}/*test*)
-foreach(GBASE_TEST_DIR ${GBASE_TEST_DIRS})
-    CommonEcho(COLOR CYAN "===> directory: ${GBASE_TEST_DIR}")
-    add_subdirectory(${GBASE_TEST_DIR})
-endforeach()
+# test
+add_subdirectory(${GBASE_DIR_TEST})
 

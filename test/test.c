@@ -42,7 +42,9 @@ main(int argc, char** argv) {
             "\t<dh> [perf]\n"
             "\t<echo> <client | server>\n"
             "\t<curl>\n"
-            "\t<wssvr>\n");
+            "\t<wssvr>\n"
+            "\t<bus> <addr>\n"
+            "\t<bevtree>\n");
         return 0;
     }
 
@@ -128,6 +130,12 @@ main(int argc, char** argv) {
         test_curl();
     } else if (0 == strcmp(argv[1], "wssvr")) {
         test_ws_server();
+    } else if (0 == strcmp(argv[1], "bus")) {
+        if (argc >= 3) {
+            test_bus(atoi(argv[2]));
+        }
+    } else if (0 == strcmp(argv[1], "bevtree")) {
+        test_bevtree();
     }
     return 0;
 }

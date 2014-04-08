@@ -26,7 +26,7 @@
 #include "core/os_def.h"
 #include "util/cjson.h"
 
-#define JSON_TEST_FILE "json_test_file"
+#include "test.h"
 
 // Parse text to JSON, then render back to text, and print!
 static void

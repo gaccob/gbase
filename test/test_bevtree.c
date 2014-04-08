@@ -5,58 +5,58 @@
 #include "core/os_def.h"
 #include "logic/bevtree.h"
 
-#define TEST_LOOP 300000
+#include "test.h"
 
 typedef struct input_t {
     int32_t ratio;
 } input_t;
 
-int32_t condition_300_cb(void* input)
-{
+int32_t
+condition_300_cb(void* input) {
     input_t* i = (input_t*)(input);
     if (i->ratio < 50)
         return BVT_SUCCESS;
     return BVT_ERROR;
 }
-int32_t condition_301_cb(void* input)
-{
+int32_t
+condition_301_cb(void* input) {
     input_t* i = (input_t*)(input);
     if (i->ratio >= 50)
         return BVT_SUCCESS;
     return BVT_ERROR;
 }
 
-int32_t action_400_cb(void* input)
-{
+int32_t
+action_400_cb(void* input) {
     return BVT_SUCCESS;
 }
-int32_t action_401_cb(void* input)
-{
+int32_t
+action_401_cb(void* input) {
     return BVT_SUCCESS;
 }
-int32_t action_402_cb(void* input)
-{
+int32_t
+action_402_cb(void* input) {
     return BVT_SUCCESS;
 }
-int32_t action_403_cb(void* input)
-{
+int32_t
+action_403_cb(void* input) {
     return BVT_SUCCESS;
 }
-int32_t action_404_cb(void* input)
-{
+int32_t
+action_404_cb(void* input) {
     return BVT_SUCCESS;
 }
 
-void test_bvt(const char* cfg)
-{
+int
+test_bevtree() {
 	int32_t ret = -1;
 	int32_t loop = 0;
-	input_t i;
-    struct bvt_t* bvt = bvt_load_gliffy(cfg);
-    if (!bvt)
-    {
+	srand((uint32_t)time(NULL));
+    input_t i;
+    struct bvt_t* bvt = bvt_load_gliffy(BEV_FILE);
+    if (!bvt) {
         printf("bvt init fail\n");
-        return;
+        return -1;
     }
     bvt_debug(bvt);
 
@@ -75,7 +75,7 @@ void test_bvt(const char* cfg)
     ret = bvt_register_callback(bvt, condition_301_cb, 301);
     assert(ret == BVT_SUCCESS);
 
-    while (loop ++ < TEST_LOOP) {
+    while (loop ++ < BEV_LOOP) {
         i.ratio = rand() % 100;
         ret = bvt_run(bvt, (void*)&i);
         assert(BVT_SUCCESS == ret);
@@ -84,15 +84,6 @@ void test_bvt(const char* cfg)
     }
 
     bvt_release(bvt);
-}
-
-int main(int argc, char** argv)
-{
-    if (argc != 2) {
-        printf("usage: ./test cfg_file_path\n");
-        return -1;
-    }
-    srand((uint32_t)time(NULL));
-    test_bvt(argv[1]);
     return 0;
 }
+

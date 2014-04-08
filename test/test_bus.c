@@ -1,9 +1,10 @@
 #include <assert.h>
 #include <time.h>
-
 #include "core/os_def.h"
 #include "core/thread.h"
 #include "logic/bus.h"
+
+#include "test.h"
 
 THREAD_FUNC
 thread_input(void* arg) {
@@ -52,29 +53,17 @@ thread_bus(void* arg) {
 	THREAD_RETURN;
 }
 
-int main(int argc, char** argv)
-{
-    int16_t key = 0x1234;
-    int addr;
+int
+test_bus(bus_addr_t addr) {
     struct bus_t* bt;
     thread_t ti, tb;
-
-    if (argc != 2) {
-        printf("usage: ./bus_echo bus_addr\n");
-        return -1;
-    }
-    addr = atoi(argv[1]);
-
-    bt = bus_create(key, addr);
+    bt = bus_create(BUS_KEY, addr);
     assert(bt);
-
     THREAD_CREATE(ti, thread_input, bt);
     THREAD_CREATE(tb, thread_bus, bt);
     assert(ti && tb);
-
     THREAD_JOIN(ti);
     THREAD_JOIN(tb);
-
     bus_release(bt);
     return 0;
 }
