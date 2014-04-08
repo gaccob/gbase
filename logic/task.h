@@ -75,7 +75,7 @@ task_is_finished(struct task_t*);
 
 // if no timer, set timer and timeout as NULL to ignore
 void
-task_run(struct task_t*, struct timer_t* timer, struct timeval* timeout);
+task_run(struct task_t*, struct timerheap_t* timer, struct timeval* timeout);
 
 uint32_t
 task_id(struct task_t*);

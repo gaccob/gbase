@@ -24,7 +24,7 @@ test_timer() {
     struct timeval delay;
     struct timeval now;
     struct timeval interval;
-    struct timer_t* timer = timer_create();
+    struct timerheap_t* timer = timer_create_heap();
     ids = (int*)MALLOC(sizeof(int) * TIMER_LOOP);
     interval.tv_sec = 3;
     interval.tv_usec = 0;

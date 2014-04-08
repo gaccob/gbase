@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "core/bevtree.h"
 #include "core/os_def.h"
+#include "bevtree.h"
 
 enum BVTNodeType {
     BVT_NODE_SELECTOR,
@@ -369,5 +369,5 @@ bvt_run(bvt_t* n, void* input) {
 }
 
 // add gliffy extension
-#include "bevtree_gliffy.ext"
+#include "bevtree_gliffy.inl"
 

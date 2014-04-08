@@ -2,8 +2,8 @@
 #include <assert.h>
 #include <time.h>
 #include <stdlib.h>
-#include <core/os_def.h>
-#include <core/bevtree.h>
+#include "core/os_def.h"
+#include "logic/bevtree.h"
 
 #define TEST_LOOP 300000
 

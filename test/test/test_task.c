@@ -1,6 +1,6 @@
 #include <assert.h>
 #include "core/os_def.h"
-#include "core/task.h"
+#include "logic/task.h"
 #include "base/timer.h"
 #include "net/curl_client.h"
 #include "net/curl_pool.h"
@@ -112,7 +112,7 @@ on_fail(struct task_t* t, int timeout) {
 
 int
 test_task() {
-    struct timer_t* timer;
+    struct timerheap_t* timer;
     struct task_t* t;
     struct task_step_t* t1, *t2, *t3;
     struct timeval timeout;
@@ -121,7 +121,7 @@ test_task() {
     CURL_POOL = curl_pool_create();
     assert(CURL_POOL);
 
-    timer = timer_create();
+    timer = timer_create_heap();
     assert(timer);
 
     t = task_create(on_success, on_fail, NULL);

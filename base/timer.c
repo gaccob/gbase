@@ -12,9 +12,9 @@ typedef struct timer_node_t {
     timer_callback cb_func;
 } timer_node_t;
 
-typedef struct timer_t {
+typedef struct timerheap_t {
     struct heap_t* heap;
-} timer_t;
+} timerheap_t;
 
 int
 _timer_cmp(void* data1, void* data2) {
@@ -25,9 +25,9 @@ _timer_cmp(void* data1, void* data2) {
     return util_time_compare(&node1->expire_time, &node2->expire_time);
 }
 
-timer_t*
-timer_create() {
-    timer_t* timer = (timer_t*)MALLOC(sizeof(timer_t));
+timerheap_t*
+timer_create_heap() {
+    timerheap_t* timer = (timerheap_t*)MALLOC(sizeof(timerheap_t));
     if (!timer) goto TIMER_FAIL;
     timer->heap = heap_create(_timer_cmp);
     if (!timer->heap) goto TIMER_FAIL1;
@@ -39,7 +39,7 @@ TIMER_FAIL:
 }
 
 void
-timer_release(timer_t* timer) {
+timer_release(timerheap_t* timer) {
     timer_node_t* node;
     if (!timer) return;
     while (heap_size(timer->heap) > 0) {
@@ -55,7 +55,7 @@ timer_release(timer_t* timer) {
 //  return registered timer id
 //  if fail, return TIMER_INVALID_ID
 int
-timer_register(timer_t* timer, struct timeval* interval,
+timer_register(timerheap_t* timer, struct timeval* interval,
                struct timeval* delay, timer_callback cb, void* args) {
     timer_node_t* node;
     struct timeval now;
@@ -81,7 +81,7 @@ timer_register(timer_t* timer, struct timeval* interval,
 }
 
 void
-timer_unregister(timer_t* timer, int timer_id) {
+timer_unregister(timerheap_t* timer, int timer_id) {
     timer_node_t* node;
     if (!timer || timer_id < 0) return;
 
@@ -90,7 +90,7 @@ timer_unregister(timer_t* timer, int timer_id) {
 }
 
 void
-timer_poll(timer_t* timer, struct timeval* now) {
+timer_poll(timerheap_t* timer, struct timeval* now) {
     timer_node_t* top;
     struct timeval* next_due_time;
     int ret;

@@ -19,7 +19,7 @@ typedef struct task_t {
     task_success_func on_success;
     task_fail_func on_fail;
     void* param;
-    struct timer_t* timer;
+    struct timerheap_t* timer;
     int32_t timer_id;
 } task_t;
 
@@ -183,7 +183,7 @@ task_param(task_t* t) {
 }
 
 void
-task_run(task_t* t, struct timer_t* timer, struct timeval* timeout) {
+task_run(task_t* t, struct timerheap_t* timer, struct timeval* timeout) {
     if (!t || !t->head) return;
     t->current = t->head;
     if (timer && timeout) {
