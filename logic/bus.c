@@ -169,7 +169,7 @@ _bus_create_attach(bus_t* bt, int16_t key) {
             break;
         }
     }
-    if (registered) {
+    if (registered != 0) {
         if (bt->head->tcount >= BUS_MAX_TERMINAL_COUNT) {
             return -1;
         } else {

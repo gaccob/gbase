@@ -33,7 +33,8 @@ enum {
 };
 
 // key: 16 bits, reserved 16 bits for channels
-struct bus_t* bus_create(int16_t key, bus_addr_t ba);
+// distinct address is ensured by user
+struct bus_t* bus_create(int16_t key, bus_addr_t addr);
 void bus_release(struct bus_t* bt);
 
 // check bus version and do update
