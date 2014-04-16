@@ -33,7 +33,8 @@ _dirty_init_table(const char* cfg) {
     dirty_ctx_t* ctx;
     dirty_t* dirty;
     FILE* fp;
-    int i, len;
+    int len;
+    size_t i;
 
     if (!cfg) return NULL;
 

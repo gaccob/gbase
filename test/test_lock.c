@@ -31,12 +31,13 @@ lock_func(void* arg) {
 
 int
 test_lock() {
-    threadlock = thread_lock_alloc();
-    assert(threadlock);
-
     thread_t* tid;
     int i, ret, lasttime;
     struct timeval from;
+
+    threadlock = thread_lock_alloc();
+    assert(threadlock);
+
     tid = (thread_t*)MALLOC(sizeof(thread_t) * lock_thread_count);
     util_gettimeofday(&from,NULL);
 

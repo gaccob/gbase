@@ -109,10 +109,10 @@ idtable_release(idtable_t* table) {
 
 int
 idtable_loop(idtable_t* table, idtable_loop_func func, void* arg, int start) {
-    int ret = -1;
+    int i, ret = -1;
     if (table) {
         start = (start < 0 ? -start : start) % table->count;
-        for (int i = start; i < table->count + start; ++ i) {
+        for (i = start; i < table->count + start; ++ i) {
             if (table->table[i % table->count].id != IDTS_INVALID_ID) {
                 ret = func(table->table[i % table->count].ptr, arg);
                 if (ret) return ret;

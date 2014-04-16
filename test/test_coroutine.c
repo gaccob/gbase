@@ -1,3 +1,6 @@
+#include <assert.h>
+#include "core/os_def.h"
+
 #ifdef OS_LINUX
 #include "core/coroutine.h"
 
@@ -22,7 +25,7 @@ int32_t
 test_coroutine() {
     int i, j, m, n;
     int c1, c2, c3, c4;
-    struct crt_t* c = crt_init(CRT_TEST_STACK_SIZE);
+    struct crt_t* c = crt_create(CRT_TEST_STACK_SIZE);
     assert(c);
 
     i = 10;

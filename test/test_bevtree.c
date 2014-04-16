@@ -49,11 +49,13 @@ action_404_cb(void* input) {
 
 int
 test_bevtree() {
-	int32_t ret = -1;
-	int32_t loop = 0;
-	srand((uint32_t)time(NULL));
+    int32_t ret = -1;
+    int32_t loop = 0;
     input_t i;
-    struct bvt_t* bvt = bvt_load_gliffy(BEV_FILE);
+    struct bvt_t* bvt = NULL;
+
+    srand((uint32_t)time(NULL));
+    bvt = bvt_load_gliffy(BEV_FILE);
     if (!bvt) {
         printf("bvt init fail\n");
         return -1;

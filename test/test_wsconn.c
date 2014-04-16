@@ -21,6 +21,7 @@ typedef struct WSCtx {
 
 static int
 _wscon_read(int fd, const char* buffer, int buflen) {
+    int i = 0;
     struct WSCtx* ctx = idtable_get(con_table, fd);
     if(!ctx) return -1;
     printf("fd[%d] read %d bytes\n", fd, buflen);
@@ -28,7 +29,6 @@ _wscon_read(int fd, const char* buffer, int buflen) {
         printf("send back fail\n");
         return -1;
     }
-    int32_t i = 0;
     while (i < buflen) {
         printf("%c", buffer[i++]);
     }

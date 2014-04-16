@@ -48,7 +48,7 @@ static void
 _bus_pipe_head_assign(bus_pipe_head* head, int32_t key, bus_addr_t from,
                       bus_addr_t to, size_t sz) {
     if (head) {
-        head->key = key; 
+        head->key = key;
         head->size = sz;
         head->from = from;
         head->to = to;
@@ -57,12 +57,15 @@ _bus_pipe_head_assign(bus_pipe_head* head, int32_t key, bus_addr_t from,
 
 static bus_pipe_t*
 _bus_pipe_create(bus_pipe_head* head, int32_t create) {
+    bus_pipe_t* bp;
+    struct shm_t* shm;
+
     if (!head) return NULL;
-    bus_pipe_t* bp = (bus_pipe_t*)MALLOC(sizeof(*bp));
+    bp = (bus_pipe_t*)MALLOC(sizeof(*bp));
     assert(bp);
     bp->head = head;
     // extend ring-buffer head
-    struct shm_t* shm = shm_create(head->key, head->size + rbuffer_head_size(), create);
+    shm = shm_create(head->key, head->size + rbuffer_head_size(), create);
     if (!shm) {
         FREE(bp);
         return NULL;
@@ -131,19 +134,22 @@ _bus_update_terminals(bus_t* bt) {
 
 static void
 _bus_update_pipes(bus_t* bt) {
+    int i, ret;
+    bus_pipe_head* phead;
+    bus_pipe_t* bp;
     assert(bt && bt->head);
     bt->pver = bt->head->pver;
-    for (int i = 0; i < bt->head->pcount; ++ i) {
-        bus_pipe_head* phead = &bt->head->pipes[i]; 
+    for (i = 0; i < bt->head->pcount; ++ i) {
+        phead = &bt->head->pipes[i];
         if (phead->from == bt->self && !idtable_get(bt->opipes, phead->to)) {
-            bus_pipe_t* bp = _bus_pipe_create(phead, 1);
+            bp = _bus_pipe_create(phead, 1);
             assert(bp);
-            int ret = idtable_add(bt->opipes, phead->to, bp);
+            ret = idtable_add(bt->opipes, phead->to, bp);
             assert(0 == ret);
         } else if (phead->to == bt->self && !idtable_get(bt->ipipes, phead->from)) {
-            bus_pipe_t* bp = _bus_pipe_create(phead, 1);
+            bp = _bus_pipe_create(phead, 1);
             assert(bp);
-            int ret = idtable_add(bt->ipipes, phead->from, bp);
+            ret = idtable_add(bt->ipipes, phead->from, bp);
             assert(0 == ret);
         }
     }
@@ -238,7 +244,7 @@ bus_poll(bus_t* bt) {
         _bus_update_terminals(bt);
         lock_unlock(bt->lock);
     }
-    // udpate pipe 
+    // udpate pipe
     pver = bt->head->pver;
     if (pver != bt->pver) {
         lock_lock(bt->lock);
@@ -247,21 +253,25 @@ bus_poll(bus_t* bt) {
     }
 }
 
-static bus_pipe_t* 
+static bus_pipe_t*
 _bus_register_pipe(bus_t* bt, bus_addr_t to, size_t sz) {
+    bus_head* head;
+    int i, ret, key, exist = -1;
+    bus_pipe_head* bph;
+    bus_pipe_t* bp;
+
     if (!bt) return NULL;
     // make sure same version
     bus_poll(bt);
 
     // add lock
-    bus_head* head = bt->head;
+    head = bt->head;
     lock_lock(bt->lock);
     if (bt->pver != head->pver) goto PIPE_CREATE_FAIL;
 
     // validate
     if (head->pcount >= BUS_MAX_PIPE_COUNT) goto PIPE_CREATE_FAIL;
-    int exist = -1;
-    for (int i = 0; i < head->tcount; ++ i) {
+    for (i = 0; i < head->tcount; ++ i) {
         if (head->terms[i] == to) {
             exist = 0;
             break;
@@ -269,13 +279,13 @@ _bus_register_pipe(bus_t* bt, bus_addr_t to, size_t sz) {
     }
     if (exist != 0 || to == bt->self) goto PIPE_CREATE_FAIL;
 
-    // create pipe 
-    int key = head->key + (++ head->ckey);
-    bus_pipe_head* bph = &head->pipes[head->pcount];
+    // create pipe
+    key = head->key + (++ head->ckey);
+    bph = &head->pipes[head->pcount];
     _bus_pipe_head_assign(bph, key, bt->self, to, sz);
-    bus_pipe_t* bp = _bus_pipe_create(bph, 0);
+    bp = _bus_pipe_create(bph, 0);
     if (!bp) goto PIPE_CREATE_FAIL;
-    int ret = idtable_add(bt->opipes, bph->to, bp);
+    ret = idtable_add(bt->opipes, bph->to, bp);
     assert(0 == ret);
     ++ bt->head->pcount;
 
@@ -361,14 +371,15 @@ _bus_recv_loop(void* data, void* arg) {
 int32_t
 bus_recv_all(bus_t* bt, char* buf, size_t* bufsz, bus_addr_t* from) {
     static int index = 0;
+    bus_loop_param_t param;
+    int ret;
     if (!bt || !buf || !bufsz || !from) {
         return BUS_ERR_FAIL;
     }
-    bus_loop_param_t param;
     param.size = bufsz;
     param.buf = buf;
     param.from = from;
-    int ret = idtable_loop(bt->ipipes, _bus_recv_loop, &param, index ++);
+    ret = idtable_loop(bt->ipipes, _bus_recv_loop, &param, index ++);
     return ret == 0 ? BUS_ERR_EMPTY : BUS_OK;
 }
 
@@ -392,15 +403,17 @@ _bus_dump_loop(void* data, void* arg) {
 
 void
 bus_dump(bus_t* bt, char* debug, size_t debugsz) {
+    int i;
+    size_t len;
+    bus_dump_param_t param;
     assert(bt);
     debug[0] = 0;
     // terminals
-    for (int i = 0; i < bt->tcount; ++ i) {
-        size_t len = strnlen(debug, debugsz);
+    for (i = 0; i < bt->tcount; ++ i) {
+        len = strnlen(debug, debugsz);
         snprintf(debug + len, debugsz - len, "terminal: %d\n", bt->terms[i]);
     }
-    // pipes 
-    bus_dump_param_t param;
+    // pipes
     param.debug = debug;
     param.sz = debugsz;
     idtable_loop(bt->ipipes, _bus_dump_loop, &param, 0);
@@ -409,15 +422,17 @@ bus_dump(bus_t* bt, char* debug, size_t debugsz) {
 
 uint32_t
 bus_send_bytes(bus_t* bt, bus_addr_t to) {
+    bus_pipe_t* bp;
     assert(bt);
-    bus_pipe_t* bp = (bus_pipe_t*)idtable_get(bt->opipes, to);
+    bp = (bus_pipe_t*)idtable_get(bt->opipes, to);
     return bp ? rbuffer_write_bytes(_bus_pipe_rbuffer(bp)) : 0;
 }
 
 uint32_t
 bus_recv_bytes(bus_t* bt, bus_addr_t from) {
+    bus_pipe_t* bp;
     assert(bt);
-    bus_pipe_t* bp = (bus_pipe_t*)idtable_get(bt->ipipes, from);
+    bp = (bus_pipe_t*)idtable_get(bt->ipipes, from);
     return bp ? rbuffer_read_bytes(_bus_pipe_rbuffer(bp)) : 0;
 }
 

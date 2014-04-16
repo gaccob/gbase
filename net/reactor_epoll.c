@@ -16,7 +16,7 @@ typedef struct epoll_t {
 static const char* EPOLL_NAME = "epoll";
 
 int
-epoll_create(reactor_t* reactor) {
+epoll_init(reactor_t* reactor) {
     if (!reactor || reactor->data) return -1;
     epoll_t* epoll = (epoll_t*)MALLOC(sizeof(*epoll));
     if (!epoll) goto EPOLL_FAIL;

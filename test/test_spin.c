@@ -31,12 +31,13 @@ spin_func(void* arg) {
 
 int
 test_spin() {
-    spinlock = spin_create();
-    assert(spinlock);
-
     thread_t* tid;
     int i, ret, lasttime;
     struct timeval from;
+
+    spinlock = spin_create();
+    assert(spinlock);
+
     tid = (thread_t*)MALLOC(sizeof(thread_t) * spin_thread_count);
     util_gettimeofday(&from,NULL);
 
