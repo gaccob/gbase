@@ -2,6 +2,7 @@
 #define TEST_H_
 
 #include "util/util_time.h"
+#include "logic/bus.h"
 
 int get_process_time(struct timeval* from);
 
@@ -53,7 +54,7 @@ int test_curl();
 int test_ws_server();
 
 #define BUS_KEY 0x1234
-int test_bus();
+int test_bus(bus_addr_t);
 
 #define BEV_LOOP 1000
 #define BEV_FILE "json_test_file"

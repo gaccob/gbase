@@ -16,6 +16,10 @@ set(GBASE_LIB gbase)
 # 链接选项
 set (GBASE_LIB_LINK ${COMMON_LINK_LIB})
 
+# 告警设置(for default C debug)
+set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wno-error=unused-but-set-variable")
+message(STATUS "cmake C debug option: ${CMAKE_C_FLAGS_DEBUG}")
+
 # 编译lib的源文件
 aux_source_directory(${GBASE_DIR_CORE} GBASE_SOURCE)
 aux_source_directory(${GBASE_DIR_BASE} GBASE_SOURCE)

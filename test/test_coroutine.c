@@ -43,7 +43,7 @@ test_coroutine() {
     c3 = crt_new(c, crt_func, &m);
     assert(c3 >= 0);
     n = -100;
-    c4 = crt_new(c, crt_func, &m);
+    c4 = crt_new(c, crt_func, &n);
     assert(c4 >= 0);
     while (crt_status(c, c3) && crt_status(c, c4)) {
         crt_resume(c, c3);
