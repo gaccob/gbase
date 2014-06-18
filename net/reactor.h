@@ -27,6 +27,10 @@ void reactor_release(struct reactor_t* reactor);
 int reactor_register(struct reactor_t* reactor, handler_t* h, int events);
 int reactor_unregister(struct reactor_t* reactor, handler_t* h);
 int reactor_modify(struct reactor_t* reactor, handler_t* h, int events);
+
+//  return = 0, success & process
+//  return < 0, fail
+//  return > 0, noting to do
 int reactor_dispatch(struct reactor_t* reactor, int ms);
 
 #ifdef __cplusplus
