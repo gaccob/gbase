@@ -14,9 +14,10 @@ static int
 _acceptor_read(struct handler_t* h) {
     acceptor_t* a = (acceptor_t*)h;
     struct sockaddr addr;
-    int new_fd = sock_accept(a->h.fd, &addr);
-    if (new_fd < 0) return -1;
-    if (a->read_cb) return a->read_cb(new_fd);
+    sock_t nsock = sock_accept(a->h.fd, &addr);
+    if (nsock == INVALID_SOCK)
+        return -1;
+    if (a->read_cb) return a->read_cb(nsock);
     return 0;
 }
 

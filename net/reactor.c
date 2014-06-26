@@ -1,5 +1,5 @@
 #include "net/reactor.h"
-#include "net/reactor_inner.h"
+#include "net/reactor_inner.inl"
 
 reactor_t*
 reactor_create() {

@@ -11,3 +11,4 @@ test/*/server
 gbase.a
 *.swp
 .*
+release-*

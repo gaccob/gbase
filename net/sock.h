@@ -53,9 +53,9 @@ extern "C" {
 sock_t sock_tcp();
 sock_t sock_udp();
 
-int sock_connect(sock_t sock, const char* ip_str, uint16_t port);
+sock_t sock_connect(sock_t sock, const char* ip_str, uint16_t port);
 int sock_listen(sock_t sock, struct sockaddr* addr);
-int sock_accept(sock_t sock, struct sockaddr* addr);
+sock_t sock_accept(sock_t sock, struct sockaddr* addr);
 int sock_close(sock_t sock);
 
 int sock_read(sock_t sock, char* buffer, size_t buffer_len);

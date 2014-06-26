@@ -9,8 +9,8 @@ extern "C" {
 #include "net/sock.h"
 #include "net/reactor.h"
 
-typedef int (*acceptor_read_func)(int fd);
-typedef void (*acceptor_close_func)(int fd);
+typedef int (*acceptor_read_func)(sock_t sock);
+typedef void (*acceptor_close_func)(sock_t sock);
 
 struct acceptor_t;
 struct acceptor_t* acceptor_create(struct reactor_t* r,

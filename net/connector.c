@@ -120,7 +120,7 @@ connector_fd(connector_t* con) {
     return con ? con->h.fd : -1;
 }
 
-inline void connector_set_fd(connector_t* con, int fd) {
+inline void connector_set_fd(connector_t* con, sock_t fd) {
     if (con) con->h.fd = fd;
 }
 

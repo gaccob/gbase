@@ -1,5 +1,5 @@
-#ifndef REACTOR_INNER_H_
-#define REACTOR_INNER_H_
+#ifndef REACTOR_INNER_INL_
+#define REACTOR_INNER_INL_
 
 #ifdef __cpluplus
 extern "C" {
@@ -37,5 +37,5 @@ extern reactor_impl_t reactor_select;
 }
 #endif
 
-#endif // REACTOR_INNER_H_
+#endif
 

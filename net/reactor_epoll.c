@@ -1,6 +1,6 @@
 #include "core/os_def.h"
 #include "net/reactor.h"
-#include "net/reactor_inner.h"
+#include "net/reactor_inner.inl"
 #include "base/slist.h"
 
 #if defined(OS_LINUX)

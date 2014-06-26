@@ -2,9 +2,6 @@
 #include <string.h>
 #include "sock.h"
 
-//  create tcp socket
-//  return >= 0, success
-//  return < 0, fail
 sock_t sock_tcp()
 {
 #if defined(OS_WIN)
@@ -12,20 +9,15 @@ sock_t sock_tcp()
 #elif defined(OS_LINUX) || defined(OS_MAC)
     return socket(AF_INET, SOCK_STREAM, 0);
 #endif
-    return -1;
+    return INVALID_SOCK;
 }
 
-//  create udp socket
-//  return >= 0, success
-//  return < 0, fail
 sock_t sock_udp()
 {
     return socket(AF_INET, SOCK_DGRAM, 0);
 }
 
-//  connect, timeout default = 1 second
-//  return =0, success
-//  return <0, fail
+//  timeout default 1 second
 int sock_connect(sock_t sock, const char* ip_str, uint16_t port)
 {
     struct sockaddr_in addr;
@@ -34,10 +26,9 @@ int sock_connect(sock_t sock, const char* ip_str, uint16_t port)
     fd_set read_events, write_events, exec_events;
     struct timeval tv;
 
-    if(sock < 0) return -1;
-    if(sock_set_nonblock(sock) < 0) return -1;
+    if(sock < 0 || sock_set_nonblock(sock) < 0)
+        return -1;
 
-    // set buffer size, before connect
     if(sock_set_sndbuf(sock, SOCK_SNDBUF_SIZE) < 0
         || sock_set_rcvbuf(sock, SOCK_RCVBUF_SIZE) < 0)
         return -1;
@@ -49,11 +40,10 @@ int sock_connect(sock_t sock, const char* ip_str, uint16_t port)
 
     // try connect
     ret = connect(sock, (const struct sockaddr*)&addr, addr_len);
-    if(ret < 0)
-    {
+    if(ret < 0) {
         // connect fail
         if(ERR_EINPROGRESS != ERRNO && ERR_EWOULDBLOCK != ERRNO)
-            return ret;
+            return ERRNO;
 
         // try select
         FD_ZERO(&read_events);
@@ -71,9 +61,9 @@ int sock_connect(sock_t sock, const char* ip_str, uint16_t port)
         // make sure socket no error
         len = sizeof(err);
         getsockopt(sock, SOL_SOCKET, SO_ERROR, (char*)&err, &len);
-        if(0 != err) return -1;
+        if(0 != err)
+            return err;
     }
-
     return 0;
 }
 
@@ -93,7 +83,7 @@ int sock_listen(sock_t sock, struct sockaddr* addr)
     return listen(sock, 1024);
 }
 
-int sock_accept(sock_t sock, struct sockaddr* addr)
+sock_t sock_accept(sock_t sock, struct sockaddr* addr)
 {
     socklen_t addr_len = sizeof(struct sockaddr);
     return accept(sock, addr, &addr_len);
