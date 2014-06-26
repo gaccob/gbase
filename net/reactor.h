@@ -10,6 +10,7 @@ extern "C" {
 
 struct reactor_impl_t;
 struct reactor_t;
+typedef struct reactor_t reactor_t;
 
 typedef struct handler_t {
     sock_t fd;

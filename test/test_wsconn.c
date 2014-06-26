@@ -14,15 +14,12 @@ struct idtable_t* con_table;
 
 typedef struct WSCtx {
     struct wsconn_t* con;
-    struct connbuffer_t* read_buf;
-    struct connbuffer_t* real_read_buf;
-    struct connbuffer_t* write_buf;
 } WSCtx;
 
 static int
-_wscon_read(int fd, const char* buffer, int buflen) {
+_wscon_read(int fd, void* arg, const char* buffer, int buflen) {
     int i = 0;
-    struct WSCtx* ctx = idtable_get(con_table, fd);
+    WSCtx* ctx = idtable_get(con_table, fd);
     if(!ctx) return -1;
     printf("fd[%d] read %d bytes\n", fd, buflen);
     if (wsconn_send(ctx->con, buffer, buflen) < 0) {
@@ -37,35 +34,30 @@ _wscon_read(int fd, const char* buffer, int buflen) {
 }
 
 static void
-_wscon_build(int fd) {
+_wscon_build(int fd, void* arg) {
     printf("fd[%d] complete handshake\n", fd);
 }
 
 static void
-_wscon_close(int fd) {
-    struct WSCtx* ctx = idtable_get(con_table, fd);
+_wscon_close(int fd, void* arg) {
+    WSCtx* ctx = idtable_get(con_table, fd);
     assert(ctx);
     printf("fd[%d] close \n", fd);
-    connbuffer_release(ctx->read_buf);
-    connbuffer_release(ctx->write_buf);
-    connbuffer_release(ctx->real_read_buf);
     wsconn_release(ctx->con);
     FREE(ctx);
     idtable_remove(con_table, fd);
 }
 
 static int
-_accept_read(int fd) {
+_accept_read(sock_t fd, void* arg) {
     int res;
     struct WSCtx* ctx = (struct WSCtx*)MALLOC(sizeof(struct WSCtx));
     assert(ctx);
-    ctx->read_buf = connbuffer_create(TEST_BUFF_SIZE, MALLOC, FREE);
-    ctx->real_read_buf = connbuffer_create(TEST_BUFF_SIZE, MALLOC, FREE);
-    ctx->write_buf = connbuffer_create(TEST_BUFF_SIZE, MALLOC, FREE);
-    assert(ctx->read_buf && ctx->write_buf && ctx->real_read_buf);
-    ctx->con = wsconn_create(r, _wscon_build, _wscon_read, _wscon_close, ctx->read_buf,
-                             ctx->real_read_buf, ctx->write_buf);
+    ctx->con = wsconn_create(r);
     assert(ctx->con);
+    wsconn_set_build_func(ctx->con, _wscon_build, NULL);
+    wsconn_set_read_func(ctx->con, _wscon_read, NULL);
+    wsconn_set_close_func(ctx->con, _wscon_close, NULL);
     wsconn_set_fd(ctx->con, fd);
     res = idtable_add(con_table, fd, ctx);
     assert(0 == res);
@@ -86,10 +78,14 @@ test_ws_server() {
 
     r = reactor_create();
     assert(r);
-    acc = acceptor_create(r, _accept_read, NULL);
+
+    acc = acceptor_create(r);
     assert(acc);
+    acceptor_set_read_func(acc, _accept_read, NULL);
+
     res = sock_addr_aton(WS_IP, WS_PORT, &addr);
     assert(res == 0);
+
     res = acceptor_start(acc, (struct sockaddr*)&addr);
     assert(res == 0);
 
@@ -104,9 +100,6 @@ test_ws_server() {
     for (i = 0; i < 1024; i++) {
         ctx = idtable_get(con_table, i);
         if (ctx) {
-            connbuffer_release(ctx->read_buf);
-            connbuffer_release(ctx->write_buf);
-            connbuffer_release(ctx->real_read_buf);
             wsconn_release(ctx->con);
             FREE(ctx);
         }

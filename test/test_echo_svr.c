@@ -13,22 +13,19 @@ struct idtable_t* con_table;
 
 typedef struct ConCtx {
     struct connector_t* con;
-    struct connbuffer_t* read_buf;
-    struct connbuffer_t* write_buf;
-}ConCtx;
+} ConCtx;
 
 static int
-_conn_read(int fd, const char* buffer, int buflen) {
+_conn_read(sock_t fd, void* arg, const char* buffer, int buflen) {
     int res;
     struct ConCtx* ctx = idtable_get(con_table, fd);
-    if (!ctx) {
+    if (!ctx)
         return -1;
-    }
 
     printf("fd[%d] read %d bytes\n", fd, buflen);
-    if (buffer[buflen - 1] != ECHO_CMD_WORD) {
+    if (buffer[buflen - 1] != ECHO_CMD_WORD)
         return 0;
-    }
+
     if (buflen == strlen(ECHO_CMD_STOP)
         && 0 == strncmp(buffer, ECHO_CMD_STOP, buflen)) {
         stop_flag = 1;
@@ -45,27 +42,24 @@ _conn_read(int fd, const char* buffer, int buflen) {
 }
 
 static void
-_conn_close(int fd) {
+_conn_close(sock_t fd, void* arg) {
     struct ConCtx* ctx = idtable_get(con_table, fd);
     assert(ctx);
     printf("fd[%d] close \n", fd);
-    connbuffer_release(ctx->read_buf);
-    connbuffer_release(ctx->write_buf);
     connector_release(ctx->con);
     FREE(ctx);
     idtable_remove(con_table, fd);
 }
 
 static int
-_accept_read(int fd) {
+_accept_read(sock_t fd, void* arg) {
     int res;
     struct ConCtx* ctx = (struct ConCtx*)MALLOC(sizeof(struct ConCtx));
     assert(ctx);
-    ctx->read_buf = connbuffer_create(4096, MALLOC, FREE);
-    ctx->write_buf = connbuffer_create(4096, MALLOC, FREE);
-    assert(ctx->read_buf && ctx->write_buf);
-    ctx->con = connector_create(r, _conn_read, _conn_close, ctx->read_buf, ctx->write_buf);
+    ctx->con = connector_create(r);
     assert(ctx->con);
+    connector_set_read_func(ctx->con, _conn_read, NULL);
+    connector_set_close_func(ctx->con, _conn_close, NULL);
     connector_set_fd(ctx->con, fd);
     res = idtable_add(con_table, fd, ctx);
     assert(0 == res);
@@ -76,8 +70,7 @@ _accept_read(int fd) {
 }
 
 int
-test_echo_svr()
-{
+test_echo_svr() {
     int res, i;
     struct acceptor_t* acc;
     struct sockaddr_in addr;
@@ -88,8 +81,9 @@ test_echo_svr()
     r = reactor_create();
     assert(r);
 
-    acc = acceptor_create(r, _accept_read, NULL);
+    acc = acceptor_create(r);
     assert(acc);
+    acceptor_set_read_func(acc, _accept_read, NULL);
 
     res = sock_addr_aton(ECHO_IP, ECHO_PORT, &addr);
     assert(0 == res);
@@ -111,8 +105,6 @@ test_echo_svr()
     for (i = 0; i < 1024; i++) {
         struct ConCtx* ctx = idtable_get(con_table, i);
         if (ctx) {
-            connbuffer_release(ctx->read_buf);
-            connbuffer_release(ctx->write_buf);
             connector_release(ctx->con);
             FREE(ctx);
         }
