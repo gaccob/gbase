@@ -16,11 +16,11 @@ struct acceptor_t;
 typedef struct acceptor_t acceptor_t;
 
 acceptor_t* acceptor_create(reactor_t* r);
+int acceptor_release(acceptor_t* a);
 
 void acceptor_set_read_func(acceptor_t*, acceptor_read_func, void*);
 void acceptor_set_close_func(acceptor_t*, acceptor_close_func, void*);
 
-int acceptor_release(acceptor_t* a);
 int acceptor_start(acceptor_t* a, struct sockaddr* laddr);
 int acceptor_stop(acceptor_t* a);
 

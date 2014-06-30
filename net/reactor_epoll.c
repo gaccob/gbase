@@ -17,17 +17,27 @@ static const char* EPOLL_NAME = "epoll";
 
 int
 epoll_init(reactor_t* reactor) {
-    if (!reactor || reactor->data) return -1;
+    if (!reactor || reactor->data)
+        return -1;
+
     epoll_t* epoll = (epoll_t*)MALLOC(sizeof(*epoll));
-    if (!epoll) goto EPOLL_FAIL;
+    if (!epoll)
+        goto EPOLL_FAIL;
+
     epoll->epoll_fd = epoll_create(EPOLL_SIZE);
-    if (epoll->epoll_fd < 0) goto EPOLL_FAIL1;
+    if (epoll->epoll_fd < 0)
+        goto EPOLL_FAIL1;
+
     memset(epoll->events, 0, sizeof(epoll->events));
+
     epoll->expired = slist_create();
-    if (!epoll->expired) goto EPOLL_FAIL2;
+    if (!epoll->expired)
+        goto EPOLL_FAIL2;
+
     reactor->data = (void*)epoll;
     reactor->name = EPOLL_NAME;
     return 0;
+
 EPOLL_FAIL2:
     close(epoll->epoll_fd);
 EPOLL_FAIL1:
@@ -39,18 +49,18 @@ EPOLL_FAIL:
 static int
 _epoll_set(epoll_t* epoll, handler_t* h, int option, int events) {
     struct epoll_event ep_event;
-    if (!epoll || epoll->epoll_fd < 0 || !h) return -1;
-    if (EPOLL_CTL_DEL == option) {
+    if (!epoll || epoll->epoll_fd < 0 || !h)
+        return -1;
+
+    if (EPOLL_CTL_DEL == option)
         return epoll_ctl(epoll->epoll_fd, EPOLL_CTL_DEL, h->fd, 0);
-    }
+
     ep_event.events = 0;
     ep_event.data.ptr = h;
-    if (EVENT_IN & events) {
+    if (EVENT_IN & events)
         ep_event.events |= (EPOLLIN | EPOLLERR | EPOLLHUP);
-    }
-    if (EVENT_OUT & events) {
+    if (EVENT_OUT & events)
         ep_event.events |= EPOLLOUT;
-    }
     return epoll_ctl(epoll->epoll_fd, option, h->fd, &ep_event);
 }
 

@@ -21,6 +21,7 @@
 #define CRT_DEFAULT_SIZE 16
 
 struct crt_unit_t;
+
 typedef struct crt_t {
     ucontext_t main;
     int stack_size;
@@ -241,3 +242,4 @@ crt_current_stack_top(crt_t* c) {
 }
 
 #endif
+

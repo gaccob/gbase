@@ -23,16 +23,16 @@ typedef struct handler_t {
 #define EVENT_IN 1
 #define EVENT_OUT 2
 
-struct reactor_t* reactor_create();
-void reactor_release(struct reactor_t* reactor);
-int reactor_register(struct reactor_t* reactor, handler_t* h, int events);
-int reactor_unregister(struct reactor_t* reactor, handler_t* h);
-int reactor_modify(struct reactor_t* reactor, handler_t* h, int events);
+reactor_t* reactor_create();
+void reactor_release(reactor_t* reactor);
+int reactor_register(reactor_t* reactor, handler_t* h, int events);
+int reactor_unregister(reactor_t* reactor, handler_t* h);
+int reactor_modify(reactor_t* reactor, handler_t* h, int events);
 
 //  return = 0, success & process
 //  return < 0, fail
 //  return > 0, noting to do
-int reactor_dispatch(struct reactor_t* reactor, int ms);
+int reactor_dispatch(reactor_t* reactor, int ms);
 
 #ifdef __cplusplus
 }

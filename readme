@@ -1,15 +1,17 @@
+DEPENDENCE:
+
+    1. curl-7.30.0
+    2. openssl-1.0.1e
 
 HOW TO BUILD
 
-1.  MAKE SURE YOU HAVE INSTALLED PACKAGES IN 3RD BEFORE START BUILDING!
-
-2.  for mac and linux:
+    for mac and linux:
         1. cd build
         2. cmake ..
         3. make
         4. make install
 
-3.  for windows
+    for windows
         1. cmd
         2. cd build
         3. cmake ..
