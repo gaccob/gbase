@@ -198,7 +198,7 @@ crt_resume(crt_t* c, int id) {
 
         case CRT_SUSPEND:
             c->current = id;
-            cu->status = CRT_SUSPEND;
+            cu->status = CRT_RUNNING;
             swapcontext(&c->main, &cu->ctx);
             break;
 
