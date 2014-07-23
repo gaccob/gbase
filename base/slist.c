@@ -1,13 +1,13 @@
 #include "slist.h"
 
-typedef struct slist_node_t {
-    struct slist_node_t* next;
+typedef struct node_t {
+    struct node_t* next;
     void* data;
-} slist_node_t;
+} node_t;
 
 typedef struct slist_t {
     int size;
-    slist_node_t* node;
+    node_t* node;
 } slist_t;
 
 slist_t*
@@ -30,10 +30,9 @@ slist_release(slist_t* sl) {
 // more effective than push_back as it's single list
 int
 slist_push_front(slist_t* sl, void* data) {
-    slist_node_t* new_node;
-    if (!sl || !data) return -1;
-
-    new_node = (slist_node_t*)MALLOC(sizeof(*new_node));
+    if (!sl || !data)
+        return -1;
+    node_t* new_node = (node_t*)MALLOC(sizeof(*new_node));
     if (!new_node) return -1;
     new_node->data = data;
     new_node->next = sl->node;
@@ -44,11 +43,9 @@ slist_push_front(slist_t* sl, void* data) {
 
 int
 slist_push_back(slist_t* sl, void* data) {
-    slist_node_t* new_node;
-    slist_node_t* node;
-    if (!sl || !data) return -1;
-
-    new_node = (slist_node_t*)MALLOC(sizeof(*new_node));
+    if (!sl || !data)
+        return -1;
+    node_t* new_node = (node_t*)MALLOC(sizeof(*new_node));
     if (!new_node) return -1;
     new_node->data = data;
     new_node->next = 0;
@@ -57,7 +54,7 @@ slist_push_back(slist_t* sl, void* data) {
     if (!sl->node) {
         sl->node = new_node;
     } else {
-        node = sl->node;
+        node_t* node = sl->node;
         while (node->next) {
             node = node->next;
         }
@@ -69,13 +66,11 @@ slist_push_back(slist_t* sl, void* data) {
 // more effective than pop_back, as it's single list
 void*
 slist_pop_front(slist_t* sl) {
-    slist_node_t* n;
-    void* data;
     if (!sl || !sl->node) {
         return NULL;
     }
-    n = sl->node;
-    data = n->data;
+    node_t* n = sl->node;
+    void* data = n->data;
     sl->node = n->next;
     FREE(n);
     sl->size --;
@@ -84,14 +79,11 @@ slist_pop_front(slist_t* sl) {
 
 void*
 slist_pop_back(slist_t* sl) {
-    slist_node_t* prev;
-    slist_node_t* n;
-    void* data;
     if (!sl || !sl->node) {
         return NULL;
     }
-    n = sl->node;
-    prev = NULL;
+    node_t* n = sl->node;
+    node_t* prev = NULL;
     while (n->next) {
         prev = n;
         n = n->next;
@@ -101,7 +93,7 @@ slist_pop_back(slist_t* sl) {
     } else {
         prev->next = NULL;
     }
-    data = n->data;
+    void* data = n->data;
     FREE(n);
     sl->size --;
     return data;
@@ -109,11 +101,10 @@ slist_pop_back(slist_t* sl) {
 
 int
 slist_remove(slist_t* sl, void* data) {
-    slist_node_t *node, *tmp;
-    if (!sl || !data) return -1;
-
-    node = sl->node;
-    tmp = 0;
+    if (!sl || !data)
+        return -1;
+    node_t* node = sl->node;
+    node_t* tmp = 0;
     while (node && node->data != data) {
         tmp = node;
         node = node->next;
@@ -132,9 +123,9 @@ slist_remove(slist_t* sl, void* data) {
 
 int
 slist_find(slist_t* sl, void* data) {
-    slist_node_t* node;
-    if (!sl || !data) return -1;
-    node = sl->node;
+    if (!sl || !data)
+        return -1;
+    node_t* node = sl->node;
     while (node) {
         if (node->data == data) {
             return 0;
@@ -146,11 +137,11 @@ slist_find(slist_t* sl, void* data) {
 
 int
 slist_clean(slist_t* sl) {
-    slist_node_t *node, *tmp;
-    if (!sl) return -1;
-    node = sl->node;
+    if (!sl)
+        return -1;
+    node_t* node = sl->node;
     while (node) {
-        tmp = node->next;
+        node_t* tmp = node->next;
         FREE(node);
         node = tmp;
     }

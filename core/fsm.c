@@ -8,13 +8,13 @@
 typedef struct fsm_status_t {
     int id;
     // enter & exit will not happend when status enter itself
-    fsm_status_func_t enter;
-    fsm_status_func_t exit;
+    fsm_status_func enter;
+    fsm_status_func exit;
 } fsm_status_t;
 
 typedef struct fsm_event_t {
     int id;
-    fsm_event_func_t handle;
+    fsm_event_func handle;
 } fsm_event_t;
 
 typedef struct fsm_rule_t {
@@ -42,17 +42,17 @@ typedef struct fsm_t {
 
     int status_count;
     fsm_status_t* status;
-    struct idtable_t* status_table;
+    idtable_t* status_table;
 
     // default size: size * size / 2
     int events_count;
     fsm_event_t* events;
-    struct idtable_t* events_table;
+    idtable_t* events_table;
 
     // default size: size * size * 2
     int rules_count;
     fsm_rule_t* rules;
-    struct hash_t* rules_table;
+    hash_t* rules_table;
 } fsm_t;
 
 static uint32_t
@@ -138,11 +138,8 @@ fsm_release(struct fsm_t* fsm) {
 
 int
 fsm_register_status(fsm_t* fsm, int status,
-                    fsm_status_func_t enter,
-                    fsm_status_func_t exit) {
-    fsm_status_t* st;
-    int ret;
-
+                    fsm_status_func enter,
+                    fsm_status_func exit) {
     if (!fsm || status <= 0) {
         return FSM_FAIL;
     }
@@ -153,21 +150,18 @@ fsm_register_status(fsm_t* fsm, int status,
         return FSM_EXISTED;
     }
 
-    st = &fsm->status[fsm->status_count ++];
+    fsm_status_t* st = &fsm->status[fsm->status_count ++];
     st->id = status;
     st->enter = enter;
     st->exit = exit;
-    ret = idtable_add(fsm->status_table, st->id, (void*)st);
+    int ret = idtable_add(fsm->status_table, st->id, (void*)st);
     assert(ret == 0);
     return FSM_OK;
 }
 
 int
 fsm_register_event(fsm_t* fsm, int event,
-                   fsm_event_func_t handle) {
-    fsm_event_t* et;
-    int ret;
-
+                   fsm_event_func handle) {
     if (!fsm || event <= 0) {
         return FSM_FAIL;
     }
@@ -178,10 +172,10 @@ fsm_register_event(fsm_t* fsm, int event,
         return FSM_EXISTED;
     }
 
-    et = &fsm->events[fsm->events_count ++];
+    fsm_event_t* et = &fsm->events[fsm->events_count ++];
     et->id = event;
     et->handle = handle;
-    ret = idtable_add(fsm->events_table, et->id, (void*)et);
+    int ret = idtable_add(fsm->events_table, et->id, (void*)et);
     assert(ret == 0);
     return FSM_OK;
 }
@@ -189,9 +183,6 @@ fsm_register_event(fsm_t* fsm, int event,
 int
 fsm_register_rule(struct fsm_t* fsm, int event, int ret_code,
                   int from_status, int to_status) {
-    fsm_rule_t* rule;
-    int ret;
-
     if (!fsm || event < 0
         || (from_status < 0 && from_status != FSM_WILDCARD_STATUS)
         || (to_status < 0 && to_status != FSM_WILDCARD_STATUS)) {
@@ -210,12 +201,12 @@ fsm_register_rule(struct fsm_t* fsm, int event, int ret_code,
         return FSM_NOT_EXISTED;
     }
 
-    rule = &fsm->rules[fsm->rules_count ++];
+    fsm_rule_t* rule = &fsm->rules[fsm->rules_count ++];
     rule->input.status = from_status;
     rule->input.event = event;
     rule->input.ret_code = ret_code;
     rule->output.status = to_status;
-    ret = hash_insert(fsm->rules_table, (void*)rule);
+    int ret = hash_insert(fsm->rules_table, (void*)rule);
     if (ret < 0) {
         -- fsm->rules_count;
         return FSM_EXISTED;
@@ -234,26 +225,20 @@ fsm_start(struct fsm_t* fsm, int status) {
 
 int
 fsm_trigger(struct fsm_t* fsm, int event, void* args) {
-    fsm_rule_t* rule;
-    fsm_event_t* ev;
-    fsm_status_t* st;
-    fsm_rule_t tmp;
-
     if (!fsm) {
         return FSM_FAIL;
     }
-
     // event
-    ev = idtable_get(fsm->events_table, event);
+    fsm_event_t* ev = idtable_get(fsm->events_table, event);
     if (!ev) {
         return FSM_NOT_EXISTED;
     }
-
     // rule
+    fsm_rule_t tmp;
     tmp.input.status = fsm->current;
     tmp.input.event = event;
     tmp.input.ret_code = ev->handle(args);
-    rule = hash_find(fsm->rules_table, (void*)&tmp);
+    fsm_rule_t* rule = hash_find(fsm->rules_table, (void*)&tmp);
     if (!rule) {
         // try wildcard status
         tmp.input.status = FSM_WILDCARD_STATUS;
@@ -262,18 +247,17 @@ fsm_trigger(struct fsm_t* fsm, int event, void* args) {
             return FSM_NOT_EXISTED;
         }
     }
-
-    printf("trigger: [status %d] -> [status %d], event %d ret %d\n",
-        fsm->current, rule->output.status == FSM_WILDCARD_STATUS
-        ? fsm->current : rule->output.status,
-        rule->input.event, rule->input.ret_code);
+    // printf("trigger: [status %d] -> [status %d], event %d ret %d\n",
+    //    fsm->current, rule->output.status == FSM_WILDCARD_STATUS
+    //    ? fsm->current : rule->output.status,
+    //    rule->input.event, rule->input.ret_code);
 
     // re-enter
     if (rule->output.status == fsm->current
         || rule->output.status == FSM_WILDCARD_STATUS) {
         // nothing to do ..
     } else {
-        st = idtable_get(fsm->status_table, fsm->current);
+        fsm_status_t* st = idtable_get(fsm->status_table, fsm->current);
         assert(st);
         if (st->exit) {
             st->exit(args);
@@ -288,7 +272,6 @@ fsm_trigger(struct fsm_t* fsm, int event, void* args) {
             st->enter(args);
         }
     }
-
     return FSM_OK;
 }
 

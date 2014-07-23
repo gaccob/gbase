@@ -10,7 +10,7 @@ int lock_thread_count = 4;
 int lock_loop = 1000000;
 int lock_code_len = 1;
 
-THREAD_FUNC
+void*
 lock_func(void* arg) {
     int i, j, l, k, m;
     k = rand();
@@ -26,26 +26,26 @@ lock_func(void* arg) {
         }
         thread_unlock(threadlock);
     }
-    THREAD_RETURN;
+    return NULL;
 }
 
 int
 test_lock() {
-    thread_t* tid;
+    pthread_t* tid;
     int i, ret, lasttime;
     struct timeval from;
 
     threadlock = thread_lock_alloc();
     assert(threadlock);
 
-    tid = (thread_t*)MALLOC(sizeof(thread_t) * lock_thread_count);
-    util_gettimeofday(&from,NULL);
+    tid = (pthread_t*)MALLOC(sizeof(pthread_t) * lock_thread_count);
+    gettimeofday(&from,NULL);
 
-    for (i=0; i<lock_thread_count; i++) {
-        THREAD_CREATE(tid[i], lock_func, NULL);
+    for (i = 0; i < lock_thread_count; ++ i) {
+        pthread_create(&tid[i], NULL, lock_func, NULL);
     }
-    for (i=0; i<lock_thread_count; i++) {
-        ret = THREAD_JOIN(tid[i]);
+    for (i = 0; i < lock_thread_count; ++ i) {
+        ret = pthread_join(tid[i], NULL);
         if (ret !=0) {
             printf("cannot join thread1");
         }

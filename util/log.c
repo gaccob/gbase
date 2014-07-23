@@ -1,16 +1,13 @@
 #include <assert.h>
 #include <fcntl.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
+
 #include "util/util_file.h"
 #include "util/util_time.h"
 #include "log.h"
-
-#if defined(OS_WIN)
-#elif defined(OS_LINUX) || defined(OS_MAC)
-    #include <unistd.h>
-    #include <sys/types.h>
-    #include <sys/stat.h>
-    #include <dirent.h>
-#endif
 
 typedef struct log_rotator_t {
     time_t start;
@@ -50,7 +47,7 @@ _log_date_rotator_create(log_t* log) {
     assert(log && log->rotator);
     log->rotator->check_and_rotate = _date_rotate;
     now = time(NULL);
-    util_localtime(&now, &now_tm);
+    localtime_r(&now, &now_tm);
     now_tm.tm_hour = 0;
     now_tm.tm_min  = 0;
     now_tm.tm_sec  = 0;

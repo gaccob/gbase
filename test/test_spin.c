@@ -1,16 +1,17 @@
 #include <assert.h>
+#include <sys/time.h>
 #include "core/thread.h"
 #include "core/spin.h"
 
 #include "test.h"
 
-struct spin_lock_t* spinlock;
+spin_t* spinlock;
 
 int spin_thread_count = 4;
 int spin_loop = 1000000;
 int spin_code_len = 1;
 
-THREAD_FUNC
+void*
 spin_func(void* arg) {
     int i, j, l, k, m;
     k = rand();
@@ -26,26 +27,26 @@ spin_func(void* arg) {
         }
         spin_unlock(spinlock);
     }
-    THREAD_RETURN;
+    return NULL;
 }
 
 int
 test_spin() {
-    thread_t* tid;
+    pthread_t* tid;
     int i, ret, lasttime;
     struct timeval from;
 
     spinlock = spin_create();
     assert(spinlock);
 
-    tid = (thread_t*)MALLOC(sizeof(thread_t) * spin_thread_count);
-    util_gettimeofday(&from,NULL);
+    tid = (pthread_t*)MALLOC(sizeof(pthread_t) * spin_thread_count);
+    gettimeofday(&from,NULL);
 
     for (i=0; i<spin_thread_count; i++) {
-        THREAD_CREATE(tid[i], spin_func, NULL);
+        pthread_create(&tid[i], NULL, spin_func, NULL);
     }
     for (i=0; i<spin_thread_count; i++) {
-        ret = THREAD_JOIN(tid[i]);
+        ret = pthread_join(tid[i], NULL);
         if (ret !=0) {
             printf("cannot join thread1");
         }

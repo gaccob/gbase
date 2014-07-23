@@ -23,17 +23,17 @@
 // replace charater
 #define DIRTY_REPLACE_CHAR '*'
 
-struct dirty_ctx_t;
+typedef struct dirty_ctx_t dirty_ctx_t;
 
-struct dirty_ctx_t* dirty_create(const char* dirty_cfg);
+dirty_ctx_t* dirty_create(const char* dirty_cfg);
 
-int dirty_reload(struct dirty_ctx_t**, const char* dirty_cfg);
+int dirty_reload(dirty_ctx_t**, const char* dirty_cfg);
 
-int dirty_check(struct dirty_ctx_t*, const char* src, int len);
+int dirty_check(dirty_ctx_t*, const char* src, int len);
 
-int dirty_replace(struct dirty_ctx_t*, char* src, int len);
+int dirty_replace(dirty_ctx_t*, char* src, int len);
 
-int dirty_release(struct dirty_ctx_t*);
+int dirty_release(dirty_ctx_t*);
 
 #endif
 

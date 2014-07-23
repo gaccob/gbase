@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <assert.h>
+#include <sys/time.h>
 
 #include <openssl/dh.h>
 #include <openssl/pem.h>
@@ -41,13 +42,13 @@ test_dh_perf()
     int i;
     struct timeval tv;
     char timestamp[64];
-    util_gettimeofday(&tv, NULL);
+    gettimeofday(&tv, NULL);
     util_timestamp(&tv, timestamp, 64);
     printf("%s\n", timestamp);
     for (i = 0; i < DH_LOOP; ++ i) {
         _test_dh_perf();
     }
-    util_gettimeofday(&tv, NULL);
+    gettimeofday(&tv, NULL);
     util_timestamp(&tv, timestamp, 64);
     printf("%s\n", timestamp);
     return 0;

@@ -10,17 +10,15 @@ extern "C" {
 #endif
 
 #include "core/os_def.h"
+#include "base/hash.h"
 
-#include "list.h"
-#include "hash.h"
+typedef struct conhash_t conhash_t;
 
-struct conhash_t;
-
-struct conhash_t* conhash_create(hash_func key_hash, hash_func node_hash);
-void conhash_release(struct conhash_t* ch);
-int32_t conhash_add_node(struct conhash_t* ch, void* node);
-void conhash_erase_node(struct conhash_t* ch, void* node);
-void* conhash_node(struct conhash_t* ch, void* key);
+conhash_t* conhash_create(hash_func key_hash, hash_func node_hash);
+void conhash_release(conhash_t*);
+int conhash_add(conhash_t*, void* node);
+void conhash_erase(conhash_t*, void* node);
+void* conhash_node(conhash_t*, void* key);
 
 #ifdef __cplusplus
 }

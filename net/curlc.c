@@ -1,20 +1,20 @@
 #include "core/os_def.h"
-#include "net/curl_client.h"
-#include "net/curl_pool.h"
+#include "curlc.h"
 
 typedef struct curl_client_t {
     CURL* handle;
     CURLcode err;
     char req[CURL_MAX_REQUEST_LEN];
     char res[CURL_MAX_RESPONSE_LEN];
-    CURL_CALLBACK cb;
+    curl_cb_func cb;
     void* args;
-} curl_client_t;
+} curlc_t;
 
-curl_client_t*
-curl_client_create() {
-    curl_client_t* cc = (curl_client_t*)MALLOC(sizeof(*cc));
-    if (!cc) { return NULL; }
+curlc_t*
+curlc_create() {
+    curlc_t* cc = (curlc_t*)MALLOC(sizeof(*cc));
+    if (!cc)
+        return NULL;
     memset(cc, 0, sizeof(*cc));
     cc->handle = curl_easy_init();
     if (!cc->handle) {
@@ -30,22 +30,21 @@ curl_client_create() {
 }
 
 // only alloc memory, no curl init
-curl_client_t*
-curl_client_raw_create() {
-    curl_client_t* cc = (curl_client_t*)MALLOC(sizeof(*cc));
-    if (cc) {
+curlc_t*
+curlc_raw_create() {
+    curlc_t* cc = (curlc_t*)MALLOC(sizeof(*cc));
+    if (cc)
         memset(cc, 0, sizeof(*cc));
-    }
     return cc;
 }
 
 void
-curl_client_raw_release(curl_client_t* cc) {
+curlc_raw_release(curlc_t* cc) {
     FREE(cc);
 }
 
 void
-curl_client_release(curl_client_t* cc) {
+curlc_release(curlc_t* cc) {
     if (cc) {
         if (cc->handle) {
             curl_easy_cleanup(cc->handle);
@@ -56,8 +55,8 @@ curl_client_release(curl_client_t* cc) {
 }
 
 int32_t
-curl_client_init_get(curl_client_t* cc, const char* req,
-                     CURL_CALLBACK cb, void* args, const char* cookie) {
+curlc_init_get(curlc_t* cc, const char* req, curl_cb_func cb,
+               void* args, const char* cookie) {
     if (!cc || !cc->handle) {
         return -1;
     }
@@ -65,7 +64,7 @@ curl_client_init_get(curl_client_t* cc, const char* req,
     cc->cb = cb;
     cc->args = args;
     curl_easy_setopt(cc->handle, CURLOPT_URL, cc->req);
-    curl_easy_setopt(cc->handle, CURLOPT_WRITEFUNCTION, &curl_client_write_cb);
+    curl_easy_setopt(cc->handle, CURLOPT_WRITEFUNCTION, &curlc_write_cb);
     curl_easy_setopt(cc->handle, CURLOPT_WRITEDATA, cc);
     curl_easy_setopt(cc->handle, CURLOPT_POST, 0);
     if (cookie) {
@@ -75,9 +74,8 @@ curl_client_init_get(curl_client_t* cc, const char* req,
 }
 
 int32_t
-curl_client_init_post(curl_client_t* cc, const char* req,
-                      const char* post, size_t post_size,
-                      CURL_CALLBACK cb, void* args, const char* cookie) {
+curlc_init_post(curlc_t* cc, const char* req, const char* post, size_t post_size,
+                curl_cb_func cb, void* args, const char* cookie) {
     if (!cc || !cc->handle) {
         return -1;
     }
@@ -85,7 +83,7 @@ curl_client_init_post(curl_client_t* cc, const char* req,
     cc->cb = cb;
     cc->args = args;
     curl_easy_setopt(cc->handle, CURLOPT_URL, cc->req);
-    curl_easy_setopt(cc->handle, CURLOPT_WRITEFUNCTION, &curl_client_write_cb);
+    curl_easy_setopt(cc->handle, CURLOPT_WRITEFUNCTION, &curlc_write_cb);
     curl_easy_setopt(cc->handle, CURLOPT_WRITEDATA, cc);
     curl_easy_setopt(cc->handle, CURLOPT_POST, 1);
     curl_easy_setopt(cc->handle, CURLOPT_POSTFIELDSIZE, post_size);
@@ -100,7 +98,7 @@ curl_client_init_post(curl_client_t* cc, const char* req,
 }
 
 void
-curl_client_finish(curl_client_t* cc) {
+curlc_finish(curlc_t* cc) {
     if (cc) {
         cc->req[0] = 0;
         cc->res[0] = 0;
@@ -110,64 +108,68 @@ curl_client_finish(curl_client_t* cc) {
 }
 
 inline void
-curl_client_on_res(curl_client_t* cc) {
+curlc_on_res(curlc_t* cc) {
     if (cc && cc->cb) {
         (*cc->cb)(cc, cc->args);
     }
 }
 
 inline void
-curl_client_append_res(curl_client_t* cc, char* data) {
+curlc_append_res(curlc_t* cc, char* data) {
     if (cc && data) {
-        size_t nres = strnlen(cc->res, sizeof(cc->res));
+        size_t nres = strlen(cc->res);
         snprintf(cc->res + nres, sizeof(cc->res) - nres, "%s", data);
     }
 }
 
 inline CURL*
-curl_client_handle(curl_client_t* cc) {
+curlc_handle(curlc_t* cc) {
     return cc ? cc->handle : NULL;
 }
 
 inline void
-curl_client_set_handle(curl_client_t* cc, CURL* c) {
-    if (cc) { cc->handle = c; }
+curlc_set_handle(curlc_t* cc, CURL* c) {
+    if (cc) {
+        cc->handle = c;
+    }
 }
 
 inline const char*
-curl_client_res(curl_client_t* cc) {
+curlc_res(curlc_t* cc) {
     return cc ? cc->res : NULL;
 }
 
 inline const char*
-curl_client_req(curl_client_t* cc) {
+curlc_req(curlc_t* cc) {
     return cc ? cc->req : NULL;
 }
 
 inline void*
-curl_client_cb_args(curl_client_t* cc) {
+curlc_cb_args(curlc_t* cc) {
     return cc ? cc->cb : NULL;
 }
 
 inline CURLcode
-curl_client_ret(curl_client_t* cc) {
+curlc_ret(curlc_t* cc) {
     return cc ? cc->err : -1;
 }
 inline void
-curl_client_set_ret(curl_client_t* cc, CURLcode c) {
-    if (cc) { cc->err = c; }
+curlc_set_ret(curlc_t* cc, CURLcode c) {
+    if (cc) {
+        cc->err = c;
+    }
 }
 
 inline const char*
-curl_client_err_str(curl_client_t* cc) {
+curlc_err_str(curlc_t* cc) {
     return cc ? curl_easy_strerror(cc->err) : NULL;
 }
 
 size_t
-curl_client_write_cb(char* buffer, size_t sz, size_t nitems, void* userp) {
-    curl_client_t* cc = (curl_client_t*)(userp);
+curlc_write_cb(char* buffer, size_t sz, size_t nitems, void* userp) {
+    curlc_t* cc = (curlc_t*)(userp);
     if (cc) {
-        curl_client_append_res(cc, buffer);
+        curlc_append_res(cc, buffer);
     }
     return sz * nitems;
 }

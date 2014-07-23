@@ -28,14 +28,14 @@ enum {
 };
 
 // return BVT error code
-typedef int32_t (*bvt_func)(void* input);
+typedef int (*bvt_func)(void* input);
 
-struct bvt_t;
-struct bvt_t* bvt_load_gliffy(const char* gliffy_path);
-int32_t bvt_register_callback(struct bvt_t* b, bvt_func cb, int32_t id);
-int32_t bvt_run(struct bvt_t* b, void* input);
-void bvt_release(struct bvt_t* b);
-void bvt_debug(struct bvt_t* b);
+typedef struct bvt_t bvt_t;
+bvt_t* bvt_load_gliffy(const char* gliffy_path);
+int bvt_register_callback(bvt_t*, bvt_func cb, int id);
+int bvt_run(bvt_t*, void* input);
+void bvt_release(bvt_t*);
+void bvt_debug(bvt_t*);
 
 #ifdef __cplusplus
 }

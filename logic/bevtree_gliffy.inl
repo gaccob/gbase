@@ -1,3 +1,5 @@
+#include <unistd.h>
+#include <sys/types.h>
 #include "util/cjson.h"
 
 #define BVT_GLIFFY_SPLIT "|"
@@ -27,15 +29,15 @@ enum {
 };
 
 typedef struct bvt_graph_node_t {
-    int32_t t;
-    int32_t id;
+    int t;
+    int id;
     union {
         struct {
             char desc[BVT_MAX_NAME_LEN];
         } shape;
         struct {
-            int32_t from;
-            int32_t to;
+            int from;
+            int to;
         } line;
     };
     struct bvt_graph_node_t* next;
@@ -49,8 +51,8 @@ typedef struct bvt_graph_t {
 static void
 _bvt_load_gliffy_html(const char* html, char* dst, size_t dstlen)
 {
-    int32_t flag = 0;
-    int32_t trans = 0;
+    int flag = 0;
+    int trans = 0;
     size_t dlen = 0;
     assert(html);
     while (*html) {
@@ -193,7 +195,7 @@ GLIFFY_FAIL:
     return NULL;
 }
 
-static int32_t
+static int
 _bvt_load_gliffy_parse_name(bvt_t* node, char* name) {
     const char* split = BVT_GLIFFY_SPLIT;
     char* p = 0;
@@ -257,12 +259,12 @@ BVT_PARSE_WEIGHT:
 }
 
 static struct bvt_t*
-_bvt_load_gliffy_graph_node(int32_t id, bvt_graph_node_t** list) {
+_bvt_load_gliffy_graph_node(int id, bvt_graph_node_t** list) {
     bvt_graph_node_t* node, *prev;
     bvt_t* b = NULL;
     bvt_graph_node_t* line = NULL;
     bvt_t* child = NULL;
-    int32_t ret;
+    int ret;
     if (!list || !*list) return NULL;
 
     // find and split a node

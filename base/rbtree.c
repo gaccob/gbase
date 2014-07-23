@@ -3,7 +3,7 @@
 
 /*
  *  @ 1. rbtree is first a binary tree
- *  @    2. each is either red or black
+ *  @ 2. each is either red or black
  *  @ 3. root node is black
  *  @ 4. evert red node has only black children
  *  @ 5. from every node to its descendent leaf, there're same black nodes in the path
@@ -12,33 +12,33 @@
 #define RBTREE_BLACK    0
 #define RBTREE_RED      1
 
-typedef struct rbtree_node_t {
-    struct rbtree_node_t* parent;
-    struct rbtree_node_t* left;
-    struct rbtree_node_t* right;
+typedef struct node_t {
+    struct node_t* parent;
+    struct node_t* left;
+    struct node_t* right;
     void* data;
     int color;
-} rbtree_node_t;
+} node_t;
 
 typedef struct rbtree_t {
-    rbtree_node_t* root;
-    rbtree_cmp cmp;
+    node_t* root;
+    rbtree_cmp_func cmp;
 } rbtree_t;
 
 rbtree_t*
-rbtree_create(rbtree_cmp cmp) {
+rbtree_create(rbtree_cmp_func cmp) {
     rbtree_t* tree = (rbtree_t*)MALLOC(sizeof(rbtree_t));
-    if (!tree) return NULL;
+    if (!tree)
+        return NULL;
     tree->root = 0;
     tree->cmp = cmp;
     return tree;
 }
 
-static inline rbtree_node_t*
-_rbtree_min_node(rbtree_node_t* node) {
-    rbtree_node_t* p;
+static inline node_t*
+_rbtree_min_node(node_t* node) {
     if (node) {
-        p = node;
+        node_t *p = node;
         while(p->left) {
             p = p->left;
         }
@@ -47,31 +47,27 @@ _rbtree_min_node(rbtree_node_t* node) {
     return NULL;
 }
 
-static inline rbtree_node_t*
-_rbtree_max_node(rbtree_node_t* node) {
-    rbtree_node_t* p;
+static inline node_t*
+_rbtree_max_node(node_t* node) {
     if (node) {
-        p = node;
-        while(p->right) {
+        node_t* p = node;
+        while (p->right)
             p = p->right;
-        }
         return p;
     }
     return NULL;
 }
 
-static rbtree_node_t*
-_rbtree_next_node(rbtree_node_t* node) {
-    rbtree_node_t *source, *dest;
-    if (!node) return NULL;
-
+static node_t*
+_rbtree_next_node(node_t* node) {
+    if (!node)
+        return NULL;
     // min node of right child tree
-    if (node->right) {
+    if (node->right)
         return _rbtree_min_node(node->right);
-    }
     // or first parent whose left child tree contains node
-    source = node;
-    dest = node->parent;
+    node_t* source = node;
+    node_t* dest = node->parent;
     while (dest && source == dest->right) {
         source = dest;
         dest = dest->parent;
@@ -80,18 +76,16 @@ _rbtree_next_node(rbtree_node_t* node) {
 }
 
 #if 0
-static rbtree_node_t*
-_rbtree_prev_node(rbtree_node_t* node) {
-    rbtree_node_t *source, *dest;
-    if (!node) return NULL;
-
+static node_t*
+_rbtree_prev_node(node_t* node) {
+    if (!node)
+        return NULL;
     // max node of left child tree
-    if (node->left) {
+    if (node->left)
         return _rbtree_max_node(node->left);
-    }
     // or first parent whose right child tree contains node
-    source = node;
-    dest = node->parent;
+    node_t* source = node;
+    node_t* dest = node->parent;
     while (dest && source == dest->left) {
         source = dest;
         dest = dest->parent;
@@ -112,12 +106,10 @@ _rbtree_prev_node(rbtree_node_t* node) {
 *   rotate x
 */
 static void
-_rbtree_rotl(rbtree_t* tree, rbtree_node_t* node) {
-    rbtree_node_t *x, *y;
+_rbtree_rotl(rbtree_t* tree, node_t* node) {
     assert(tree && node);
-
-    x = node;
-    y = node->right;
+    node_t* x = node;
+    node_t* y = node->right;
 
     // node b
     x->right = y->left;
@@ -149,12 +141,10 @@ _rbtree_rotl(rbtree_t* tree, rbtree_node_t* node) {
 * rotate y
 */
 static void
-_rbtree_rotr(rbtree_t* tree, rbtree_node_t* node) {
-    rbtree_node_t *x, *y;
+_rbtree_rotr(rbtree_t* tree, node_t* node) {
     assert(tree && node);
-
-    x = node->left;
-    y = node;
+    node_t* x = node->left;
+    node_t* y = node;
 
     // node b
     y->left = x->right;
@@ -178,18 +168,16 @@ _rbtree_rotr(rbtree_t* tree, rbtree_node_t* node) {
 
 
 static int
-_rbtree_insert_adjust(rbtree_t* tree, rbtree_node_t* node) {
-    rbtree_node_t *y, *z;
+_rbtree_insert_adjust(rbtree_t* tree, node_t* node) {
     if (!node || !tree) {
         return -1;
     }
-
-    z = node;
+    node_t* z = node;
     // z's parent is red, then z's parent is not root => z's parent has parent
     while (z != tree->root && RBTREE_RED == z->parent->color) {
         if (z->parent == z->parent->parent->left) {
             // 1. right uncle exist & uncle is red
-            y = z->parent->parent->right;
+            node_t* y = z->parent->parent->right;
             if (y && RBTREE_RED == y->color) {
                 // uncle & fater is black, grandpa is red
                 y->color = RBTREE_BLACK;
@@ -214,7 +202,7 @@ _rbtree_insert_adjust(rbtree_t* tree, rbtree_node_t* node) {
             }
         } else {
             // same as above, shift left<->right
-            y = z->parent->parent->left;
+            node_t* y = z->parent->parent->left;
 
             // 1. left uncle exist & uncle is red
             if (y && RBTREE_RED == y->color) {
@@ -246,12 +234,12 @@ _rbtree_insert_adjust(rbtree_t* tree, rbtree_node_t* node) {
 
 int
 rbtree_insert(rbtree_t* tree, void* data) {
-    rbtree_node_t* parent, *dest, *node;
-    if (!tree || !data) return -1;
+    if (!tree || !data)
+        return -1;
 
     // root node
     if (!tree->root) {
-        tree->root = (rbtree_node_t*)MALLOC(sizeof(rbtree_node_t));
+        tree->root = (node_t*)MALLOC(sizeof(node_t));
         if (!tree->root) return -1;
         tree->root->parent = 0;
         tree->root->left = 0;
@@ -262,8 +250,8 @@ rbtree_insert(rbtree_t* tree, void* data) {
     }
 
     // find dest node's parent, loop down
-    parent = tree->root;
-    dest = NULL;
+    node_t* parent = tree->root;
+    node_t* dest = NULL;
     while (parent) {
         dest = parent;
         if (0 == tree->cmp(data, parent->data)) {
@@ -277,7 +265,7 @@ rbtree_insert(rbtree_t* tree, void* data) {
     }
 
     // alloc new node
-    node = (rbtree_node_t*)MALLOC(sizeof(rbtree_node_t));
+    node_t* node = (node_t*)MALLOC(sizeof(node_t));
     if (!node) return -1;
     node->data = data;
     node->parent = dest;
@@ -297,12 +285,11 @@ rbtree_insert(rbtree_t* tree, void* data) {
     return _rbtree_insert_adjust(tree, node);
 }
 
-static rbtree_node_t*
-_rbtree_find_node(rbtree_t* tree, rbtree_node_t* node, void* data) {
-    int ret;
-    if (!tree || !node || !data) return NULL;
-
-    ret = tree->cmp(data, node->data);
+static node_t*
+_rbtree_find_node(rbtree_t* tree, node_t* node, void* data) {
+    if (!tree || !node || !data)
+        return NULL;
+    int ret = tree->cmp(data, node->data);
     if (0 == ret) {
         return node;
     } else if (ret < 0) {
@@ -314,10 +301,9 @@ _rbtree_find_node(rbtree_t* tree, rbtree_node_t* node, void* data) {
 
 void*
 rbtree_find(rbtree_t* tree, void* data) {
-    rbtree_node_t* node;
-    if (!tree || !data || !tree->root) return NULL;
-
-    node = _rbtree_find_node(tree, tree->root, data);
+    if (!tree || !data || !tree->root)
+        return NULL;
+    node_t* node = _rbtree_find_node(tree, tree->root, data);
     if (node) {
         return node->data;
     }
@@ -325,19 +311,17 @@ rbtree_find(rbtree_t* tree, void* data) {
 }
 
 static void
-_rbtree_delete_adjust(rbtree_t* tree, rbtree_node_t* node,
-                      rbtree_node_t* parent) {
-    rbtree_node_t *x, *w;
+_rbtree_delete_adjust(rbtree_t* tree, node_t* node,
+                      node_t* parent) {
     assert(tree);
-
-    x = node;
+    node_t* x = node;
 
     // x is deleted & x is BLACK, rebel "from every node to its descendent leaf
     // there're same black nodes in the path"
     while (x != tree->root && (!x || RBTREE_BLACK == x->color)) {
         // x is left child, find right brother
         if (x == parent->left && parent->right) {
-            w = parent->right;
+            node_t *w = parent->right;
 
             // 1. if brother red, set black, set father red, then do left rotate
             if (RBTREE_RED == w->color) {
@@ -372,7 +356,7 @@ _rbtree_delete_adjust(rbtree_t* tree, rbtree_node_t* node,
                 x = tree->root;
             }
         } else if (x == parent->right && parent->left) {
-            w = parent->left;
+            node_t* w = parent->left;
 
             // 1. if brother red, set black, set father red, then do left rotate
             if (RBTREE_RED == w->color) {
@@ -415,9 +399,9 @@ _rbtree_delete_adjust(rbtree_t* tree, rbtree_node_t* node,
 }
 
 static void
-_rbtree_delete_node(rbtree_t* tree, rbtree_node_t* node) {
-    rbtree_node_t *p, *ch, *next;
-    if (!tree || !node) return;
+_rbtree_delete_node(rbtree_t* tree, node_t* node) {
+    if (!tree || !node)
+        return;
 
     #if 0
     1. dest node no child (* means dest node)
@@ -436,7 +420,7 @@ _rbtree_delete_node(rbtree_t* tree, rbtree_node_t* node) {
 
         // release node & reset p's child
         else {
-            p = node->parent;
+            node_t* p = node->parent;
             if (p->right == node) {
                 p->right = 0;
             } else {
@@ -463,13 +447,13 @@ _rbtree_delete_node(rbtree_t* tree, rbtree_node_t* node) {
         a->*,  link c & b
     #endif
     else if (node->left && node->right) {
-        next = _rbtree_next_node(node);
+        node_t* next = _rbtree_next_node(node);
         assert(next);
         node->data = next->data;
 
         // release next (next may have right children)
-        p = next->parent;
-        ch = next->right;
+        node_t* p = next->parent;
+        node_t* ch = next->right;
         if (next == p->left && ch) {
             p->left = ch;
             ch->parent = p;
@@ -499,8 +483,8 @@ _rbtree_delete_node(rbtree_t* tree, rbtree_node_t* node) {
        link a & b
     #endif
     else {
-        p = node->parent;
-        ch = 0;
+        node_t* p = node->parent;
+        node_t* ch = 0;
         if (node->left) {
             ch = node->left;
         } else {
@@ -542,22 +526,20 @@ _rbtree_delete_node(rbtree_t* tree, rbtree_node_t* node) {
 
 void*
 rbtree_delete(rbtree_t* tree, void* data) {
-    rbtree_node_t* node;
-    void* res;
     if (!tree || !data || !tree->root) {
         return NULL;
     }
-    node = _rbtree_find_node(tree, tree->root, data);
+    node_t* node = _rbtree_find_node(tree, tree->root, data);
     if (!node) {
         return NULL;
     }
-    res = node->data;
+    void* res = node->data;
     _rbtree_delete_node(tree, node);
     return res;
 }
 
 static void
-_rbtree_loop_node(rbtree_node_t* node, rbtree_loop_func func) {
+_rbtree_loop_node(node_t* node, rbtree_loop_func func) {
     if (node) {
         if (node->left) {
             _rbtree_loop_node(node->left, func);
@@ -578,7 +560,7 @@ rbtree_loop(rbtree_t* tree, rbtree_loop_func func) {
 }
 
 static void
-_rbtree_release_node(rbtree_node_t* node) {
+_rbtree_release_node(node_t* node) {
     if (node) {
         if (node->left) {
             _rbtree_release_node(node->left);

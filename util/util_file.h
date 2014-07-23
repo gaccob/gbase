@@ -14,7 +14,6 @@ int32_t util_path_exist(const char* filepath);
 int32_t util_is_dir(const char* path);
 int32_t util_is_file(const char* path);
 
-
 #ifdef __cplusplus
 }
 #endif

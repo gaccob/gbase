@@ -9,7 +9,6 @@ extern "C" {
 #include "net/sock.h"
 
 struct reactor_impl_t;
-struct reactor_t;
 typedef struct reactor_t reactor_t;
 
 typedef struct handler_t {
@@ -24,15 +23,15 @@ typedef struct handler_t {
 #define EVENT_OUT 2
 
 reactor_t* reactor_create();
-void reactor_release(reactor_t* reactor);
-int reactor_register(reactor_t* reactor, handler_t* h, int events);
-int reactor_unregister(reactor_t* reactor, handler_t* h);
-int reactor_modify(reactor_t* reactor, handler_t* h, int events);
+void reactor_release(reactor_t*);
+int reactor_register(reactor_t*, handler_t*, int events);
+int reactor_unregister(reactor_t*, handler_t*);
+int reactor_modify(reactor_t*, handler_t*, int events);
 
 //  return = 0, success & process
 //  return < 0, fail
 //  return > 0, noting to do
-int reactor_dispatch(reactor_t* reactor, int ms);
+int reactor_dispatch(reactor_t*, int ms);
 
 #ifdef __cplusplus
 }

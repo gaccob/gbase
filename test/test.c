@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <sys/time.h>
 
 #include "test.h"
 
 int
 get_process_time(struct timeval* from) {
     struct timeval tv;
-    util_gettimeofday(&tv,NULL);
+    gettimeofday(&tv,NULL);
     return ((tv.tv_sec - from->tv_sec)*1000+(tv.tv_usec - from->tv_usec)/1000);
 }
 

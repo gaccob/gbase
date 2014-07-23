@@ -15,21 +15,24 @@ extern "C" {
 //  return >= 0 success, and if timer is continual, continue
 //  should nerver call timer_unregister in callback
 typedef int (*timer_callback)(void* args);
-struct timerheap_t;
+typedef struct timeval tv_t;
+typedef struct timerheap_t timerheap_t;
 
-struct timerheap_t* timer_create_heap();
-
-void timer_release(struct timerheap_t* timer);
+timerheap_t* timer_create_heap();
+void timer_release(timerheap_t*);
 
 //  interval==NULL means once
 //  return registered timer id
 //  if fail, return TIMER_INVALID_ID
-int timer_register(struct timerheap_t* timer, struct timeval* interval,
-                    struct timeval* delay, timer_callback cb, void* args);
+int timer_register(timerheap_t*,
+                   tv_t* interval,
+                   tv_t* delay,
+                   timer_callback cb,
+                   void* args);
 
-void timer_unregister(struct timerheap_t* timer, int timerid);
+void timer_unregister(timerheap_t*, int timerid);
 
-void timer_poll(struct timerheap_t* timer, struct timeval* now);
+void timer_poll(timerheap_t*, tv_t* now);
 
 #ifdef __cplusplus
 }

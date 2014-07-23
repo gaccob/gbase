@@ -3,9 +3,9 @@
 
 reactor_t*
 reactor_create() {
-    int ret;
     reactor_t* reactor = (reactor_t*)MALLOC(sizeof(reactor_t));
-    if (!reactor) return NULL;
+    if (!reactor)
+        return NULL;
     reactor->name = NULL;
     reactor->impl = 0;
     reactor->data = 0;
@@ -16,7 +16,7 @@ reactor_create() {
 #else
     reactor->impl = &reactor_select;
 #endif
-    ret = reactor->impl->create(reactor);
+    int ret = reactor->impl->create(reactor);
     if (ret < 0) {
         FREE(reactor);
         return NULL;

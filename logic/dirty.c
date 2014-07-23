@@ -2,7 +2,7 @@
 #include <assert.h>
 
 #include "base/hash.h"
-#include "logic/dirty.h"
+#include "dirty.h"
 
 // hash size
 #define MAX_DIRTY_WORDS_HASH_COUNT MAX_DIRTY_WORDS_COUNT * 3

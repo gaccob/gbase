@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <sys/time.h>
 #include "logic/dirty.h"
 #include "util/util_time.h"
 
@@ -9,44 +10,35 @@
 
 int
 test_dirty() {
-    struct dirty_ctx_t* ctx;
-    char source[1024 * 8];
-    char tmp[1024 * 8];
+    dirty_ctx_t* ctx;
     char logtime[64];
-    FILE* fp;
     struct timeval tv;
-    int i, ret;
 
     ctx = dirty_create(DIRTY_CFG_FILE);
     assert(ctx);
     printf("dirty check init success\n");
 
+    char source[1024 * 8];
     memset(source, 0, sizeof(source));
-    fp = fopen(DIRTY_TEST_FILE, "r");
+    FILE* fp = fopen(DIRTY_TEST_FILE, "r");
     if (!fp) {
         return -1;
     }
     fgets(source, sizeof(source), fp);
     printf("source len=%d\n", (int)strlen(source));
 
-/*
-    printf("before replace: \n%s\n\n", source);
-    dirty_replace(ctx, source, strlen(source));
-    printf("after replace: \n%s\n", source);
-    fclose(fp);
- */   
-
-    util_gettimeofday(&tv, NULL);
+    gettimeofday(&tv, NULL);
     util_timestamp(&tv, logtime, sizeof(logtime));
     printf("start %s\n", logtime);
 
-    for (i = 0; i < DIRTY_LOOP; ++ i) {
+    for (int i = 0; i < DIRTY_LOOP; ++ i) {
+        char tmp[1024 * 8];
         snprintf(tmp, sizeof(tmp), "%s", source);
-        ret = dirty_replace(ctx, tmp, strlen(tmp));
+        int ret = dirty_replace(ctx, tmp, strlen(tmp));
         assert(ret == 0);
     }
 
-    util_gettimeofday(&tv, NULL);
+    gettimeofday(&tv, NULL);
     util_timestamp(&tv, logtime, sizeof(logtime));
     printf("end %s\n", logtime);
 

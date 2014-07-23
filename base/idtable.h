@@ -12,16 +12,16 @@ extern "C" {
 
 #include "core/os_def.h"
 
-struct idtable_t;
-struct idtable_t* idtable_create(int32_t max_count);
-int32_t idtable_add(struct idtable_t* table, int32_t id, void* ptr);
-void* idtable_get(struct idtable_t* table, int32_t id);
-void idtable_remove(struct idtable_t* table, int32_t id);
-void idtable_cleanup(struct idtable_t* table);
-void idtable_release(struct idtable_t* table);
-
+typedef struct idtable_t idtable_t;
 typedef int (*idtable_loop_func)(void* data, void* arg);
-int idtable_loop(struct idtable_t* table, idtable_loop_func func, void* arg, int start);
+
+idtable_t* idtable_create(int max_count);
+int idtable_add(idtable_t* table, int id, void* ptr);
+void* idtable_get(idtable_t* table, int id);
+void idtable_remove(idtable_t* table, int id);
+void idtable_cleanup(idtable_t* table);
+void idtable_release(idtable_t* table);
+int idtable_loop(idtable_t* table, idtable_loop_func func, void* arg, int start);
 
 #ifdef __cplusplus
 }

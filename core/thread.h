@@ -2,41 +2,14 @@
 #define THREAD_H_
 #pragma once
 
-// multi thread uniform apis for different platform
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <pthread.h>
+#include <sys/time.h>
+#include <errno.h>
 #include "core/os_def.h"
-
-#if defined(OS_WIN)
-    #include <winsock2.h>
-    #include <process.h>
-    #include <sys/locking.h>
-    #define THREAD_SPIN_COUNT 2000
-
-    typedef HANDLE thread_t;
-    #define THREAD_FUNC unsigned __stdcall
-    #define THREAD_CREATE(threadvar, fn, arg) do { \
-        uintptr_t threadhandle = _beginthreadex(NULL,0,fn,(arg),0,NULL); \
-        (threadvar) = (thread_t) threadhandle; \
-    } while (0)
-    #define THREAD_JOIN(th) WaitForSingleObject(th, INFINITE)
-    #define THREAD_RETURN return (0)
-
-#elif defined(OS_LINUX) || defined(OS_MAC)
-    #include <pthread.h>
-    #include <sys/time.h>
-    #include <errno.h>
-
-    typedef pthread_t thread_t;
-    #define THREAD_FUNC void*
-    #define THREAD_CREATE(threadvar, fn, arg) \
-        pthread_create(&(threadvar), NULL, fn, arg)
-    #define THREAD_JOIN(th) pthread_join(th, NULL)
-    #define THREAD_RETURN return (NULL)
-#endif
 
 void* thread_lock_alloc();
 void thread_lock_free(void* lock);

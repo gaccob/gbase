@@ -6,11 +6,13 @@
 #if defined(OS_LINUX)
 #include <sys/epoll.h>
 
+typedef struct epoll_event event_t;
+
 #define EPOLL_SIZE 10240
 typedef struct epoll_t {
     int epoll_fd;
-    struct epoll_event events[EPOLL_SIZE];
-    struct slist_t* expired;
+    event_t events[EPOLL_SIZE];
+    slist_t* expired;
 } epoll_t;
 
 static const char* EPOLL_NAME = "epoll";
@@ -48,13 +50,13 @@ EPOLL_FAIL:
 
 static int
 _epoll_set(epoll_t* epoll, handler_t* h, int option, int events) {
-    struct epoll_event ep_event;
     if (!epoll || epoll->epoll_fd < 0 || !h)
         return -1;
 
     if (EPOLL_CTL_DEL == option)
         return epoll_ctl(epoll->epoll_fd, EPOLL_CTL_DEL, h->fd, 0);
 
+    event_t ep_event;
     ep_event.events = 0;
     ep_event.data.ptr = h;
     if (EVENT_IN & events)
@@ -66,13 +68,15 @@ _epoll_set(epoll_t* epoll, handler_t* h, int option, int events) {
 
 int
 epoll_register(reactor_t* reactor, handler_t* h, int events) {
-    if (!reactor || !reactor->data || !h) return -1;
+    if (!reactor || !reactor->data || !h)
+        return -1;
     return _epoll_set((epoll_t*)reactor->data, h, EPOLL_CTL_ADD, events);
 }
 
 int
 epoll_unregister(reactor_t* reactor, handler_t* h) {
-    if (!reactor || !reactor->data || !h) return -1;
+    if (!reactor || !reactor->data || !h)
+        return -1;
     epoll_t* epoll = (epoll_t*)reactor->data;
     // add to expire-list
     slist_push_front(epoll->expired, h);
@@ -81,7 +85,8 @@ epoll_unregister(reactor_t* reactor, handler_t* h) {
 
 int
 epoll_modify(reactor_t* reactor, handler_t* h, int events) {
-    if (!reactor || !reactor->data || !h) return -1;
+    if (!reactor || !reactor->data || !h)
+        return -1;
     return _epoll_set((epoll_t*)reactor->data, h, EPOLL_CTL_MOD, events);
 }
 
@@ -90,23 +95,21 @@ epoll_modify(reactor_t* reactor, handler_t* h, int events) {
 //  return > 0, noting to do
 int
 epoll_dispatch(reactor_t* reactor, int ms) {
-    int res, i, type;
-    struct handler_t* h;
-    epoll_t* epoll;
-    if (!reactor || !reactor->data) return -1;
-    epoll = (epoll_t*)(reactor->data);
-    res = epoll_wait(epoll->epoll_fd, epoll->events, EPOLL_SIZE, ms);
+    if (!reactor || !reactor->data)
+        return -1;
+    epoll_t* epoll = (epoll_t*)(reactor->data);
+    int res = epoll_wait(epoll->epoll_fd, epoll->events, EPOLL_SIZE, ms);
     if (res < 0) {
-        if (ERR_EINTR != ERRNO) return -ERRNO;
-        return 0;
+        return EINTR == errno ? 0 : -errno;
     } else if (0 == res) {
         return 1;
     } else {
-        for (i = 0; i < res; i++) {
-            type = epoll->events[i].events;
-            h = (struct handler_t*)epoll->events[i].data.ptr;
+        for (int i = 0; i < res; i++) {
+            int type = epoll->events[i].events;
+            handler_t* h = (handler_t*)epoll->events[i].data.ptr;
             // check if expired
-            if (0 == slist_find(epoll->expired, h)) continue;
+            if (0 == slist_find(epoll->expired, h))
+                continue;
             if ((EPOLLIN & type) || (EPOLLHUP & type)) {
                 res = h->in_func(h);
                 if (res < 0) {

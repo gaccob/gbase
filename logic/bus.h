@@ -17,7 +17,7 @@ typedef int bus_addr_t;
 #define bus_addr_type(addr) (addr >> 16)
 #define bus_addr_id(addr) ((addr << 16) >> 16)
 
-struct bus_t;
+typedef struct bus_t bus_t;
 
 enum {
     BUS_ERR_PEER_NOT_FOUND = -100,
@@ -34,23 +34,23 @@ enum {
 
 // key: 16 bits, reserved 16 bits for channels
 // distinct address is ensured by user
-struct bus_t* bus_create(int16_t key, bus_addr_t addr);
-void bus_release(struct bus_t* bt);
+bus_t* bus_create(int16_t key, bus_addr_t addr);
+void bus_release(bus_t*);
 
 // check bus version and do update
 // we should check in every tick
-void bus_poll(struct bus_t* bt);
+void bus_poll(bus_t*);
 
-int32_t bus_send(struct bus_t* bt, const char* buf, size_t bufsz, bus_addr_t to);
-int32_t bus_send_by_type(struct bus_t* bt, const char* buf, size_t bufsz, int type);
-int32_t bus_send_all(struct bus_t* bt, const char* buf, size_t bufsz);
-int32_t bus_recv(struct bus_t* bt, char* buf, size_t* bufsz, bus_addr_t from);
-int32_t bus_recv_all(struct bus_t* bt, char* buf, size_t* bufsz, bus_addr_t* from);
+int bus_send(bus_t*, const char* buf, size_t bufsz, bus_addr_t to);
+int bus_send_by_type(bus_t*, const char* buf, size_t bufsz, int type);
+int bus_send_all(bus_t*, const char* buf, size_t bufsz);
+int bus_recv(bus_t*, char* buf, size_t* bufsz, bus_addr_t from);
+int bus_recv_all(bus_t*, char* buf, size_t* bufsz, bus_addr_t* from);
 
-uint32_t bus_send_bytes(struct bus_t* bt, bus_addr_t to);
-uint32_t bus_recv_bytes(struct bus_t* bt, bus_addr_t from);
+uint32_t bus_send_bytes(bus_t*, bus_addr_t to);
+uint32_t bus_recv_bytes(bus_t*, bus_addr_t from);
 
-void bus_dump(struct bus_t* bt, char* debug, size_t debugsz);
+void bus_dump(bus_t*, char* debug, size_t debugsz);
 
 #ifdef __cpluplus
 }

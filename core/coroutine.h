@@ -18,14 +18,12 @@ extern "C" {
 #define CRT_RUNNING 2
 #define CRT_SUSPEND 3
 
-struct crt_t;
 typedef struct crt_t crt_t;
-
-typedef void (*crt_func_t)(crt_t*, void* arg);
+typedef void (*crt_func)(crt_t*, void* arg);
 
 crt_t* crt_create(int crt_stack_size);
 void crt_release(crt_t*);
-int crt_new(crt_t*, crt_func_t, void* arg);
+int crt_new(crt_t*, crt_func, void* arg);
 void crt_resume(crt_t*, int id);
 int crt_status(crt_t*, int id);
 int crt_current(crt_t*);

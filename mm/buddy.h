@@ -33,14 +33,14 @@ extern "C" {
 
 #include "core/os_def.h"
 
-struct buddy_t;
+typedef struct buddy_t buddy_t;
 
-struct buddy_t* buddy_create(size_t size, size_t min_alloc_size);
-int buddy_release(struct buddy_t* buddy);
-void* buddy_alloc(struct buddy_t* buddy, size_t nbytes);
-void* buddy_realloc(struct buddy_t* buddy, void* mem, size_t nbytes);
-void buddy_free(struct buddy_t* buddy, void* mem);
-void buddy_debug(struct buddy_t* buddy);
+buddy_t* buddy_create(size_t size, size_t min_alloc_size);
+int buddy_release(buddy_t*);
+void* buddy_alloc(buddy_t*, size_t nbytes);
+void* buddy_realloc(buddy_t*, void* mem, size_t nbytes);
+void buddy_free(buddy_t*, void* mem);
+void buddy_debug(buddy_t*);
 
 #ifdef __cplusplus
 }

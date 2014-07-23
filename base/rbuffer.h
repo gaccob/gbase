@@ -12,24 +12,24 @@ extern "C" {
 
 #include "core/os_def.h"
 
-struct rbuffer_t;
+typedef struct rbuffer_t rbuffer_t;
 
-struct rbuffer_t* rbuffer_create(uint32_t size);
-void rbuffer_release(struct rbuffer_t* r);
+rbuffer_t* rbuffer_create(uint32_t size);
+void rbuffer_release(rbuffer_t* r);
 
 // create from an allocated memory
 // if create from memory, usually we don't need to release it
-struct rbuffer_t* rbuffer_attach(void* mem, size_t mem_size);
+rbuffer_t* rbuffer_attach(void* mem, size_t mem_size);
 
-size_t rbuffer_size(struct rbuffer_t* r);
+size_t rbuffer_size(rbuffer_t* r);
 size_t rbuffer_head_size();
 
-uint32_t rbuffer_read_bytes(struct rbuffer_t* r);
-uint32_t rbuffer_write_bytes(struct rbuffer_t* r);
+uint32_t rbuffer_read_bytes(rbuffer_t* r);
+uint32_t rbuffer_write_bytes(rbuffer_t* r);
 
-int rbuffer_read(struct rbuffer_t* r, char* buf, size_t* buf_size);
-int rbuffer_peek(struct rbuffer_t* r, char* buf, size_t* buf_size);
-int rbuffer_write(struct rbuffer_t* r, const char* buf, size_t buf_size);
+int rbuffer_read(rbuffer_t* r, char* buf, size_t* buf_size);
+int rbuffer_peek(rbuffer_t* r, char* buf, size_t* buf_size);
+int rbuffer_write(rbuffer_t* r, const char* buf, size_t buf_size);
 
 #ifdef __cplusplus
 }

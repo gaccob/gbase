@@ -1,6 +1,8 @@
 #include <assert.h>
 #include <stddef.h>
-#include "mm/slab.h"
+#include <unistd.h>
+#include <stdlib.h>
+#include "slab.h"
 
 LIST_HEAD(g_slab_minor);
 LIST_HEAD(g_slab_common);
@@ -115,13 +117,12 @@ _slab_free_replace(meta_t* meta, meta_t* replace) {
 // return 0 means do quick merge success
 static int
 _slab_free_quick_merge(meta_t* meta, int replace_next) {
-    meta_t* next, *prev;
     page_t* page = META_PAGE(meta);
     int shift = META_SHIFT(meta) + META_SIZE + meta->size;
     if (shift < getpagesize()) {
-        next = META(meta, shift);
+        meta_t* next = META(meta, shift);
         if (!(next->color & META_COLOR_ALLOC)) {
-            prev = next->free_prev > 0 ? PAGE_META(page, next->free_prev) : NULL;
+            meta_t* prev = next->free_prev > 0 ? PAGE_META(page, next->free_prev) : NULL;
             // quick merge with next
             meta->size += next->size + META_SIZE;
             if (replace_next == 0) {
@@ -241,31 +242,28 @@ _slab_alloc(page_t* page, list_head_t* head, size_t sz) {
 
 void*
 slab_alloc(size_t sz) {
-    meta_t* meta;
-    page_t* page;
-    list_head_t* head;
-    void* memory;
-    if (sz == 0) return NULL;
+    if (sz == 0)
+        return NULL;
     sz = SLAB_ALIGN(sz);
     // try different list, if exceeds max return null
-    head = _slab_free_page(sz);
-    if (!head) return NULL;
+    list_head_t* head = _slab_free_page(sz);
+    if (!head)
+        return NULL;
     // alloc from free page
+    page_t* page;
     list_for_each_entry(page, page_t, head, link) {
-        memory = _slab_alloc(page, head, sz);
-        if (memory) return memory;
+        void* memory = _slab_alloc(page, head, sz);
+        if (memory)
+            return memory;
     }
     // now, we need alloc a new page
     page = NULL;
-#if defined (OS_LINUX) || defined (OS_MAC)
     posix_memalign((void**)&page, getpagesize(), getpagesize());
-#elif defined (OS_WIN)
-    page = _aligned_malloc(getpagesize(), getpagesize());
-#endif
-    if (!page) return NULL;
+    if (!page)
+        return NULL;
     page->free = PAGE_HEAD_SIZE;
     page->remain = (int16_t)getpagesize() - page->free;
-    meta = PAGE_META(page, PAGE_HEAD_SIZE);
+    meta_t* meta = PAGE_META(page, PAGE_HEAD_SIZE);
     _slab_meta_init(meta, getpagesize() - PAGE_HEAD_SIZE - META_SIZE);
     // add add to link list
     list_add(&page->link, head);
@@ -328,11 +326,7 @@ FREE_SUCCESS:
     // free page
     if (page->remain + PAGE_HEAD_SIZE == getpagesize()) {
         list_del(&page->link);
-#if defined(OS_WIN)
-		_aligned_free((void*)page);
-#else
         free((void*)page);
-#endif
     }
 }
 

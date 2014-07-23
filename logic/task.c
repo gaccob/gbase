@@ -19,8 +19,8 @@ typedef struct task_t {
     task_success_func on_success;
     task_fail_func on_fail;
     void* param;
-    struct timerheap_t* timer;
-    int32_t timer_id;
+    timerheap_t* timer;
+    int timer_id;
 } task_t;
 
 static int _task_timeout(void* args);
@@ -111,10 +111,10 @@ task_step_resume(task_step_t* ts, int ret, int step) {
 
 task_t*
 task_create(task_success_func success, task_fail_func fail, void* param) {
-    task_t* t = NULL;
+    if (!success || !fail)
+        return NULL;
+    task_t* t = (task_t*)MALLOC(sizeof(*t));
     static uint32_t id = TASK_STEP_ID_MASK;
-    if (!success || !fail) return NULL;
-    t = (task_t*)MALLOC(sizeof(*t));
     if (++ id < TASK_STEP_ID_MASK) id = TASK_STEP_ID_MASK + 1;
     t->id = id;
     t->current = t->head = NULL;
@@ -126,9 +126,10 @@ task_create(task_success_func success, task_fail_func fail, void* param) {
     return t;
 }
 
-inline int32_t
+inline int
 task_is_finished(task_t* t) {
-    if (t && t->current == NULL) return 0;
+    if (t && t->current == NULL)
+        return 0;
     return -1;
 }
 
@@ -206,11 +207,10 @@ _task_timeout(void* args) {
 
 static void
 _task_run(task_t* t) {
-    int32_t ret = TASK_RET_FAIL;
-    if (!t || !t->head) return;
-    if (!t->current) return;
+    if (!t || !t->head || !t->current)
+        return;
     while (1) {
-        ret = task_step_run(t->current);
+        int ret = task_step_run(t->current);
         if (ret == TASK_RET_NEXT) {
             t->current = t->current->next;
             if (t->current == t->head) {

@@ -1,12 +1,13 @@
 #include <assert.h>
+#include <sys/time.h>
 #include "core/os_def.h"
 #include "logic/task.h"
 #include "base/timer.h"
-#include "net/curl_client.h"
-#include "net/curl_pool.h"
+#include "net/curlc.h"
+#include "net/curlp.h"
 #include "util/util_time.h"
 
-struct curl_pool_t* CURL_POOL;
+curlp_t* CURL_POOL;
 uint32_t TASK_STEP_ID_1;
 
 #define TASK_LOOP 3
@@ -20,7 +21,7 @@ typedef struct t1_param_t {
 t1_param_t param;
 
 static int32_t
-t1_run(struct task_step_t* ts) {
+t1_run(task_step_t* ts) {
     t1_param_t* tsp = task_step_param(ts);
     assert(tsp);
     tsp->loop = TASK_LOOP;
@@ -33,9 +34,9 @@ t1_run(struct task_step_t* ts) {
 ////////////////////////////////
 
 static void
-t2_notify(struct curl_client_t* cc, void* args) {
-    struct task_step_t* ts = (struct task_step_t*)(args);
-    if (curl_client_ret(cc) != CURLE_OK) {
+t2_notify(curlc_t* cc, void* args) {
+    task_step_t* ts = (task_step_t*)(args);
+    if (curlc_ret(cc) != CURLE_OK) {
         printf("task step[%x] asynchronous notify, fail\n", task_step_id(ts));
         task_step_resume(ts, TASK_RET_FAIL, 0);
     } else {
@@ -46,7 +47,7 @@ t2_notify(struct curl_client_t* cc, void* args) {
 
 static int32_t
 t2_run(struct task_step_t* ts) {
-    int32_t ret = curl_pool_add_get(CURL_POOL, "www.baidu.com", t2_notify, ts, NULL);
+    int32_t ret = curlp_add_get(CURL_POOL, "www.baidu.com", t2_notify, ts, NULL);
     assert(ret == 0);
     printf("task step[%x] asynchronous running\n", task_step_id(ts));
     return TASK_RET_RUNNING;
@@ -57,12 +58,12 @@ t2_run(struct task_step_t* ts) {
 //////////////////////////////
 
 static void
-t3_notify(struct curl_client_t* cc, void* args) {
-    struct task_step_t* ts = (struct task_step_t*)(args);
-    struct task_step_t* t1 = NULL;
+t3_notify(curlc_t* cc, void* args) {
+    task_step_t* ts = (struct task_step_t*)(args);
+    task_step_t* t1 = NULL;
     t1_param_t* tsp = NULL;
 
-    if (curl_client_ret(cc) != CURLE_OK) {
+    if (curlc_ret(cc) != CURLE_OK) {
         printf("task step[%x] asynchronous notify, fail\n", task_step_id(ts));
         task_step_resume(ts, TASK_RET_FAIL, 0);
     }
@@ -81,7 +82,7 @@ t3_notify(struct curl_client_t* cc, void* args) {
 
 static int32_t
 t3_run(struct task_step_t* ts) {
-    int32_t ret = curl_pool_add_get(CURL_POOL, "www.soso.com", t3_notify, ts, NULL);
+    int32_t ret = curlp_add_get(CURL_POOL, "www.soso.com", t3_notify, ts, NULL);
     assert(ret == 0);
     printf("task step[%x] asynchronous running\n", task_step_id(ts));
     return TASK_RET_RUNNING;
@@ -112,13 +113,13 @@ on_fail(struct task_t* t, int timeout) {
 
 int
 test_task() {
-    struct timerheap_t* timer;
-    struct task_t* t;
-    struct task_step_t* t1, *t2, *t3;
+    timerheap_t* timer;
+    task_t* t;
+    task_step_t* t1, *t2, *t3;
     struct timeval timeout;
     struct timeval tv;
 
-    CURL_POOL = curl_pool_create();
+    CURL_POOL = curlp_create();
     assert(CURL_POOL);
 
     timer = timer_create_heap();
@@ -145,10 +146,10 @@ test_task() {
     task_run(t, timer, &timeout);
 
     while (1) {
-        if (curl_pool_running_count(CURL_POOL) > 0) {
-            curl_pool_run(CURL_POOL);
+        if (curlp_running_count(CURL_POOL) > 0) {
+            curlp_poll(CURL_POOL);
         }
-        util_gettimeofday(&tv, NULL);
+        gettimeofday(&tv, NULL);
         timer_poll(timer, &tv);
         if (task_is_finished(t) == 0) {
             break;
@@ -157,7 +158,7 @@ test_task() {
 
     task_release(t);
     timer_release(timer);
-    curl_pool_release(CURL_POOL);
+    curlp_release(CURL_POOL);
     return 0;
 }
 

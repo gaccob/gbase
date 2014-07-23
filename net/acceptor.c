@@ -3,19 +3,19 @@
 
 typedef struct acceptor_t {
     // handler must be at head
-    struct handler_t h;
-    struct reactor_t* r;
-    acceptor_read_func on_read;
+    handler_t h;
+    reactor_t* r;
+    acc_read_func on_read;
     void* read_arg;
-    acceptor_close_func on_close;
+    acc_close_func on_close;
     void* close_arg;
-} acceptor_t;
+} acc_t;
 
 //  return -1, means fail, reactor will remove & close acceptor
 static int
-_acceptor_read(struct handler_t* h) {
-    acceptor_t* a = (acceptor_t*)h;
-    struct sockaddr addr;
+_acc_read(handler_t* h) {
+    acc_t* a = (acc_t*)h;
+    sockaddr_t addr;
     sock_t nsock = sock_accept(a->h.fd, &addr);
     if (nsock == INVALID_SOCK)
         return -1;
@@ -25,31 +25,29 @@ _acceptor_read(struct handler_t* h) {
 }
 
 static int
-_acceptor_close(struct handler_t* h) {
-    acceptor_t* a = (acceptor_t*)h;
+_acc_close(handler_t* h) {
+    acc_t* a = (acc_t*)h;
     if (a->on_close)
         a->on_close(a->h.fd, a->close_arg);
-    return acceptor_release(a);
+    return acc_release(a);
 }
 
-acceptor_t*
-acceptor_create(struct reactor_t* r) {
-    acceptor_t* a;
+acc_t*
+acc_create(reactor_t* r) {
+    acc_t* a;
     if (!r) return NULL;
-    a = (acceptor_t*)MALLOC(sizeof(acceptor_t));
+    a = (acc_t*)MALLOC(sizeof(acc_t));
     if (!a) return NULL;
-    memset(a, 0, sizeof(acceptor_t));
+    memset(a, 0, sizeof(acc_t));
     a->r = r;
     a->h.fd = sock_tcp();
-    a->h.in_func = _acceptor_read;
-    a->h.close_func = _acceptor_close;
+    a->h.in_func = _acc_read;
+    a->h.close_func = _acc_close;
     return a;
 }
 
 inline void
-acceptor_set_read_func(acceptor_t* a,
-                       acceptor_read_func on_read,
-                       void* arg) {
+acc_set_read_func(acc_t* a, acc_read_func on_read, void* arg) {
     if (a) {
         a->on_read = on_read;
         a->read_arg = arg;
@@ -57,9 +55,7 @@ acceptor_set_read_func(acceptor_t* a,
 }
 
 inline void
-acceptor_set_close_func(acceptor_t* a,
-                        acceptor_close_func on_close,
-                        void* arg) {
+acc_set_close_func(acc_t* a, acc_close_func on_close, void* arg) {
     if (a) {
         a->on_close = on_close;
         a->close_arg = arg;
@@ -67,14 +63,14 @@ acceptor_set_close_func(acceptor_t* a,
 }
 
 int
-acceptor_release(acceptor_t* a) {
-    acceptor_stop(a);
+acc_release(acc_t* a) {
+    acc_stop(a);
     if (a) FREE(a);
     return 0;
 }
 
 int
-acceptor_start(acceptor_t* a, struct sockaddr* laddr) {
+acc_start(acc_t* a, sockaddr_t* laddr) {
     int res;
     if (!a || a->h.fd == INVALID_SOCK)
         return -1;
@@ -86,7 +82,7 @@ acceptor_start(acceptor_t* a, struct sockaddr* laddr) {
 }
 
 int
-acceptor_stop(acceptor_t* a) {
+acc_stop(acc_t* a) {
     if (!a || a->h.fd == INVALID_SOCK)
         return -1;
     reactor_unregister(a->r, &a->h);

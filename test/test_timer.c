@@ -1,3 +1,6 @@
+#include <unistd.h>
+#include <sys/time.h>
+
 #include "base/timer.h"
 #include "util/util_time.h"
 
@@ -19,32 +22,32 @@ timer_cb2(void* args) {
 
 int
 test_timer() {
-    int* ids;
-    int i, ret;
-    struct timeval delay;
-    struct timeval now;
+    timerheap_t* timer = timer_create_heap();
+    int* ids = (int*)MALLOC(sizeof(int) * TIMER_LOOP);
+
     struct timeval interval;
-    struct timerheap_t* timer = timer_create_heap();
-    ids = (int*)MALLOC(sizeof(int) * TIMER_LOOP);
     interval.tv_sec = 3;
     interval.tv_usec = 0;
-    for (i=0; i<TIMER_LOOP; i++) {
+
+    struct timeval delay;
+    for (int i = 0; i < TIMER_LOOP; ++ i) {
         ids[i] = i;
         delay.tv_sec = rand() % 16;
         delay.tv_usec = 0;
-        ret = timer_register(timer, &interval, &delay, timer_cb, &ids[i]);
+        int ret = timer_register(timer, &interval, &delay, timer_cb, &ids[i]);
         printf("register timer[%d] delay=%d\n", ret, (int)delay.tv_sec);
     }
 
     delay.tv_sec = 180;
     delay.tv_usec = 0;
-    ret = timer_register(timer, NULL, &delay, timer_cb2, NULL);
+    int ret = timer_register(timer, NULL, &delay, timer_cb2, NULL);
     printf("register timer[%d] delay=%d\n", ret, (int)delay.tv_sec);
 
     while (0 == flag) {
-        util_gettimeofday(&now, NULL);
+        struct timeval now;
+        gettimeofday(&now, NULL);
         timer_poll(timer, &now);
-        SLEEP(10);
+        usleep(100);
     }
 
     timer_release(timer);

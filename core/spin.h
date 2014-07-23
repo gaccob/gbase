@@ -3,7 +3,6 @@
 
 //
 // spin lock type, unlike a mutex, it's running under user-level
-// reference: http://www.gaccob.com/?p=1053
 //
 
 #ifdef __cplusplus
@@ -12,12 +11,13 @@ extern "C" {
 
 #include "core/os_def.h"
 
-struct spin_lock_t;
-struct spin_lock_t* spin_create();
-void spin_release(struct spin_lock_t* lock);
-void spin_lock(struct spin_lock_t* lock);
-int spin_trylock(struct spin_lock_t* lock);
-void spin_unlock(struct spin_lock_t* lock);
+typedef struct spin_lock_t spin_t;
+
+spin_t* spin_create();
+void spin_release(spin_t* lock);
+void spin_lock(spin_t* lock);
+int spin_trylock(spin_t* lock);
+void spin_unlock(spin_t* lock);
 
 #ifdef __cplusplus
 }

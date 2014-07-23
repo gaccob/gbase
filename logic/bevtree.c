@@ -35,13 +35,13 @@ typedef struct bvt_cbtable_t {
 typedef struct bvt_t {
     char name[BVT_MAX_NAME_LEN];
     enum BVTNodeType type;
-    int32_t weight;
+    int weight;
     union {
         struct {
-            int32_t callback_id;
+            int callback_id;
         } act_args;
         struct {
-            int32_t callback_id;
+            int callback_id;
         } con_args;
         struct {
             enum BVTParallelType type;
@@ -84,12 +84,12 @@ typedef struct bvt_t {
     #define BVT_DEBUG_LOG(node) (void)(node)
 #endif
 
-static int32_t _bvt_run(bvt_t* n, bvt_cbtable_t* t, void* input);
+static int _bvt_run(bvt_t* n, bvt_cbtable_t* t, void* input);
 
-static int32_t
+static int
 _bvt_run_select(bvt_t* n, bvt_cbtable_t* t, void* input) {
     bvt_t* c = NULL;
-    int32_t ret, sum, res;
+    int ret, sum, res;
 
     BVT_DEBUG_LOG(n);
     // condition node
@@ -139,7 +139,7 @@ _bvt_run_select(bvt_t* n, bvt_cbtable_t* t, void* input) {
     return BVT_ERROR;
 }
 
-static int32_t
+static int
 _bvt_run_condition(bvt_t* n, bvt_cbtable_t* t, void* input) {
     bvt_func check;
     BVT_DEBUG_LOG(n);
@@ -151,10 +151,10 @@ _bvt_run_condition(bvt_t* n, bvt_cbtable_t* t, void* input) {
     return (*check)(input);
 }
 
-static int32_t
+static int
 _bvt_run_sequence(bvt_t* n, bvt_cbtable_t* t, void* input) {
     bvt_t* c = NULL;
-    int32_t ret;
+    int ret;
 
     BVT_DEBUG_LOG(n);
     c = n->condition;
@@ -175,10 +175,10 @@ _bvt_run_sequence(bvt_t* n, bvt_cbtable_t* t, void* input) {
     return BVT_SUCCESS;
 }
 
-static int32_t
+static int
 _bvt_run_parallel(bvt_t* n, bvt_cbtable_t* t, void* input) {
     bvt_t* c = NULL;
-    int32_t ret, cret;
+    int ret, cret;
 
     BVT_DEBUG_LOG(n);
     c = n->condition;
@@ -211,10 +211,10 @@ _bvt_run_parallel(bvt_t* n, bvt_cbtable_t* t, void* input) {
     return ret;
 }
 
-static int32_t
+static int
 _bvt_run_action(bvt_t* n, bvt_cbtable_t* t, void* input) {
     bvt_func action;
-    int32_t ret;
+    int ret;
 
     BVT_DEBUG_LOG(n);
     if (n->act_args.callback_id < 0 ||
@@ -266,9 +266,9 @@ bvt_release(bvt_t* n) {
 }
 
 static void
-_bvt_debug(bvt_t* b, int32_t indent) {
+_bvt_debug(bvt_t* b, int indent) {
     bvt_t* c = NULL;
-    int32_t i = indent;
+    int i = indent;
     while (i --) {
         if (i == 2) printf("|");
         else if (i < 2) printf("-");
@@ -312,8 +312,8 @@ bvt_debug(bvt_t* b) {
     }
 }
 
-int32_t
-bvt_register_callback(bvt_t* n, bvt_func cb, int32_t id) {
+int
+bvt_register_callback(bvt_t* n, bvt_func cb, int id) {
     if (!n || !cb || id < 0)
         return BVT_ERROR;
 
@@ -341,7 +341,7 @@ bvt_register_callback(bvt_t* n, bvt_func cb, int32_t id) {
     return BVT_SUCCESS;
 }
 
-static int32_t
+static int
 _bvt_run(bvt_t* n, bvt_cbtable_t* t, void* input) {
     if (n) {
         switch (n->type) {
@@ -360,7 +360,7 @@ _bvt_run(bvt_t* n, bvt_cbtable_t* t, void* input) {
     return BVT_ERROR;
 }
 
-int32_t
+int
 bvt_run(bvt_t* n, void* input) {
     if (n) {
         return _bvt_run(n, n->cb_table, input);

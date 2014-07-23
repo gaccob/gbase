@@ -1,42 +1,45 @@
 #include <assert.h>
 #include "idtable.h"
 
-typedef struct idtable_item_t {
+typedef struct node_t {
     // <0 means not used
-    int32_t id;
+    int id;
     void* ptr;
-} idtable_item_t;
+} node_t;
 
 typedef struct idtable_t {
-    idtable_item_t* table;
-    int32_t count;
+    node_t* table;
+    int count;
 } idtable_t;
 
 #define IDTS_INVALID_ID -1
 
 idtable_t*
-idtable_create(int32_t max_count) {
-    idtable_t* table;
-    int32_t index;
+idtable_create(int max_count) {
     assert(max_count > 0);
-    table = (idtable_t*)MALLOC(sizeof(idtable_t));
-    assert(table);
+    idtable_t* table = (idtable_t*)MALLOC(sizeof(idtable_t));
+    if (!table) {
+        return NULL;
+    }
     table->count = max_count;
-    table->table = (idtable_item_t*)MALLOC(sizeof(idtable_item_t) * max_count);
-    assert(table->table);
-    for (index = 0; index < max_count; index ++) {
+    table->table = (node_t*)MALLOC(sizeof(node_t) * max_count);
+    if (!table->table) {
+        FREE(table);
+        return NULL;
+    }
+    for (int index = 0; index < max_count; index ++) {
         table->table[index].id = IDTS_INVALID_ID;
         table->table[index].ptr = 0;
     }
     return table;
 }
 
-int32_t
-idtable_add(idtable_t* table, int32_t id, void* ptr) {
-    int32_t i, index;
-    assert(table && id >= 0 && ptr);
-    index = id % table->count;
-    i = index;
+int
+idtable_add(idtable_t* table, int id, void* ptr) {
+    if (!table || id < 0 || !ptr)
+        return -1;
+    int index = id % table->count;
+    int i = index;
     do {
         if (IDTS_INVALID_ID != table->table[i].id) {
             i ++;
@@ -51,11 +54,11 @@ idtable_add(idtable_t* table, int32_t id, void* ptr) {
 }
 
 void*
-idtable_get(idtable_t* table, int32_t id) {
-    int32_t i, index;
-    assert(table && id >= 0);
-    index = id % table->count;
-    i = index;
+idtable_get(idtable_t* table, int id) {
+    if (!table || id < 0)
+        return NULL;
+    int index = id % table->count;
+    int i = index;
     do {
         if (table->table[i].id == id) {
             return table->table[i].ptr;
@@ -69,11 +72,11 @@ idtable_get(idtable_t* table, int32_t id) {
 }
 
 void
-idtable_remove(idtable_t* table, int32_t id) {
-    int32_t index, i;
-    assert(table && id >= 0);
-    index = id % table->count;
-    i = index;
+idtable_remove(idtable_t* table, int id) {
+    if (!table || id < 0)
+        return;
+    int index = id % table->count;
+    int i = index;
     do {
         if (IDTS_INVALID_ID == table->table[i].id) {
             return;
@@ -90,11 +93,11 @@ idtable_remove(idtable_t* table, int32_t id) {
 
 void
 idtable_cleanup(idtable_t* table) {
-    int32_t i;
-    assert(table);
-    for (i = 0; i < table->count; ++ i) {
-        table->table[i].id = IDTS_INVALID_ID;
-        table->table[i].ptr = NULL ;
+    if (table) {
+        for (int i = 0; i < table->count; ++ i) {
+            table->table[i].id = IDTS_INVALID_ID;
+            table->table[i].ptr = NULL ;
+        }
     }
 }
 
@@ -109,12 +112,11 @@ idtable_release(idtable_t* table) {
 
 int
 idtable_loop(idtable_t* table, idtable_loop_func func, void* arg, int start) {
-    int i, ret = -1;
     if (table) {
         start = (start < 0 ? -start : start) % table->count;
-        for (i = start; i < table->count + start; ++ i) {
+        for (int i = start; i < table->count + start; ++ i) {
             if (table->table[i % table->count].id != IDTS_INVALID_ID) {
-                ret = func(table->table[i % table->count].ptr, arg);
+                int ret = func(table->table[i % table->count].ptr, arg);
                 if (ret) return ret;
             }
         }

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stddef.h>
+#include <unistd.h>
 
 #include "base/slist.h"
 #include "coroutine.h"
@@ -33,7 +34,7 @@ typedef struct crt_t {
 } crt_t;
 
 typedef struct crt_unit_t {
-    crt_func_t func;
+    crt_func func;
     void* arg;
     ucontext_t ctx;
     crt_t* crt;
@@ -42,8 +43,7 @@ typedef struct crt_unit_t {
 } crt_unit_t;
 
 static crt_unit_t*
-_crt_unit_create(crt_t* c, crt_func_t func, void* arg) {
-    int ret;
+_crt_unit_create(crt_t* c, crt_func func, void* arg) {
     crt_unit_t* cu = (crt_unit_t*)MALLOC(sizeof(*cu));
     assert(cu);
     cu->func = func;
@@ -53,10 +53,12 @@ _crt_unit_create(crt_t* c, crt_func_t func, void* arg) {
     cu->stack = (char*)VALLOC(c->stack_size + CRT_UNIT_RESERVED_SIZE);
     // printf("alloc %p\n", cu->stack);
     assert(cu->stack);
+
     // protect reserved space, top done, so resverd at front
-    ret = mprotect(cu->stack, CRT_UNIT_RESERVED_SIZE, PROT_NONE);
+    int ret = mprotect(cu->stack, CRT_UNIT_RESERVED_SIZE, PROT_NONE);
     cu->stack = cu->stack + CRT_UNIT_RESERVED_SIZE;
     assert(0 == ret);
+
     return cu;
 }
 
@@ -95,19 +97,18 @@ crt_create(int crt_stack_size) {
 
 void
 crt_release(crt_t* c) {
-    int i;
-    crt_unit_t* cu;
-    void* vcu;
     if (c) {
         // release running coroutines
-        for (i = 0; i < c->capacity; ++ i) {
-            cu = c->units[i];
-            if (cu) _crt_unit_release(cu);
+        for (int i = 0; i < c->capacity; ++ i) {
+            crt_unit_t* cu = c->units[i];
+            if (cu)
+                _crt_unit_release(cu);
         }
         FREE(c->units);
         c->units = 0;
 
         // release free list
+        void* vcu = NULL;
         while ((vcu = slist_pop_front(c->freelst))) {
             _crt_unit_release((crt_unit_t*)vcu);
         }
@@ -119,9 +120,8 @@ crt_release(crt_t* c) {
 }
 
 int
-crt_new(crt_t* c, crt_func_t func, void* arg) {
-    int i, id;
-    struct crt_unit_t* cu = slist_pop_back(c->freelst);
+crt_new(crt_t* c, crt_func func, void* arg) {
+    crt_unit_t* cu = slist_pop_back(c->freelst);
     if (!cu) {
         cu = _crt_unit_create(c, func, arg);
     } else {
@@ -131,7 +131,7 @@ crt_new(crt_t* c, crt_func_t func, void* arg) {
 
     // expand crt
     if (c->count >= c->capacity) {
-        id = c->capacity;
+        int id = c->capacity;
 
         // coroutine units
         c->units = (crt_unit_t**)REALLOC(c->units,
@@ -147,8 +147,8 @@ crt_new(crt_t* c, crt_func_t func, void* arg) {
     }
 
     // pre-allocted coroutine unit
-    for (i = 0; i < c->capacity; ++ i) {
-        id = (i + c->count) % c->capacity;
+    for (int i = 0; i < c->capacity; ++ i) {
+        int id = (i + c->count) % c->capacity;
         if (c->units[id] == NULL) {
             c->units[id] = cu;
             ++ c->count;
@@ -182,11 +182,13 @@ crt_resume(crt_t* c, int id) {
     assert(c && c->current < 0 && id >= 0 && id < c->capacity);
     crt_unit_t* cu = c->units[id];
     if (!cu) return;
+
     switch (cu->status) {
         case CRT_INIT:
             getcontext(&cu->ctx);
             cu->ctx.uc_stack.ss_sp = cu->stack;
             cu->ctx.uc_stack.ss_size = c->stack_size;
+            // once yield, go back to main
             cu->ctx.uc_link = &c->main;
             cu->status = CRT_RUNNING;
             c->current = id;

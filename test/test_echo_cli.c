@@ -1,56 +1,52 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
+#include <unistd.h>
 #include "core/os_def.h"
 #include "net/sock.h"
 #include "test.h"
 
 int
 test_echo_cli() {
-    int res;
-    sock_t sock;
-    char buffer[1024];
-    size_t buflen, dest_buflen;
-    size_t nsend, nread;
-
-    sock = sock_tcp();
+    sock_t sock = sock_tcp();
     assert(sock >= 0);
 
-    res = sock_connect(sock, ECHO_IP, ECHO_PORT);
+    int res = sock_nonblock_connect(sock, ECHO_IP, ECHO_PORT);
     assert(0 == res);
 
     printf("\n===========================================\n");
     while (1) {
         printf("send msg to server(q->quit, enter->input): ");
 
+        char buffer[1024];
         fgets(buffer, sizeof(buffer) - 1, stdin);
-        buflen = strlen(buffer);
+        size_t buflen = strlen(buffer);
         if (buflen == 2 && buffer[0] == 'q' && buffer[1] == '\n') {
             break;
         }
-        nsend = 0;
+        size_t nsend = 0;
         while (nsend < buflen) {
-            res = sock_write(sock, buffer, buflen);
+            res = write(sock, buffer, buflen);
             if(res > 0) {
                 nsend += res;
             } else {
-                SLEEP(1);
+                usleep(100);
             }
         }
 
         memset(buffer, 0, sizeof(buffer));
-        dest_buflen = buflen;
+        size_t dest_buflen = buflen;
         buflen = sizeof(buffer);
-        nread = 0;
+        size_t nread = 0;
         while (nread < dest_buflen) {
-            res = sock_read(sock, buffer + nread, sizeof(buffer) - nread);
+            res = read(sock, buffer + nread, sizeof(buffer) - nread);
             if (res > 0) {
                 nread += res;
             } else if (res == 0) {
                 printf("\necho server quit.\n");
                 return 0;
             } else {
-                SLEEP(1);
+                usleep(1);
             }
         }
 

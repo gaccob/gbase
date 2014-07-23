@@ -74,7 +74,7 @@ array_count(array_t* array) {
 
 
 int32_t
-array_loop(array_t* array, array_fn func, void* args) {
+array_loop(array_t* array, array_loop_func func, void* args) {
     int32_t index;
     if (!array || array->count <= 0) return -1;
 

@@ -12,32 +12,6 @@ uint32_t util_str2int(const char* key);
 #define TOLOWER(c) (char)((c >= 'A' && c <= 'Z') ? (c | 0x20) : c)
 #define TOUPPER(c) (char)((c >= 'a' && c <= 'z') ? (c & ~0x20) : c)
 
-#if defined(OS_WIN)
-
-    #if !defined snprintf
-    #define snprintf _snprintf
-    #endif
-
-    #if !defined vsnprintf
-    #define vsnprintf _vsnprintf
-    #endif
-
-    inline int strcasecmp(const char *s1, const char *s2) {
-        while (TOUPPER((unsigned char)*s1) == TOUPPER((unsigned char)*s2++)) {
-           if (*s1++ == 0) return 0;
-        }
-        return(TOUPPER((unsigned char)*s1) - TOUPPER((unsigned char)*--s2));
-    }
-
-    inline int strncasecmp(const char *s1, const char *s2, register int n) {
-        while (--n >= 0 && TOUPPER((unsigned char)*s1) == TOUPPER((unsigned char)*s2++)) {
-            if (*s1++ == 0)  return 0;
-        }
-        return(n < 0 ? 0 : TOUPPER((unsigned char)*s1) - TOUPPER((unsigned char)*--s2));
-    }
-
-#endif
-
 enum {
     UTIL_ESCAPE_URI = 0,
     UTIL_ESCAPE_ARGS,

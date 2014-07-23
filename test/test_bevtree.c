@@ -2,23 +2,24 @@
 #include <assert.h>
 #include <time.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "core/os_def.h"
 #include "logic/bevtree.h"
 
 #include "test.h"
 
 typedef struct input_t {
-    int32_t ratio;
+    int ratio;
 } input_t;
 
-int32_t
+int
 condition_300_cb(void* input) {
     input_t* i = (input_t*)(input);
     if (i->ratio < 50)
         return BVT_SUCCESS;
     return BVT_ERROR;
 }
-int32_t
+int
 condition_301_cb(void* input) {
     input_t* i = (input_t*)(input);
     if (i->ratio >= 50)
@@ -26,33 +27,33 @@ condition_301_cb(void* input) {
     return BVT_ERROR;
 }
 
-int32_t
+int
 action_400_cb(void* input) {
     return BVT_SUCCESS;
 }
-int32_t
+int
 action_401_cb(void* input) {
     return BVT_SUCCESS;
 }
-int32_t
+int
 action_402_cb(void* input) {
     return BVT_SUCCESS;
 }
-int32_t
+int
 action_403_cb(void* input) {
     return BVT_SUCCESS;
 }
-int32_t
+int
 action_404_cb(void* input) {
     return BVT_SUCCESS;
 }
 
 int
 test_bevtree() {
-    int32_t ret = -1;
-    int32_t loop = 0;
+    int ret = -1;
+    int loop = 0;
     input_t i;
-    struct bvt_t* bvt = NULL;
+    bvt_t* bvt = NULL;
 
     srand((uint32_t)time(NULL));
     bvt = bvt_load_gliffy(BEV_FILE);
@@ -82,7 +83,7 @@ test_bevtree() {
         ret = bvt_run(bvt, (void*)&i);
         assert(BVT_SUCCESS == ret);
         printf("============\n\n");
-        SLEEP(100);
+        usleep(100);
     }
 
     bvt_release(bvt);

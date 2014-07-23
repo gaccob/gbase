@@ -1,30 +1,31 @@
 #include <assert.h>
+#include <unistd.h>
 #include "base/rbuffer.h"
 #include "core/thread.h"
 
 #define BYTES_SIZE 10240
 #define RBUFFER_LOOP 102400
 
-struct rbuffer_t* buf;
+rbuffer_t* buf;
 static char bytes[BYTES_SIZE];
 
-THREAD_FUNC
+void*
 f1(void* arg) {
     int ret, loop;
     loop = 0;
     do {
         ret = rbuffer_write(buf, bytes, sizeof(bytes));
         if (ret < 0) {
-            SLEEP(1);
+            usleep(100);
         } else {
             loop ++;
             printf("write: %d\n", loop);
         }
     } while(loop < RBUFFER_LOOP);
-    THREAD_RETURN;
+    return NULL;
 }
 
-THREAD_FUNC
+void*
 f2(void* arg) {
     int i, ret, loop;
     char recv[BYTES_SIZE];
@@ -34,7 +35,7 @@ f2(void* arg) {
         nrecv = BYTES_SIZE;
         ret = rbuffer_read(buf, recv, &nrecv);
         if (ret < 0) {
-            SLEEP(1);
+            usleep(100);
         } else {
             loop ++;
             printf("read: %d\n", loop);
@@ -44,12 +45,12 @@ f2(void* arg) {
             }
         }
     }while(loop < RBUFFER_LOOP);
-    THREAD_RETURN;
+    return NULL;
 }
 
 int
 test_rbuffer() {
-    thread_t p1, p2;
+    pthread_t p1, p2;
     int i;
     for (i = 0; i < BYTES_SIZE; i++) {
         bytes[i] = i % 26 + 'a';
@@ -58,11 +59,11 @@ test_rbuffer() {
     buf = rbuffer_create(1024 * 1024);
     assert(buf);
 
-    THREAD_CREATE(p1, f1, NULL);
-    THREAD_CREATE(p2, f2, NULL);
+    pthread_create(&p1, NULL, f1, NULL);
+    pthread_create(&p2, NULL, f2, NULL);
 
-    THREAD_JOIN(p1);
-    THREAD_JOIN(p2);
+    pthread_join(p1, NULL);
+    pthread_join(p2, NULL);
 
     rbuffer_release(buf);
     return 0;

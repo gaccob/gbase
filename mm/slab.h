@@ -1,8 +1,6 @@
 #ifndef SLAB_H_
 #define SLAB_H_
 //
-// when we need to malloc and free small memories frequently, slab works.
-
 // slab requires memory in page size from OS, and organize by list,
 // in order to reduce memory fragment
 //
@@ -10,6 +8,8 @@
 // if < SLAB_SIZE_MINOR, we use small slab, 
 // else if < SLAB_SIZE_MAX, we use common slab,
 // else, slab refuse to allocate
+//
+// notice: not thread-safe
 //
 #ifdef __cplusplus
 extern "C" {

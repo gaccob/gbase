@@ -1,38 +1,37 @@
 #include <assert.h>
+#include <unistd.h>
 #include <time.h>
 #include "core/os_def.h"
 #include "core/thread.h"
 
 #include "test.h"
 
-THREAD_FUNC
+void*
 thread_input(void* arg) {
-    char input[1024];
-    int ret;
-    size_t sz = sizeof(input); 
-    struct bus_t* bt = (struct bus_t*)arg;
     while (1) {
         printf("\n> ");
+        char input[1024];
+        size_t sz = sizeof(input);
         fgets(input, sz, stdin);
-        ret = bus_send_all(bt, input, strnlen(input, sz)); 
+
+        bus_t* bt = (bus_t*)arg;
+        int ret = bus_send_all(bt, input, strnlen(input, sz));
         if (ret != BUS_OK) {
             printf("==>bus send fail:%d\n", ret);
         } else {
             printf("==>bus send:\n%s\n", input);
         }
-        SLEEP(1);
+        usleep(100);
     }
-	THREAD_RETURN;
+    return NULL;
 }
 
-THREAD_FUNC
+void*
 thread_bus(void* arg) {
-    struct bus_t* bt = (struct bus_t*)arg;
+    bus_t* bt = (bus_t*)arg;
     static time_t now;
     static char debug[1024];
     static char recv[1024];
-    bus_addr_t from;
-    size_t rsize;
     while (1) {
         bus_poll(bt);
         if (time(NULL) != now) {
@@ -42,27 +41,28 @@ thread_bus(void* arg) {
                 printf("==>bus dump:\n%s\n", debug);
             }
         }
-        rsize = sizeof(recv);
+        size_t rsize = sizeof(recv);
+        bus_addr_t from;
         while (bus_recv_all(bt, recv, &rsize, &from) == 0) {
             recv[rsize] = 0;
             printf("==>bus recv from [%d]:\n%s\n", from, recv);
         }
-        SLEEP(1);
+        usleep(100);
     }
-	THREAD_RETURN;
+    return NULL;
 }
 
 int
 test_bus(bus_addr_t addr) {
-    struct bus_t* bt;
-    thread_t ti, tb;
+    bus_t* bt;
+    pthread_t ti, tb;
     bt = bus_create(BUS_KEY, addr);
     assert(bt);
-    THREAD_CREATE(ti, thread_input, bt);
-    THREAD_CREATE(tb, thread_bus, bt);
+    pthread_create(&ti, NULL, thread_input, bt);
+    pthread_create(&tb, NULL, thread_bus, bt);
     assert(ti && tb);
-    THREAD_JOIN(ti);
-    THREAD_JOIN(tb);
+    pthread_join(ti, NULL);
+    pthread_join(tb, NULL);
     bus_release(bt);
     return 0;
 }

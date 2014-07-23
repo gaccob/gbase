@@ -3,7 +3,7 @@
 
 //
 // define OS and some common types
-// now support WIN, LINUX, MAC
+// now support LINUX, MAC
 //
 
 #ifdef __cplusplus
@@ -14,14 +14,12 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <time.h>
 
 // win32 & msc_ver
 #if defined(WIN32) || defined(_WIN32)
-    #define OS_WIN 1
-    #ifndef _MSC_VER
-        #error WIN32 but no MSC_VER
-    #endif
+    #error ignore boring WIN32
 
 // linux & gnuc
 #elif defined(__LINUX__) || defined(__linux__)
@@ -63,69 +61,6 @@ extern "C" {
 # define OS_LITTLE_ENDIAN
 #else
 # error endian type not recognized
-#endif
-
-
-#if defined(OS_WIN)
-    #include <winsock2.h>
-
-    #define ERRNO WSAGetLastError()
-    #define ERR_EINTR WSAEINTR
-    #define ERR_EAGAIN WSAEINPROGRESS
-    #define ERR_EWOULDBLOCK WSAEWOULDBLOCK
-    #define ERR_EINPROGRESS WSAEINPROGRESS
-
-    #define SLEEP(ms) Sleep(ms)
-	#define inline __inline
-
-	inline long getpagesize()
-	{
-        static long _pagesize = 0;
-        if (!_pagesize) {
-            SYSTEM_INFO si;
-            GetSystemInfo(&si);
-            _pagesize = si.dwPageSize;
-        }
-        return _pagesize;
-    }
-
-    #include <io.h>
-    #include <direct.h>
-    #include <sys/types.h>
-    #pragma warning(disable:4996)
-    #if !defined(__cplusplus)
-        #define inline __inline
-    #endif
-    #ifndef typeof
-        #define typeof typeid;
-    #endif
-
-    typedef __int8   int8_t;
-    typedef __int16  int16_t;
-    typedef __int32  int32_t;
-    typedef __int64  int64_t;
-    typedef unsigned __int8   uint8_t;
-    typedef unsigned __int16  uint16_t;
-    typedef unsigned __int32  uint32_t;
-    typedef unsigned __int64  uint64_t;
-
-	#define snprintf(buffer, size, fmt, ...) \
-		*(buffer + size - 1) = 0; \
-		_snprintf(buffer, size - 1, fmt, __VA_ARGS__);
-
-#elif defined(OS_LINUX) || defined(OS_MAC)
-    #include <arpa/inet.h>
-    #include <unistd.h>
-
-    #define ERRNO errno
-    #define ERR_EINTR EINTR
-    #define ERR_EAGAIN EAGAIN
-    #define ERR_EWOULDBLOCK EWOULDBLOCK
-    #define ERR_EINPROGRESS EINPROGRESS
-
-    #define SLEEP(ms) usleep(ms * 1000)
-
-    #include <stdint.h>
 #endif
 
 #if !defined ILOG2

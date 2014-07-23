@@ -7,10 +7,10 @@ extern "C" {
 
 #define FSM_WILDCARD_STATUS -1
 
-typedef void (*fsm_status_func_t) (void* args);
-typedef int (*fsm_event_func_t) (void* args);
+typedef void (*fsm_status_func) (void* args);
+typedef int (*fsm_event_func) (void* args);
 
-struct fsm_t;
+typedef struct fsm_t fsm_t;
 
 #define FSM_OK 0
 #define FSM_FAIL -1
@@ -18,28 +18,29 @@ struct fsm_t;
 #define FSM_NOT_EXISTED -3
 #define FSM_FULL -4
 
-struct fsm_t* fsm_create(int size);
-void fsm_release(struct fsm_t* fsm);
+fsm_t* fsm_create(int size);
+void fsm_release(fsm_t* fsm);
 
 // status > 0
-int fsm_register_status(struct fsm_t* fsm, int status,
-                        fsm_status_func_t enter, fsm_status_func_t exit);
+int fsm_register_status(fsm_t* fsm, int status,
+                        fsm_status_func enter,
+                        fsm_status_func exit);
 
 // event > 0
-int fsm_register_event(struct fsm_t* fsm, int event,
-                       fsm_event_func_t handle);
+int fsm_register_event(fsm_t* fsm, int event,
+                       fsm_event_func handle);
 
 // from status could be wildcard
 // if from & to both wildcard, that means keep current status and ignore event
-int fsm_register_rule(struct fsm_t* fsm, int event, int ret_code,
+int fsm_register_rule(fsm_t* fsm, int event, int ret_code,
                       int from_status, int to_status);
 
 // set started status
-int fsm_start(struct fsm_t* fsm, int status);
+int fsm_start(fsm_t* fsm, int status);
 
 // first look for exact rule
 // then try wildcard rules
-int fsm_trigger(struct fsm_t* fsm, int event, void* args);
+int fsm_trigger(fsm_t* fsm, int event, void* args);
 
 #define FSM_STATUS(fsm, st, enter, exit) \
     do { \
@@ -70,3 +71,4 @@ int fsm_trigger(struct fsm_t* fsm, int event, void* args);
 #endif
 
 #endif
+

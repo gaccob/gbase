@@ -31,7 +31,6 @@ extern reactor_impl_t reactor_epoll;
 #elif defined(OS_MAC)
 extern reactor_impl_t reactor_kqueue;
 #endif
-extern reactor_impl_t reactor_select;
 
 #ifdef __cpluplus
 }

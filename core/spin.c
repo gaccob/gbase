@@ -1,95 +1,76 @@
+#include <stdint.h>
 #include "spin.h"
 
-#if defined(OS_WIN)
-    #if !defined(_MSC_VER)
-        #error  windows but not MSC
-    #else
-        #if !defined(SPIN_IMPL_INTLOCK)
-        #define SPIN_IMPL_INTLOCK 1
-        #endif
-    #endif
-#elif defined(OS_LINUX) || defined(OS_MAC)
-    // from 4.1.2
-    #if (GCC_VERSION < 40102)
-        #if !defined(SPIN_IMPL_PTHREAD)
-        #define SPIN_IMPL_PTHREAD 1
-        #endif
-    #else
-        #if !defined(SPIN_IMPL_BUILTIN)
-        #define SPIN_IMPL_BUILTIN 1
-        #endif
+// from 4.1.2
+#if (GCC_VERSION > 40102)
+    #if !defined(SPIN_GCC)
+    #define SPIN_GCC 1
     #endif
 #endif
 
-typedef struct spin_lock_t
-{
-    #if defined(SPIN_IMPL_PTHREAD)
-        pthread_spinlock_t spin;
-    #elif defined(SPIN_IMPL_BUILTIN)
-        volatile uint32_t spin;
-    #else
-        volatile LONG spin;
-    #endif
-} spin_lock_t;
+typedef struct spin_lock_t {
+#if defined(SPIN_GCC)
+    volatile uint32_t spin;
+#else
+    pthread_spinlock_t spin;
+#endif
+} spin_t;
 
-spin_lock_t*
+spin_t*
 spin_create() {
-    spin_lock_t* lock = (spin_lock_t*)MALLOC(sizeof(spin_lock_t));
+    spin_t* lock = (spin_t*)MALLOC(sizeof(spin_t));
     if (!lock) return NULL;
-
-#if defined(SPIN_IMPL_INTLOCK)
-    InterlockedExchange(&lock->spin, 0);
-#elif defined(SPIN_IMPL_BUILTIN)
+#if defined(SPIN_GCC)
     __sync_lock_test_and_set(&lock->spin, 0);
-#elif defined(SPIN_IMPL_PTHREAD)
+#else
     pthread_spin_init(&lock->spin, PTHREAD_PROCESS_SHARED);
 #endif
-
     return lock;
 }
 
 void
-spin_release(spin_lock_t* lock) {
+spin_release(spin_t* lock) {
     if (lock) {
-    #if defined(SPIN_IMPL_PTHREAD)
-        pthread_spin_destroy(&lock->spin);
+    #if defined(SPIN_GCC)
+        spin_unlock(lock);
     #else
-        spin_lock(lock);
+        pthread_spin_destroy(&lock->spin);
     #endif
         FREE(lock);
     }
 }
 
 void
-spin_lock(spin_lock_t* lock) {
-#if defined(SPIN_IMPL_INTLOCK)
-    while(InterlockedExchange(&lock->spin, 1)) {}
-#elif defined(SPIN_IMPL_BUILTIN)
-    while(__sync_lock_test_and_set(&lock->spin, 1)) {}
-#elif defined(SPIN_IMPL_PTHREAD)
-    pthread_spin_lock(&lock->spin);
-#endif
+spin_lock(spin_t* lock) {
+    if (lock) {
+    #if defined(SPIN_GCC)
+        while (__sync_lock_test_and_set(&lock->spin, 1)) {}
+    #else
+        pthread_spin_lock(&lock->spin);
+    #endif
+    }
 }
 
 int
-spin_trylock(spin_lock_t* lock) {
-#if defined(SPIN_IMPL_INTLOCK)
-    return !InterlockedExchange(&lock->spin, 1);
-#elif defined(SPIN_IMPL_BUILTIN)
-    return !__sync_lock_test_and_set(&lock->spin, 1);
-#elif defined(SPIN_IMPL_PTHREAD)
-    pthread_spin_trylock(&lock->spin);
-#endif
+spin_trylock(spin_t* lock) {
+    if (lock) {
+    #if defined(SPIN_GCC)
+        return !__sync_lock_test_and_set(&lock->spin, 1);
+    #else
+        return pthread_spin_trylock(&lock->spin);
+    #endif
+    }
+    return -1;
 }
 
 void
-spin_unlock(spin_lock_t* lock) {
-#if defined(SPIN_IMPL_INTLOCK)
-    InterlockedExchange(&lock->spin, 0);
-#elif defined(SPIN_IMPL_BUILTIN)
-    __sync_lock_release(&lock->spin);
-#elif defined(SPIN_IMPL_PTHREAD)
-    pthread_spin_unlock(&lock->spin);
-#endif
+spin_unlock(spin_t* lock) {
+    if (lock) {
+    #if defined(SPIN_GCC)
+        __sync_lock_release(&lock->spin);
+    #else
+        pthread_spin_unlock(&lock->spin);
+    #endif
+    }
 }
 

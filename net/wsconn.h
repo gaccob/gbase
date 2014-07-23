@@ -11,43 +11,34 @@ extern "C" {
 #include "core/os_def.h"
 #include "net/sock.h"
 #include "net/reactor.h"
-#include "base/connbuffer.h"
+#include "base/buffer.h"
 
 // return buffer size processed, return -1 means process fail, reactor will close it
-typedef int32_t (*wsconn_read_func)(sock_t fd,
-                                    void* arg,
-                                    const char* buffer,
-                                    int32_t buflen);
+typedef int (*wsconn_read_func)(sock_t, void* arg, const char* buffer, int buflen);
+typedef void (*wsconn_build_func)(sock_t, void* arg);
+typedef void (*wsconn_close_func)(sock_t, void* arg);
 
-typedef void (*wsconn_build_func)(sock_t fd, void* arg);
-typedef void (*wsconn_close_func)(sock_t fd, void* arg);
-
-struct wsconn_t;
 typedef struct wsconn_t wsconn_t;
 
 wsconn_t* wsconn_create(reactor_t*);
-int32_t wsconn_release(wsconn_t*);
+int wsconn_release(wsconn_t*);
 
 void wsconn_set_build_func(wsconn_t*, wsconn_build_func, void*);
 void wsconn_set_read_func(wsconn_t*, wsconn_read_func, void*);
 void wsconn_set_close_func(wsconn_t*, wsconn_close_func, void*);
 
-int32_t wsconn_set_buffer(wsconn_t*,
-                          connbuffer_t* rbuf,
-                          connbuffer_t* wbuf,
-                          connbuffer_t* rrbuf);
+int wsconn_set_buffer(wsconn_t*, buffer_t* rb, buffer_t* wb, buffer_t* rrb);
 
 sock_t wsconn_fd(wsconn_t*);
 void wsconn_set_fd(wsconn_t*, sock_t);
 
-int32_t wsconn_start(wsconn_t*);
-int32_t wsconn_stop(wsconn_t*);
-int32_t wsconn_established(wsconn_t*);
+int wsconn_start(wsconn_t*);
+int wsconn_stop(wsconn_t*);
+int wsconn_established(wsconn_t*);
 
 //  return = 0 success
 //  return < 0 fail, maybe full
-int32_t wsconn_send(wsconn_t* con, const char* buffer, int buflen);
-
+int wsconn_send(wsconn_t* con, const char* buffer, int buflen);
 
 #ifdef __cplusplus
 }

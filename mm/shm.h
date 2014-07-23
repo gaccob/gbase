@@ -7,7 +7,7 @@ extern "C" {
 
 #include "core/os_def.h"
 
-struct shm_t;
+typedef struct shm_t shm_t;
 
 #if defined (OS_WIN)
 typedef HANDLE shm_id_t;
@@ -18,19 +18,19 @@ typedef int shm_id_t;
 #define SHM_INVALID_ID 0
 
 // excl == 0: means return null if shm exists
-struct shm_t* shm_create(int shmkey, size_t size, int excl);
+shm_t* shm_create(int shmkey, size_t size, int excl);
 
-shm_id_t shm_id(struct shm_t* shm);
+shm_id_t shm_id(shm_t*);
 
-size_t shm_size(struct shm_t* shm);
+size_t shm_size(shm_t*);
 
 // in different process, same share memory may get different address
 // it's OK, as it's virtual address -->  same physical address is ensured
-void* shm_mem(struct shm_t* shm);
+void* shm_mem(shm_t*);
 
-void shm_destroy(struct shm_t* shm);
+void shm_destroy(shm_t*);
 
-void shm_release(struct shm_t* shm);
+void shm_release(shm_t*);
 
 #ifdef __cplusplus
 }

@@ -6,42 +6,36 @@ extern "C" {
 #endif
 
 #include "core/os_def.h"
-#include "base/connbuffer.h"
+#include "base/buffer.h"
 #include "net/sock.h"
 #include "net/reactor.h"
 
-struct connector_t;
-typedef struct connector_t connector_t;
+typedef struct connector_t con_t;
 
-// return buffer size processed, return -1 means process fail, reactor will close it
-typedef int32_t (*connector_read_func)(sock_t sock,
-                                       void* arg,
-                                       const char* buffer,
-                                       int32_t buflen);
+// return buffer size processed
+// return -1 means process fail, reactor will close it
+typedef int (*con_read_func)(sock_t, void* arg, const char* buffer, int buflen);
+typedef void (*con_close_func)(sock_t, void* arg);
 
-typedef void (*connector_close_func)(sock_t sock,
-                                     void* arg);
+con_t* con_create(reactor_t*);
+int con_release(con_t*);
 
-connector_t* connector_create(reactor_t* r);
-
-void connector_set_read_func(connector_t*, connector_read_func, void*);
-void connector_set_close_func(connector_t*, connector_close_func, void*);
-
-int32_t connector_release(connector_t* con);
+void con_set_read_func(con_t*, con_read_func, void*);
+void con_set_close_func(con_t*, con_close_func, void*);
 
 // set customized buffer (before start)
-int32_t connector_set_rbuf(connector_t*, connbuffer_t*);
-int32_t connector_set_wbuf(connector_t*, connbuffer_t*);
+int con_set_rbuf(con_t*, buffer_t*);
+int con_set_wbuf(con_t*, buffer_t*);
 
-sock_t connector_fd(connector_t* con);
-void connector_set_fd(connector_t* con, sock_t sock);
+sock_t con_sock(con_t*);
+void con_set_sock(con_t*, sock_t);
 
-int32_t connector_start(connector_t* con);
-int32_t connector_stop(connector_t* con);
+int con_start(con_t*);
+int con_stop(con_t*);
 
 //  return = 0 success
 //  return < 0, fail, maybe full
-int32_t connector_send(connector_t* con, const char* buffer, int buflen);
+int con_send(con_t*, const char* buffer, int buflen);
 
 #ifdef __cplusplus
 }

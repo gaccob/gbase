@@ -12,20 +12,20 @@ extern "C" {
 
 #include "core/os_def.h"
 
-typedef uint32_t (*hash_func)(const void*);
-typedef int32_t (*hash_cmp_func)(const void*, const void*);
+typedef uint (*hash_func)(const void*);
+typedef int (*hash_cmp_func)(const void*, const void*);
 typedef void (*hash_loop_func)(void* data, void* args);
-struct hash_t;
+typedef struct hash_t hash_t;
 
-struct hash_t* hash_create(hash_func hash, hash_cmp_func cmp, int32_t hint_size);
-int32_t hash_release(struct hash_t* htable);
+hash_t* hash_create(hash_func hash, hash_cmp_func cmp, int hint_size);
+int hash_release(hash_t*);
 
-int32_t hash_clean(struct hash_t* htable);
-int32_t hash_insert(struct hash_t* htable, void* data);
-int32_t hash_remove(struct hash_t* htable, void* data);
-int32_t hash_count(struct hash_t* htable);
-void hash_loop(struct hash_t* htable, hash_loop_func func, void* args);
-void* hash_find(struct hash_t* htable, void* data);
+int hash_clean(hash_t*);
+int hash_insert(hash_t*, void* data);
+int hash_remove(hash_t*, void* data);
+int hash_count(hash_t*);
+void hash_loop(hash_t*, hash_loop_func func, void* args);
+void* hash_find(hash_t*, void* data);
 
 /* jhash.h: Jenkins hash support.
  *

@@ -41,23 +41,18 @@ typedef struct buddy_t {
 
 buddy_t*
 buddy_init(size_t size, size_t min_alloc_size) {
-    size_t real_size, real_min_size;
-    buddy_t* buddy;
-    int index;
-
     if (min_alloc_size < BUDDY_MIN_SIZE) {
         min_alloc_size = BUDDY_MIN_SIZE;
     }
 
     // round up size by 2^n
-    real_size = ROUNDUP(size);
-    real_min_size = ROUNDUP(min_alloc_size);
-
+    size_t real_size = ROUNDUP(size);
+    size_t real_min_size = ROUNDUP(min_alloc_size);
     if (real_min_size >= real_size) {
         goto BUDDY_FAIL;
     }
 
-    buddy = (buddy_t*)MALLOC(sizeof(buddy_t));
+    buddy_t* buddy = (buddy_t*)MALLOC(sizeof(buddy_t));
     if (!buddy) {
         goto BUDDY_FAIL;
     }
@@ -74,7 +69,7 @@ buddy_init(size_t size, size_t min_alloc_size) {
         goto BUDDY_FAIL1;
     }
 
-    for(index = 0; index < buddy->tree_size; index ++) {
+    for(int index = 0; index < buddy->tree_size; index ++) {
         buddy->tree[index] = BUDDY_UNUSED;
     }
 
@@ -107,26 +102,25 @@ buddy_release(buddy_t* buddy) {
 
 void*
 buddy_realloc(buddy_t* buddy, void* mem, size_t nbytes) {
-    int offset, index, step, current;
-    size_t mem_size;
-    void* new_mem;
-    if (!buddy) return NULL;
-    if (!mem) return buddy_alloc(buddy, nbytes);
+    if (!buddy)
+        return NULL;
+    if (!mem)
+        return buddy_alloc(buddy, nbytes);
     if (nbytes == 0) {
         buddy_free(buddy, mem);
         return NULL;
     }
     // calculate original size
 #ifdef __x86_64__
-    offset = (int)((uint64_t)mem - (uint64_t)buddy->pool);
+    int offset = (int)((uint64_t)mem - (uint64_t)buddy->pool);
 #else
-    offset = (int)((uint32_t)mem - (uint32_t)buddy->pool);
+    int offset = (int)((uint32_t)mem - (uint32_t)buddy->pool);
 #endif
     assert(offset <= buddy->pool_size);
-    index = 1;
-    step = buddy->pool_size;
-    current = 0;
-    mem_size = 0;
+    int index = 1;
+    int step = buddy->pool_size;
+    int current = 0;
+    size_t mem_size = 0;
     while (1) {
         if (buddy->tree[index] == BUDDY_USED) {
             mem_size = BUDDY_SIZE_FROM_INDEX(buddy, index);
@@ -142,7 +136,7 @@ buddy_realloc(buddy_t* buddy, void* mem, size_t nbytes) {
     }
 
     // alloc new memory
-    new_mem = buddy_alloc(buddy, nbytes);
+    void* new_mem = buddy_alloc(buddy, nbytes);
     if (new_mem) {
         memcpy(new_mem, mem, (mem_size < nbytes ? mem_size : nbytes));
     }
@@ -152,18 +146,14 @@ buddy_realloc(buddy_t* buddy, void* mem, size_t nbytes) {
 
 void*
 buddy_alloc(buddy_t* buddy, size_t nbytes) {
-    size_t malloc_size, mem_size;
-    char* mem;
-    int index, left, right;
-    if (!buddy) return NULL;
-    // calculate malloc size
-    malloc_size = ROUNDUP(nbytes);
-    if ((int)nbytes > buddy->pool_size) {
+    if (!buddy)
         return NULL;
-    }
-    if ((int)malloc_size < buddy->min_size) {
+    // calculate malloc size
+    size_t malloc_size = ROUNDUP(nbytes);
+    if ((int)nbytes > buddy->pool_size)
+        return NULL;
+    if ((int)malloc_size < buddy->min_size)
         malloc_size = buddy->min_size;
-    }
 
 #ifndef BUDDY_ALLOC_CHECK
 #define BUDDY_ALLOC_CHECK(index) \
@@ -172,19 +162,19 @@ buddy_alloc(buddy_t* buddy, size_t nbytes) {
     }
 
     // depth first search
-    index = 1;
+    int index = 1;
     while (index < buddy->tree_size) {
         if (buddy->tree[index] == BUDDY_UNUSED) {
-            mem_size = BUDDY_SIZE_FROM_INDEX(buddy, index);
+            size_t mem_size = BUDDY_SIZE_FROM_INDEX(buddy, index);
             // mark used
             if (mem_size == malloc_size) {
                 buddy->tree[index] = BUDDY_USED;
-                mem = BUDDY_MEM_FROM_INDEX(buddy, index);
+                char* mem = BUDDY_MEM_FROM_INDEX(buddy, index);
 
                 // loop back to set full flag
                 while (index > 1) {
-                    left = ((index >> 1) << 1);
-                    right = left + 1;
+                    int left = ((index >> 1) << 1);
+                    int right = left + 1;
                     if ((buddy->tree[left] == BUDDY_USED
                         || buddy->tree[left] == BUDDY_FULL)
                         && (buddy->tree[right] == BUDDY_USED
@@ -215,16 +205,16 @@ buddy_alloc(buddy_t* buddy, size_t nbytes) {
                 index /= 2;
             }
             BUDDY_ALLOC_CHECK(index);
-            index ++;
+            ++ index;
         } else if (buddy->tree[index] == BUDDY_SPLIT) {
-            mem_size = BUDDY_SIZE_FROM_INDEX(buddy, index);
+            size_t mem_size = BUDDY_SIZE_FROM_INDEX(buddy, index);
             if (mem_size <= malloc_size) {
                 // try self or parent's buddy
                 while ((index & 1) && (index > 1)) {
                     index /= 2;
                 }
                 BUDDY_ALLOC_CHECK(index);
-                index ++;
+                ++ index;
             // go to child
             } else {
                 index *= 2;
@@ -237,31 +227,28 @@ buddy_alloc(buddy_t* buddy, size_t nbytes) {
 
 void
 buddy_free(buddy_t* buddy, void* mem) {
-    int offset, index, step, current, loop, left, right;
-    if (!mem || !buddy) {
+    if (!mem || !buddy)
         return;
-    }
-
 #ifdef __x86_64__
-    offset = (int)((uint64_t)mem - (uint64_t)buddy->pool);
+    int offset = (int)((uint64_t)mem - (uint64_t)buddy->pool);
 #else
-    offset = (int)((uint32_t)mem - (uint32_t)buddy->pool);
+    int offset = (int)((uint32_t)mem - (uint32_t)buddy->pool);
 #endif
     assert(offset <= buddy->pool_size);
 
-    index = 1;
-    step = buddy->pool_size;
-    current = 0;
+    int index = 1;
+    int step = buddy->pool_size;
+    int current = 0;
     while (1) {
         if (buddy->tree[index] == BUDDY_USED) {
             assert(current == offset);
             buddy->tree[index] = BUDDY_UNUSED;
 
             // try merge buddy & set parent unused
-            loop = index;
+            int loop = index;
             while (loop > 1) {
-                left = ((loop >> 1) << 1);
-                right = left + 1;
+                int left = ((loop >> 1) << 1);
+                int right = left + 1;
                 if (buddy->tree[left] == BUDDY_UNUSED
                     && buddy->tree[right] == BUDDY_UNUSED) {
                     loop /= 2;
@@ -285,7 +272,7 @@ buddy_free(buddy_t* buddy, void* mem) {
         }
 
         // find dest by dichotomy
-        step/= 2;
+        step /= 2;
         index *= 2;
         if (offset >= current + step) {
             current += step;

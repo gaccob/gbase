@@ -2,27 +2,25 @@
 #include <string.h>
 #include "hash.h"
 
-typedef struct hash_node_t {
+typedef struct node_t {
     void* m_data;
-    struct hash_node_t* m_next;
-} hash_node_t;
+    struct node_t* m_next;
+} node_t;
 
 typedef struct hash_t {
-    int32_t m_size;
-    int32_t m_count;
+    int m_size;
+    int m_count;
     hash_func m_hash_func;
     hash_cmp_func m_cmp_func;
-    hash_node_t** m_table;
+    node_t** m_table;
 } hash_t;
 
 hash_t*
-hash_create(hash_func hash, hash_cmp_func cmp, int32_t hint_size) {
-    hash_t* htable;
+hash_create(hash_func hash, hash_cmp_func cmp, int hint_size) {
     if (!hash || !cmp || hint_size <= 0) {
         return NULL;
     }
-
-    htable = (hash_t*)MALLOC(sizeof(hash_t));
+    hash_t* htable = (hash_t*)MALLOC(sizeof(hash_t));
     if (!htable) {
         goto HASH_FAIL;
     }
@@ -30,41 +28,37 @@ hash_create(hash_func hash, hash_cmp_func cmp, int32_t hint_size) {
     htable->m_size = hint_size;
     htable->m_cmp_func = cmp;
     htable->m_hash_func = hash;
-
-    htable->m_table = (hash_node_t**)MALLOC(sizeof(hash_node_t*) * htable->m_size);
+    htable->m_table = (node_t**)MALLOC(sizeof(node_t*) * htable->m_size);
     if (!htable->m_table) {
         goto HASH_FAIL1;
     }
-    memset(htable->m_table, 0, sizeof(hash_node_t*) * htable->m_size);
+    memset(htable->m_table, 0, sizeof(node_t*) * htable->m_size);
     return htable;
-
 HASH_FAIL1:
     FREE(htable);
 HASH_FAIL:
     return NULL;
 }
 
-int32_t
+int
 hash_release(hash_t* htable) {
-    if (!htable) return -1;
+    if (!htable)
+        return -1;
     hash_clean(htable);
     FREE(htable->m_table);
     FREE(htable);
     return 0;
 }
 
-int32_t
+int
 hash_clean(hash_t* htable) {
-    int32_t i;
-    hash_node_t* bak;
-    hash_node_t* node;
     if (!htable) {
         return -1;
     }
-    for (i = 0; i < htable->m_size; ++ i) {
+    for (int i = 0; i < htable->m_size; ++ i) {
         // free list node
-        node = htable->m_table[i];
-        bak = 0;
+        node_t* node = htable->m_table[i];
+        node_t* bak = 0;
         while (node) {
             bak = node;
             node->m_data = 0;
@@ -79,13 +73,11 @@ hash_clean(hash_t* htable) {
 
 void
 hash_loop(hash_t* htable, hash_loop_func f, void* args) {
-    int32_t i;
-    hash_node_t* node;
     if (!htable || !f) {
         return;
     }
-    for (i = 0; i < htable->m_size; ++ i) {
-        node = htable->m_table[i];
+    for (int i = 0; i < htable->m_size; ++ i) {
+        node_t* node = htable->m_table[i];
         while (node) {
             if (node->m_data) {
                 (*f)(node->m_data, args);
@@ -95,18 +87,15 @@ hash_loop(hash_t* htable, hash_loop_func f, void* args) {
     }
 }
 
-int32_t
+int
 hash_insert(hash_t* htable, void* data) {
-    uint32_t hash_key, index;
-    hash_node_t* node;
-    hash_node_t* prev;
     if (!htable || !data) {
         return -1;
     }
-    hash_key = htable->m_hash_func(data);
-    index = hash_key % htable->m_size;
-    node = htable->m_table[index];
-    prev = 0;
+    uint32_t hash_key = htable->m_hash_func(data);
+    uint32_t index = hash_key % htable->m_size;
+    node_t* node = htable->m_table[index];
+    node_t* prev = 0;
     while (node) {
         if (0 == htable->m_cmp_func(node->m_data, data)) {
             return -1;
@@ -114,8 +103,9 @@ hash_insert(hash_t* htable, void* data) {
         prev = node;
         node = node->m_next;
     }
-    node = (hash_node_t*)MALLOC(sizeof(hash_node_t));
-    if (!node) return -1;
+    node = (node_t*)MALLOC(sizeof(node_t));
+    if (!node)
+        return -1;
     node->m_data = data;
     node->m_next = 0;
     if (prev) {
@@ -123,22 +113,19 @@ hash_insert(hash_t* htable, void* data) {
     } else {
         htable->m_table[index] = node;
     }
-    htable->m_count ++;
+    ++ htable->m_count;
     return 0;
 }
 
-int32_t
+int
 hash_remove(hash_t* htable, void* data) {
-    uint32_t hash_key, index;
-    hash_node_t* node;
-    hash_node_t* prev;
     if (!htable || !data) {
         return -1;
     }
-    hash_key = htable->m_hash_func(data);
-    index = hash_key % htable->m_size;
-    node = htable->m_table[index];
-    prev = 0;
+    uint32_t hash_key = htable->m_hash_func(data);
+    uint32_t index = hash_key % htable->m_size;
+    node_t* node = htable->m_table[index];
+    node_t* prev = 0;
     while (node) {
         if (0 == htable->m_cmp_func(node->m_data, data)) {
             if (prev) {
@@ -148,7 +135,7 @@ hash_remove(hash_t* htable, void* data) {
             }
             FREE(node);
             node = 0;
-            htable->m_count --;
+            -- htable->m_count;
             return 0;
         }
         prev = node;
@@ -157,7 +144,7 @@ hash_remove(hash_t* htable, void* data) {
     return -1;
 }
 
-int32_t
+int
 hash_count(hash_t* htable) {
     return htable ? htable->m_count : -1;
 }
@@ -165,13 +152,11 @@ hash_count(hash_t* htable) {
 
 void*
 hash_find(hash_t* htable, void* data) {
-    uint32_t hash_key;
-    hash_node_t* node;
     if (!htable || !data) {
         return NULL;
     }
-    hash_key = htable->m_hash_func(data);
-    node = htable->m_table[hash_key % htable->m_size];
+    uint32_t hash_key = htable->m_hash_func(data);
+    node_t* node = htable->m_table[hash_key % htable->m_size];
     while (node) {
         if (0 == htable->m_cmp_func(node->m_data, data)) {
             return node->m_data;
