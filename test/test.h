@@ -40,7 +40,7 @@ int test_json_create();
 int test_dh_perf();
 int test_dh();
 
-#define ECHO_IP "127.0.0.1"
+#define ECHO_IP "0.0.0.0"
 #define ECHO_PORT 8000
 #define ECHO_CMD_STOP "stop\n"
 #define ECHO_CMD_WORD '\n'
