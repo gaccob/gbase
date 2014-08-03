@@ -6,13 +6,13 @@
 
 #include "curlp.h"
 
-typedef struct curl_pool_t {
+struct curl_pool_t {
     int size;
     int running;
     CURLM* mhandle;
     slist_t* free_list;
     hash_t* clients;
-} curlp_t;
+};
 
 static uint32_t
 _curlp_hash(const void* data) {

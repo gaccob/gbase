@@ -1,10 +1,10 @@
 #include "bitset.h"
 
-typedef struct bit_t {
+struct bit_t {
     unsigned char* data;
     int bit_size;
     int byte_size;
-} bit_t;
+};
 
 #define BIT_BYTES(len) ((((len) + 8 - 1) & ( ~ (8 - 1))) / 8)
 

@@ -3,12 +3,12 @@
 #include "core/atom.h"
 #include "rqueue.h"
 
-typedef struct rqueue_t {
+struct rqueue_t {
     void** data;
     volatile atom_t read_pos;
     volatile atom_t write_pos;
     size_t size;
-} rqueue_t;
+};
 
 rqueue_t*
 rqueue_create(size_t size) {

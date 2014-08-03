@@ -2,7 +2,7 @@
 
 #define CONNECTOR_BUFFER_SIZE (64 * 1024)
 
-typedef struct connector_t {
+struct connector_t {
     handler_t h;
     reactor_t* r;
 
@@ -17,7 +17,7 @@ typedef struct connector_t {
     void* read_arg;
     con_close_func on_close;
     void* close_arg;
-} con_t;
+};
 
 static int
 _con_read(handler_t* h) {

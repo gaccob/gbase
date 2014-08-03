@@ -1,14 +1,14 @@
 #include "core/os_def.h"
 #include "curlc.h"
 
-typedef struct curl_client_t {
+struct curl_client_t {
     CURL* handle;
     CURLcode err;
     char req[CURL_MAX_REQUEST_LEN];
     char res[CURL_MAX_RESPONSE_LEN];
     curl_cb_func cb;
     void* args;
-} curlc_t;
+};
 
 curlc_t*
 curlc_create() {

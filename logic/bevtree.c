@@ -32,7 +32,7 @@ typedef struct bvt_cbtable_t {
 } bvt_cbtable_t;
 
 #define BVT_MAX_NAME_LEN 128
-typedef struct bvt_t {
+struct bvt_t {
     char name[BVT_MAX_NAME_LEN];
     enum BVTNodeType type;
     int weight;
@@ -54,7 +54,7 @@ typedef struct bvt_t {
     struct bvt_t* condition;
     struct bvt_t* child;
     bvt_cbtable_t* cb_table;
-} bvt_t;
+};
 
 #ifdef BVT_DEBUG
     #define BVT_DEBUG_LOG(node) \

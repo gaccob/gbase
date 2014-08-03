@@ -5,10 +5,10 @@ typedef struct node_t {
     void* data;
 } node_t;
 
-typedef struct slist_t {
+struct slist_t {
     int size;
     node_t* node;
-} slist_t;
+};
 
 slist_t*
 slist_create() {

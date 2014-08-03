@@ -7,13 +7,13 @@ typedef struct node_t {
     struct node_t* m_next;
 } node_t;
 
-typedef struct hash_t {
+struct hash_t {
     int m_size;
     int m_count;
     hash_func m_hash_func;
     hash_cmp_func m_cmp_func;
     node_t** m_table;
-} hash_t;
+};
 
 hash_t*
 hash_create(hash_func hash, hash_cmp_func cmp, int hint_size) {

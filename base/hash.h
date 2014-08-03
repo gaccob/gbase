@@ -12,7 +12,7 @@ extern "C" {
 
 #include "core/os_def.h"
 
-typedef uint (*hash_func)(const void*);
+typedef uint32_t (*hash_func)(const void*);
 typedef int (*hash_cmp_func)(const void*, const void*);
 typedef void (*hash_loop_func)(void* data, void* args);
 typedef struct hash_t hash_t;

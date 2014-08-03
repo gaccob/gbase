@@ -1,7 +1,7 @@
 #include "net/acceptor.h"
 #include "net/sock.h"
 
-typedef struct acceptor_t {
+struct acceptor_t {
     // handler must be at head
     handler_t h;
     reactor_t* r;
@@ -9,7 +9,7 @@ typedef struct acceptor_t {
     void* read_arg;
     acc_close_func on_close;
     void* close_arg;
-} acc_t;
+};
 
 //  return -1, means fail, reactor will remove & close acceptor
 static int

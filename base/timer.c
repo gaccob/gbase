@@ -13,9 +13,9 @@ typedef struct node_t {
     timer_callback cb_func;
 } node_t;
 
-typedef struct timerheap_t {
+struct timerheap_t {
     struct heap_t* heap;
-} timerheap_t;
+};
 
 static int
 _timer_cmp(void* data1, void* data2) {

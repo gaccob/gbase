@@ -19,11 +19,11 @@ typedef struct log_rotator_t {
     int (*check_and_rotate)(struct log_t*);
 } log_rotator_t;
 
-typedef struct log_t {
+struct log_t {
     log_rotator_t* rotator;
     int level;
     char name[MAX_LOG_NAME_LEN];
-} log_t;
+};
 
 #define LOG_DATE_SECONDS (60 * 60 * 24)
 

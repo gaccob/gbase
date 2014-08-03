@@ -1,10 +1,10 @@
 #include "serialize.h"
 
-typedef struct serial_t {
+struct serial_t {
     char* buffer;
     size_t size;
     size_t cur;
-} serial_t;
+};
 
 serial_t*
 serial_create(char* buffer, size_t size) {

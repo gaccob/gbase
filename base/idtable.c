@@ -7,10 +7,10 @@ typedef struct node_t {
     void* ptr;
 } node_t;
 
-typedef struct idtable_t {
+struct idtable_t {
     node_t* table;
     int count;
-} idtable_t;
+};
 
 #define IDTS_INVALID_ID -1
 

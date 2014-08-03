@@ -7,11 +7,11 @@ extern "C" {
 
 #include "net/reactor.h"
 
-typedef struct reactor_t {
+struct reactor_t {
     const char* name;
     void* data;
     const struct reactor_impl_t* impl;
-} reactor_t;
+};
 
 typedef struct reactor_impl_t {
     int (*create)(reactor_t*);

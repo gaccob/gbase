@@ -36,7 +36,7 @@ typedef struct fsm_rule_t {
 //      next status
 
 // status, events, rules allocated when fsm init
-typedef struct fsm_t {
+struct fsm_t {
     int current;
     int size;
 
@@ -53,7 +53,7 @@ typedef struct fsm_t {
     int rules_count;
     fsm_rule_t* rules;
     hash_t* rules_table;
-} fsm_t;
+};
 
 static uint32_t
 _fsm_rule_hash(const void* data) {

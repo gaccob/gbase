@@ -32,7 +32,7 @@ typedef struct bus_head {
     head_t pipes[BUS_MAX_PIPE_COUNT];
 } bus_head;
 
-typedef struct bus_t {
+struct bus_t {
     bus_head* head;
     bus_addr_t self;
     lock_t* lock;
@@ -42,7 +42,7 @@ typedef struct bus_t {
     bus_addr_t terms[BUS_MAX_TERMINAL_COUNT];
     idtable_t* opipes;
     idtable_t* ipipes;
-} bus_t;
+};
 
 static void
 _head_t_assign(head_t* head, int key, bus_addr_t from,

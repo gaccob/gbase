@@ -4,11 +4,11 @@
 #include <unistd.h>
 #include "mm/shm.h"
 
-typedef struct shm_t {
+struct shm_t {
     shm_id_t id;
     size_t size;
     void* mem;
-} shm_t;
+};
 
 // excl == 0: means return null if shm exists
 shm_t*

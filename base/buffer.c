@@ -1,6 +1,6 @@
 #include "buffer.h"
 
-typedef struct buffer_t {
+struct buffer_t {
     char* buffer;
     int buffer_size;
     int read_pos;
@@ -8,7 +8,7 @@ typedef struct buffer_t {
     int drift_threshold;
     buffer_malloc_func malloc_func;
     buffer_free_func free_func;
-} buffer_t;
+};
 
 // buffer_size hint: 4 * max pkg size
 buffer_t*

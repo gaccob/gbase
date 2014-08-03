@@ -3,16 +3,16 @@
 
 #define TASK_STEP_ID_MASK (1UL << 30)
 
-typedef struct task_step_t {
+struct task_step_t {
     uint32_t id;
     struct task_t* t;
     struct task_step_t* next;
     struct task_step_t* prev;
     task_run_func run;
     void* param;
-} task_step_t;
+};
 
-typedef struct task_t {
+struct task_t {
     uint32_t id;
     task_step_t* current;
     task_step_t* head;
@@ -21,7 +21,7 @@ typedef struct task_t {
     void* param;
     timerheap_t* timer;
     int timer_id;
-} task_t;
+};
 
 static int _task_timeout(void* args);
 static void _task_run(task_t* t);

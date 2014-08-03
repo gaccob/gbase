@@ -6,7 +6,7 @@
 
 #define WSCONN_BUFFER_SIZE (64 * 1024)
 
-typedef struct wsconn_t {
+struct wsconn_t {
     handler_t h;
     reactor_t* r;
 
@@ -27,7 +27,7 @@ typedef struct wsconn_t {
     void* close_arg;
 
     int8_t status;
-} wsconn_t;
+};
 
 enum {
     WS_INIT,

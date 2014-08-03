@@ -3,12 +3,12 @@
 #include "core/atom.h"
 #include "rbuffer.h"
 
-typedef struct rbuffer_t {
+struct rbuffer_t {
     uint32_t size;
     volatile atom_t read_pos;
     volatile atom_t write_pos;
     char buffer[0];
-} rbuffer_t;
+};
 
 rbuffer_t*
 rbuffer_create(uint32_t size) {

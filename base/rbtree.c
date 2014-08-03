@@ -20,10 +20,10 @@ typedef struct node_t {
     int color;
 } node_t;
 
-typedef struct rbtree_t {
+struct rbtree_t {
     node_t* root;
     rbtree_cmp_func cmp;
-} rbtree_t;
+};
 
 rbtree_t*
 rbtree_create(rbtree_cmp_func cmp) {
@@ -47,6 +47,7 @@ _rbtree_min_node(node_t* node) {
     return NULL;
 }
 
+#if 0
 static inline node_t*
 _rbtree_max_node(node_t* node) {
     if (node) {
@@ -57,6 +58,7 @@ _rbtree_max_node(node_t* node) {
     }
     return NULL;
 }
+#endif
 
 static node_t*
 _rbtree_next_node(node_t* node) {

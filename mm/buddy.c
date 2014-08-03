@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include "mm/buddy.h"
 
-typedef struct buddy_t {
+struct buddy_t {
     int pool_size;
 
     // min alloc unit size
@@ -18,7 +18,7 @@ typedef struct buddy_t {
 
     // memory pool
     char* pool;
-} buddy_t;
+};
 
 #define BUDDY_UNUSED 0
 #define BUDDY_USED 1

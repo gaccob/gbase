@@ -7,14 +7,14 @@ typedef struct node_t {
     int heap_key;
 } node_t;
 
-typedef struct heap_t {
+struct heap_t {
     node_t* array;
     size_t cap;
     size_t size;
     heap_cmp_func cmp_func;
     int next_key;
     int* key_table;
-} heap_t;
+};
 
 #define HEAP_DEFAULT_SIZE 16
 

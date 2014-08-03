@@ -17,12 +17,12 @@ typedef struct dirty_t {
     int next;
 } dirty_t;
 
-typedef struct dirty_ctx_t {
+struct dirty_ctx_t {
     int table_size;
     dirty_t table[MAX_DIRTY_WORDS_COUNT];
     int hash[MAX_DIRTY_WORDS_HASH_COUNT];
     int index[256][256];
-} dirty_ctx_t;
+};
 
 #define SET_DIRTY_FLAG(index, len)      (index |= (1 << len))
 #define RESET_DIRTY_FLAG(index, len)    (index &= ~(1 << len))

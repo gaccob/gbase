@@ -8,13 +8,13 @@
     #endif
 #endif
 
-typedef struct spin_lock_t {
+struct spin_lock_t {
 #if defined(SPIN_GCC)
     volatile uint32_t spin;
 #else
     pthread_spinlock_t spin;
 #endif
-} spin_t;
+};
 
 spin_t*
 spin_create() {

@@ -1,11 +1,11 @@
 #include "base/list.h"
 #include "conhash.h"
 
-typedef struct conhash_t {
+struct conhash_t {
     list_head_t node_list;
     hash_func key_hash;
     hash_func node_hash;
-} conhash_t;
+};
 
 #define CONHASH_NODE_NAME_SIZE 128
 

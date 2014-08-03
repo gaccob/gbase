@@ -1,3 +1,6 @@
+#include <assert.h>
+#include <errno.h>
+
 #include "core/os_def.h"
 #include "net/reactor.h"
 #include "net/reactor_inner.inl"
@@ -106,7 +109,7 @@ kqueue_dispatch(reactor_t* reactor, int ms) {
     ts.tv_nsec = (ms % 1000) * 1000000;
     int res = kevent(kq->kqueue_fd, NULL, 0, kq->events, KQUEUE_SIZE, &ts);
     if (res < 0) {
-        return ERR_EINTR == ERRNO ? 0 : -ERRNO;
+        return EINTR == errno ? 0 : -errno;
     } else if (0 == res) {
         return 1;
     }

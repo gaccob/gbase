@@ -2,11 +2,11 @@
 #include <string.h>
 #include "array.h"
 
-typedef struct array_t {
+struct array_t {
     int32_t count;
     int32_t size;
     void** array;
-} array_t;
+};
 
 array_t*
 array_create(int32_t size) {

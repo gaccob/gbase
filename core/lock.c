@@ -4,10 +4,10 @@
 
 #include "lock.h"
 
-typedef struct lock_t {
+struct lock_t {
     int key;
     int semid;
-} lock_t;
+};
 
 struct lock_t*
 lock_create(int key) {
