@@ -27,7 +27,6 @@ set(GBASE_LIB gbase)
 set (GBASE_LIB_LINK ${COMMON_LINK_LIB})
 
 # 编译选项
-#set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wno-error=unused-but-set-variable -std=c99 -D_XOPEN_SOURCE -D_GNU_SOURCE")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -std=c99 -D_XOPEN_SOURCE -D_GNU_SOURCE")
 
 # 编译lib的源文件

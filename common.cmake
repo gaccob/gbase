@@ -13,8 +13,8 @@ endif()
 
 # 编译选项（仅gcc、clang、vc）
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set(COMMON_DEBUG "-ggdb -Wall -Werror -pg -O0")
-    set(COMMON_RELEASE "-ggdb -Wall -Werror -pg -O1")
+    set(COMMON_DEBUG "-ggdb -Wall -Werror -pg -O0 -Wno-error=unused-but-set-variable")
+    set(COMMON_RELEASE "-ggdb -Wall -Werror -pg -O1 -Wno-error=unused-but-set-variable")
     set(COMMON_LINK_LIB z dl pthread m curl)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(COMMON_DEBUG "-ggdb -Wall -Werror -pg -O0")
