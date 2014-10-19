@@ -7,7 +7,7 @@ extern "C" {
 
 #include "core/os_def.h"
 
-#define MAX_SKIPLIST_LEVEL 4
+#define MAX_SKIPLIST_LEVEL 8
 typedef int (*skiplist_cmp_func)(void*, void*);
 
 typedef struct skiplist_t skiplist_t;

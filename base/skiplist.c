@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
@@ -11,6 +12,7 @@ typedef struct skiplist_node_t {
 } skiplist_node_t;
 
 struct skiplist_t {
+    int random[MAX_SKIPLIST_LEVEL];
     skiplist_node_t head;
     skiplist_cmp_func cmp;
 };
@@ -19,6 +21,9 @@ skiplist_t* skiplist_create(skiplist_cmp_func cmp) {
     skiplist_t* sl = (skiplist_t*)MALLOC(sizeof(skiplist_t));
     sl->cmp = cmp;
     memset(&sl->head, 0, sizeof(sl->head));
+    for (int i = 0; i < MAX_SKIPLIST_LEVEL; ++ i) {
+        sl->random[i] = pow(10, i);
+    }
     return sl;
 }
 
@@ -39,11 +44,11 @@ skiplist_release(skiplist_t* sl) {
 }
 
 int
-_skiplist_rand_level() {
-    int random = rand() % (1 << MAX_SKIPLIST_LEVEL) + 1;
-    for (int i = 1; i <= MAX_SKIPLIST_LEVEL; ++ i) {
-        if (random >= (1 << (MAX_SKIPLIST_LEVEL - i))) {
-            return i - 1;
+_skiplist_rand_level(skiplist_t* sl) {
+    int random = rand() % sl->random[MAX_SKIPLIST_LEVEL - 1];
+    for (int i = 0; i < MAX_SKIPLIST_LEVEL; ++ i) {
+        if (random < sl->random[i]) {
+            return MAX_SKIPLIST_LEVEL - 1 - i;
         }
     }
     assert(0);
@@ -83,19 +88,19 @@ skiplist_insert(skiplist_t* sl, void* data) {
     skiplist_node_t* node = (skiplist_node_t*)MALLOC(sizeof(skiplist_node_t));
     memset(node, 0, sizeof(skiplist_node_t));
     node->data = data;
-    node->level = _skiplist_rand_level();
-    printf("level=%d\n", node->level);
-
+    node->level = _skiplist_rand_level(sl);
     // insert by level
     skiplist_node_t* prev = &sl->head;
-    int level = node->level;
+    int level = MAX_SKIPLIST_LEVEL - 1;
     while (level >= 0) {
         skiplist_node_t* next = prev->next[level];
         while (next && sl->cmp(next->data, node->data) <= 0) {
             prev = next;
             next = next->next[level];
         }
-        _skiplist_insert_node(prev, node, level);
+        if (level <= node->level) {
+            _skiplist_insert_node(prev, node, level);
+        }
         -- level;
     }
     return 0;
@@ -117,12 +122,14 @@ skiplist_find(skiplist_t* sl, void* data, int erase) {
         while (next) {
             int ret = sl->cmp(next->data, data);
             if (ret == 0) {
+                void* ret = next->data;
                 if (erase == 0) {
                     while (level >= 0) {
                         _skiplist_erase_node(next, level --);
                     }
+                    FREE(next);
                 }
-                return next->data;
+                return ret;
             } else if (ret < 0) {
                 prev = next;
                 next = next->next[level];
@@ -149,5 +156,6 @@ skiplist_debug(skiplist_t* sl, skiplist_tostring_func tostring) {
             }
             printf("\n");
         }
+        printf("\n");
     }
 }

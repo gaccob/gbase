@@ -23,7 +23,7 @@
 
 struct crt_unit_t;
 
-typedef struct crt_t {
+struct crt_t {
     ucontext_t main;
     int stack_size;
     int current;
@@ -31,7 +31,7 @@ typedef struct crt_t {
     int capacity;
     struct crt_unit_t** units;
     struct slist_t* freelst;
-} crt_t;
+};
 
 typedef struct crt_unit_t {
     crt_func func;
