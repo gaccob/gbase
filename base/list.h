@@ -14,7 +14,7 @@ extern "C" {
 
 // #if !defined OS_WIN
 
-// This file is from Linux Kernel (include/linux/list.h)
+// This file is from Linux Kernel (include /linux/list.h)
 // and modified by simply removing hardware prefetching of list items.
 // Here by copyright, credits attributed to wherever they belong.
 // Kulesh Shanmugasundaram (kulesh [squiggly] isis.poly.edu)

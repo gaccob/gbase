@@ -45,7 +45,8 @@ main(int argc, char** argv) {
             "\t<curl>\n"
             "\t<wssvr>\n"
             "\t<bus> <addr>\n"
-            "\t<bevtree>\n");
+            "\t<bevtree>\n"
+            "\t<skiplist>\n");
         return 0;
     }
 
@@ -137,6 +138,8 @@ main(int argc, char** argv) {
         }
     } else if (0 == strcmp(argv[1], "bevtree")) {
         test_bevtree();
+    } else if (0 == strcmp(argv[1], "skiplist")) {
+        test_skiplist();
     }
     return 0;
 }

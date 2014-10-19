@@ -60,4 +60,6 @@ int test_bus(bus_addr_t);
 #define BEV_FILE "json_test_file"
 int test_bevtree();
 
+int test_skiplist();
+
 #endif
