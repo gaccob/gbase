@@ -18,8 +18,8 @@ skiplist_tostring(void* data) {
     return buff;
 }
 
-#define LIMIT 1024000
-#define CAP 102400
+#define LIMIT 10240
+#define CAP 1024 
 
 static int test[CAP];
 
@@ -44,7 +44,7 @@ test_skiplist() {
         assert(0 == ret);
         // skiplist_debug(sl, skiplist_tostring);
     }
-    // skiplist_debug(sl, skiplist_tostring);
+    skiplist_debug(sl, skiplist_tostring);
 
     gettimeofday(&tm, NULL);
     util_timestamp(&tm, ts, sizeof(ts));
@@ -55,10 +55,21 @@ test_skiplist() {
     // assert(data);
 
     for (int i = 0; i < CAP; ++ i) {
-        void* data = skiplist_find(sl, (void*)&test[i], 0);
+        int top = 0;
+        void* data = skiplist_find(sl, (void*)&test[i], &top, 1);
         assert(data);
         assert(*(int*)data == test[i]);
-        //skiplist_debug(sl, skiplist_tostring);
+        // printf("data=%d rank=%d\n", test[i], top);
+        // skiplist_debug(sl, skiplist_tostring);
+    }
+    skiplist_debug(sl, skiplist_tostring);
+
+    for (int i = 0; i < CAP; ++ i) {
+        int top = 0;
+        void* data = skiplist_find(sl, (void*)&test[i], &top, 0);
+        assert(data);
+        assert(*(int*)data == test[i]);
+        // skiplist_debug(sl, skiplist_tostring);
     }
 
     gettimeofday(&tm, NULL);
