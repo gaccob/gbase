@@ -19,7 +19,7 @@ skiplist_tostring(void* data) {
 }
 
 #define LIMIT 10240
-#define CAP 1024 
+#define CAP 16
 
 static int test[CAP];
 
@@ -34,7 +34,7 @@ test_skiplist() {
     char ts[128];
     gettimeofday(&tm, NULL);
     util_timestamp(&tm, ts, sizeof(ts));
-    printf("start %s\n", ts);
+    printf("%s\n", ts);
 
     skiplist_t* sl = skiplist_create(skiplist_cmp);
     // skiplist_debug(sl, skiplist_tostring);
@@ -48,7 +48,7 @@ test_skiplist() {
 
     gettimeofday(&tm, NULL);
     util_timestamp(&tm, ts, sizeof(ts));
-    printf("start %s\n", ts);
+    printf("%s\n", ts);
 
     // int val = 1;
     // void* data = skiplist_find(sl, (void*)&val, 1);
@@ -65,6 +65,32 @@ test_skiplist() {
     skiplist_debug(sl, skiplist_tostring);
 
     for (int i = 0; i < CAP; ++ i) {
+        void* data = skiplist_find_by_rank(sl, i + 1);
+        assert(data);
+        printf("data=%d rank=%d\n", *(int*)data, i + 1);
+    }
+    skiplist_debug(sl, skiplist_tostring);
+
+    gettimeofday(&tm, NULL);
+    util_timestamp(&tm, ts, sizeof(ts));
+    printf("%s\n", ts);
+
+    for (int i = 0; i < CAP; ++ i) {
+        void* data[CAP];
+        memset(data, 0, sizeof(data));
+        int scope = rand() % CAP + 1;
+        int from = rand() % CAP + 1;
+        printf("find [%d, %d+%d=%d)\n", from, from, scope, from + scope);
+        int ret = skiplist_find_list_by_rank(sl, from, &scope, &data[0]);
+        assert(ret == 0);
+        printf("find %d: ", scope);
+        for (int j = 0; j < scope; ++ j) {
+            printf("%d[%d] ", *(int*)data[j], from + j);
+        }
+        printf("\n\n");
+    }
+
+    for (int i = 0; i < CAP; ++ i) {
         int top = 0;
         void* data = skiplist_find(sl, (void*)&test[i], &top, 0);
         assert(data);
@@ -74,7 +100,7 @@ test_skiplist() {
 
     gettimeofday(&tm, NULL);
     util_timestamp(&tm, ts, sizeof(ts));
-    printf("start %s\n", ts);
+    printf("%s\n", ts);
 
     // skiplist_debug(sl, skiplist_tostring);
     skiplist_release(sl);

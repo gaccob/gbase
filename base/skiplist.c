@@ -180,6 +180,66 @@ skiplist_find(skiplist_t* sl, void* data, int* index, int erase) {
     return NULL;
 }
 
+skiplist_node_t*
+_skiplist_find_node_by_rank(skiplist_t* sl, int rank) {
+    if (!sl || rank <= 0) {
+        return NULL;
+    }
+    int level = MAX_SKIPLIST_LEVEL - 1;
+    skiplist_node_t* prev = &sl->head;
+    int span = 0;
+    while (level >= 0) {
+        skiplist_node_t* next = prev->link[level].next;
+        if (next == NULL) {
+            -- level;
+            continue;
+        }
+        while (next) {
+            span += next->link[level].span;
+            if (span == rank) {
+                return next;
+            } else if (span < rank) {
+                prev = next;
+                next = next->link[level].next;
+            } else {
+                span -= next->link[level].span;
+                break;
+            }
+        }
+        -- level;
+    }
+    return NULL;
+}
+
+void*
+skiplist_find_by_rank(skiplist_t* sl, int rank) {
+    if (!sl || rank <= 0) {
+        return NULL;
+    }
+    skiplist_node_t* node = _skiplist_find_node_by_rank(sl, rank);
+    return node ? node->data : NULL;
+}
+
+// rank started from 1
+// scope: in & out
+int
+skiplist_find_list_by_rank(skiplist_t* sl, int rank, int* scope, void** list) {
+    if (!sl || !scope || !list || rank <= 0) {
+        return -1;
+    }
+    skiplist_node_t* node = _skiplist_find_node_by_rank(sl, rank);
+    if (node) {
+        int end = *scope;
+        for (int i = 0; node && (i < end); ++ i) {
+            list[i] = node->data;
+            node = node->link[0].next;
+            *scope = i + 1;
+        }
+        return 0;
+    }
+    return -1;
+}
+
 void
 skiplist_debug(skiplist_t* sl, skiplist_tostring_func tostring) {
     if (sl) {
