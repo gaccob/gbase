@@ -22,6 +22,7 @@ test_atom() {
     pthread_t t1, t2;
     atom_flag = 0;
     atom_cmp = 0;
+    atom_set(&atom_flag, 10);
     pthread_create(&t1, NULL, func, NULL);
     pthread_create(&t2, NULL, func, NULL);
     pthread_join(t1, NULL);

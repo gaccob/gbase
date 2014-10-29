@@ -18,7 +18,7 @@ atom_dec(atom_t volatile* a) {
 // return old value
 atom_t
 atom_set(atom_t volatile* a, uint32_t val) {
-    return __sync_val_compare_and_swap(a, val, val);
+    return __sync_lock_test_and_set(a, val, val);
 }
 
 atom_t
