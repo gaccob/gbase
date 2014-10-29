@@ -68,8 +68,7 @@ rbuffer_read_bytes(rbuffer_t* r) {
     uint32_t write_pos = r->write_pos;
     uint32_t read_pos = r->read_pos;
     uint32_t min_len = sizeof(uint32_t);
-    if (write_pos > read_pos) {
-        assert(write_pos - read_pos >= min_len);
+    if (write_pos - read_pos >= min_len) {
         return write_pos - read_pos - min_len;
     }
     return 0;
