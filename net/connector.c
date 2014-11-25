@@ -188,6 +188,12 @@ con_stop(con_t* con) {
     reactor_unregister(con->r, &con->h);
     sock_close(con->h.fd);
     con->h.fd = INVALID_SOCK;
+    if (con->rbuf) {
+        buffer_reset(con->rbuf);
+    }
+    if (con->wbuf) {
+        buffer_reset(con->wbuf);
+    }
     return 0;
 }
 
