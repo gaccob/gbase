@@ -27,7 +27,7 @@ typedef struct sockaddr_in sockaddrin_t;
 sock_t sock_tcp();
 sock_t sock_udp();
 
-int sock_nonblock_connect(sock_t sock, const char* ip_str, uint16_t port);
+int sock_nonblock_connect(sock_t sock, const char* ip_str, uint16_t port, struct timeval);
 int sock_listen(sock_t sock, sockaddr_t* addr);
 sock_t sock_accept(sock_t sock, sockaddr_t* addr);
 int sock_close(sock_t sock);
@@ -41,6 +41,9 @@ int sock_set_rcvbuf(sock_t sock, int size);
 
 int sock_addr_aton(const char* ip_str, uint16_t port, sockaddrin_t* addr);
 int sock_addr_ntoa(const sockaddrin_t* addr, char* addr_str, size_t len);
+
+const char* sock_peer(sock_t);
+const char* sock_peer_r(sock_t, char* buffer, size_t len);
 
 #ifdef __cplusplus
 }

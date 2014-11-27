@@ -11,7 +11,10 @@ test_echo_cli() {
     sock_t sock = sock_tcp();
     assert(sock >= 0);
 
-    int res = sock_nonblock_connect(sock, ECHO_IP, ECHO_PORT);
+    struct timeval tv;
+    tv.tv_sec = 1;
+    tv.tv_usec = 0;
+    int res = sock_nonblock_connect(sock, ECHO_IP, ECHO_PORT, tv);
     assert(0 == res);
 
     printf("\n===========================================\n");

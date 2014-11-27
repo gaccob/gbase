@@ -12,9 +12,8 @@ sock_udp() {
     return socket(AF_INET, SOCK_DGRAM, 0);
 }
 
-//  timeout default 1 second
 int
-sock_nonblock_connect(sock_t sock, const char* ip_str, uint16_t port) {
+sock_nonblock_connect(sock_t sock, const char* ip_str, uint16_t port, struct timeval tv) {
     // nonblock
     if (sock < 0 || sock_set_nonblock(sock) < 0)
         return -1;
@@ -36,11 +35,6 @@ sock_nonblock_connect(sock_t sock, const char* ip_str, uint16_t port) {
         FD_ZERO(&read_events);
         FD_SET(sock, &read_events);
         write_events = exec_events = read_events;
-
-        struct timeval tv;
-        tv.tv_sec = 1;
-        tv.tv_usec = 0;
-
         ret = select(sock + 1, &read_events, &write_events, &exec_events, &tv);
         if (ret <= 0)
             return ret;
@@ -201,3 +195,27 @@ sock_addr_ntoa(const sockaddrin_t* addr, char* addr_str, size_t len) {
     return 0;
 }
 
+const char*
+sock_peer(sock_t sock) {
+    struct sockaddr_in addr;
+    socklen_t addrlen = sizeof(addr);
+    if (getpeername(sock, (struct sockaddr*)&addr, &addrlen) == 0) {
+        static char peer[32];
+        if (sock_addr_ntoa(&addr, peer, sizeof(peer)) == 0) {
+            return peer;
+        }
+    }
+    return NULL;
+}
+
+const char*
+sock_peer_r(sock_t sock, char* buffer, size_t len) {
+    struct sockaddr_in addr;
+    socklen_t addrlen = sizeof(addr);
+    if (getpeername(sock, (struct sockaddr*)&addr, &addrlen) == 0) {
+        if (sock_addr_ntoa(&addr, buffer, len) == 0) {
+            return buffer;
+        }
+    }
+    return NULL;
+}
