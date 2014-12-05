@@ -7,7 +7,6 @@ reactor_create() {
     if (!reactor)
         return NULL;
     reactor->name = NULL;
-    reactor->impl = 0;
     reactor->data = 0;
 #if defined(OS_LINUX)
     reactor->impl = &reactor_epoll;

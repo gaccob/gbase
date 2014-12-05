@@ -58,13 +58,11 @@ hash_clean(hash_t* htable) {
     for (int i = 0; i < htable->m_size; ++ i) {
         // free list node
         node_t* node = htable->m_table[i];
-        node_t* bak = 0;
         while (node) {
-            bak = node;
+            node_t* bak = node;
             node->m_data = 0;
             node = node->m_next;
             FREE(bak);
-            bak = 0;
         }
         htable->m_table[i] = 0;
     }
