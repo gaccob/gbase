@@ -60,7 +60,7 @@ _epoll_set(epoll_t* epoll, handler_t* h, int option, int events) {
     ep_event.events = 0;
     ep_event.data.ptr = h;
     if (EVENT_IN & events)
-        ep_event.events |= (EPOLLIN | EPOLLERR | EPOLLHUP);
+        ep_event.events |= (EPOLLIN | EPOLLERR);
     if (EVENT_OUT & events)
         ep_event.events |= EPOLLOUT;
     return epoll_ctl(epoll->epoll_fd, option, h->fd, &ep_event);
