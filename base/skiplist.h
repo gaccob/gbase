@@ -9,7 +9,7 @@ extern "C" {
 typedef int (*skiplist_cmp_func)(void*, void*);
 
 typedef struct skiplist_t skiplist_t;
-skiplist_t* skiplist_create(skiplist_cmp_func cmp);
+skiplist_t* skiplist_create(skiplist_cmp_func cmp, int level_coff);
 
 void skiplist_release(skiplist_t* sl);
 

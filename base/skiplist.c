@@ -22,12 +22,12 @@ struct skiplist_t {
     skiplist_cmp_func cmp;
 };
 
-skiplist_t* skiplist_create(skiplist_cmp_func cmp) {
+skiplist_t* skiplist_create(skiplist_cmp_func cmp, int level_coff) {
     skiplist_t* sl = (skiplist_t*)malloc(sizeof(skiplist_t));
     sl->cmp = cmp;
     memset(&sl->head, 0, sizeof(sl->head));
     for (int i = 0; i < MAX_SKIPLIST_LEVEL; ++ i) {
-        sl->random[i] = pow(10, i);
+        sl->random[i] = pow(level_coff, i);
     }
     return sl;
 }
