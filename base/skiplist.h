@@ -5,24 +5,33 @@
 extern "C" {
 #endif
 
+// rank started from 1
+
 #define MAX_SKIPLIST_LEVEL 8
 
 typedef int (*skiplist_cmp_func)(void*, void*);
 
+typedef int (*skiplist_filter_func)(void*, void* args);
+
 typedef struct skiplist_t skiplist_t;
+
 skiplist_t* skiplist_create(skiplist_cmp_func cmp, int level_coff);
 
 void skiplist_release(skiplist_t* sl);
 
 int skiplist_insert(skiplist_t* sl, void* data);
 
-// rank started from 1
-void* skiplist_find(skiplist_t* sl, void* data, int* rank, int erase);
+// rank: output data index rank
+void* skiplist_find(skiplist_t*, void* data, int* rank);
 
-// rank started from 1
+void* skiplist_erase(skiplist_t*, void* data);
+
 void* skiplist_find_by_rank(skiplist_t* sl, int rank);
 
-// rank started from 1
+void* skiplist_find_from_rank_forward(skiplist_t*, int rank, skiplist_filter_func, void* arg);
+
+void* skiplist_find_from_rank_backward(skiplist_t*, int rank, skiplist_filter_func, void* arg);
+
 // span: in & out
 int skiplist_find_list_by_rank(skiplist_t* sl, int rank, int* scope, void** list);
 

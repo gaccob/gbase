@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <string.h>
 
+#include "core/os_def.h"
 #include "skiplist.h"
 
 typedef struct skiplist_node_t {
@@ -23,7 +24,7 @@ struct skiplist_t {
 };
 
 skiplist_t* skiplist_create(skiplist_cmp_func cmp, int level_coff) {
-    skiplist_t* sl = (skiplist_t*)malloc(sizeof(skiplist_t));
+    skiplist_t* sl = (skiplist_t*)MALLOC(sizeof(skiplist_t));
     sl->cmp = cmp;
     memset(&sl->head, 0, sizeof(sl->head));
     for (int i = 0; i < MAX_SKIPLIST_LEVEL; ++ i) {
@@ -40,11 +41,11 @@ skiplist_release(skiplist_t* sl) {
         while (prev) {
             next = prev->link[0].next;
             if (prev != &sl->head) {
-                free(prev);
+                FREE(prev);
             }
             prev = next;
         }
-        free(sl);
+        FREE(sl);
     }
 }
 
@@ -91,7 +92,7 @@ skiplist_insert(skiplist_t* sl, void* data) {
     if (!sl || !data) {
         return -1;
     }
-    skiplist_node_t* node = (skiplist_node_t*)malloc(sizeof(skiplist_node_t));
+    skiplist_node_t* node = (skiplist_node_t*)MALLOC(sizeof(skiplist_node_t));
     memset(node, 0, sizeof(skiplist_node_t));
     node->data = data;
     node->level = _skiplist_rand_level(sl);
@@ -127,8 +128,8 @@ skiplist_insert(skiplist_t* sl, void* data) {
     return 0;
 }
 
-void*
-skiplist_find(skiplist_t* sl, void* data, int* index, int erase) {
+static void*
+_skiplist_find_erase(skiplist_t* sl, void* data, int* rank, int erase) {
     if (!sl || !data) {
         return NULL;
     }
@@ -153,7 +154,7 @@ skiplist_find(skiplist_t* sl, void* data, int* index, int erase) {
                     while (level >= 0) {
                         _skiplist_erase_node(next, level --);
                     }
-                    free(next);
+                    FREE(next);
                     // change upper next span
                     for (int i = 0; i < MAX_SKIPLIST_LEVEL; ++ i) {
                         if (change[i]) {
@@ -161,9 +162,9 @@ skiplist_find(skiplist_t* sl, void* data, int* index, int erase) {
                         }
                     }
                 }
-                // index accumulated by span
-                if (index) {
-                   *index = span;
+                // rank accumulated by span
+                if (rank) {
+                   *rank = span;
                 }
                 return ret;
             } else if (ret < 0) {
@@ -178,6 +179,17 @@ skiplist_find(skiplist_t* sl, void* data, int* index, int erase) {
         -- level;
     }
     return NULL;
+}
+
+void*
+skiplist_find(skiplist_t* sl, void* data, int* rank) {
+    return _skiplist_find_erase(sl, data, rank, -1);
+}
+
+void*
+skiplist_erase(skiplist_t* sl, void* data) {
+    int dummy;
+    return _skiplist_find_erase(sl, data, &dummy, 0);
 }
 
 skiplist_node_t*
@@ -220,6 +232,38 @@ skiplist_find_by_rank(skiplist_t* sl, int rank) {
     return node ? node->data : NULL;
 }
 
+void*
+skiplist_find_from_rank_forward(skiplist_t* sl, int rank, skiplist_filter_func f, void* arg) {
+    if (!sl || rank <= 0) {
+        return NULL;
+    }
+    skiplist_node_t* node = _skiplist_find_node_by_rank(sl, rank);
+    while (node && f && (node != &sl->head)) {
+        if (f(node->data, arg) == 0) {
+            return node->data;
+        } else {
+            node = node->link[0].next;
+        }
+    }
+    return NULL;
+}
+
+void*
+skiplist_find_from_rank_backward(skiplist_t* sl, int rank, skiplist_filter_func f, void* arg) {
+    if (!sl || rank <= 0) {
+        return NULL;
+    }
+    skiplist_node_t* node = _skiplist_find_node_by_rank(sl, rank);
+    while (node && f && (node != &sl->head)) {
+        if (f(node->data, arg) == 0) {
+            return node->data;
+        } else {
+            node = node->link[0].prev;
+        }
+    }
+    return NULL;
+}
+
 // rank started from 1
 // scope: in & out
 int
@@ -257,3 +301,4 @@ skiplist_debug(skiplist_t* sl, skiplist_tostring_func tostring) {
         printf("\n");
     }
 }
+

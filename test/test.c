@@ -46,7 +46,9 @@ main(int argc, char** argv) {
             "\t<wssvr>\n"
             "\t<bus> <addr>\n"
             "\t<bevtree>\n"
-            "\t<skiplist>\n");
+            "\t<skiplist>\n"
+            "\t<skiplistdup>\n"
+            "\t<skiplistfind>\n");
         return 0;
     }
 
@@ -140,6 +142,10 @@ main(int argc, char** argv) {
         test_bevtree();
     } else if (0 == strcmp(argv[1], "skiplist")) {
         test_skiplist();
+    } else if (0 == strcmp(argv[1], "skiplistdup")) {
+        test_skiplist_dup();
+    } else if (0 == strcmp(argv[1], "skiplistfind")) {
+        test_skiplist_find();
     }
     return 0;
 }

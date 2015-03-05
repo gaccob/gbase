@@ -61,5 +61,7 @@ int test_bus(bus_addr_t);
 int test_bevtree();
 
 int test_skiplist();
+int test_skiplist_dup();
+int test_skiplist_find();
 
 #endif
