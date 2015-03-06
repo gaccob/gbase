@@ -122,7 +122,7 @@ skiplist_insert(skiplist_t* sl, void* data) {
         node->link[i].span = node->link[i - 1].span + span[i - 1];
         skiplist_node_t* next = node->link[i].next;
         if (next) {
-            next->link[i].span -= (span[i - 1] - 1);
+            next->link[i].span -= (node->link[i].span - 1);
         }
     }
     return 0;
@@ -284,10 +284,31 @@ skiplist_find_list_by_rank(skiplist_t* sl, int rank, int* scope, void** list) {
     return -1;
 }
 
+int
+skiplist_size(skiplist_t* sl) {
+    if (!sl) {
+        return -1;
+    }
+    int span = 0;
+    int level = MAX_SKIPLIST_LEVEL - 1;
+    skiplist_node_t* prev = &sl->head;
+    while (level >= 0) {
+        skiplist_node_t* next = prev->link[level].next;
+        if (next == NULL) {
+            -- level;
+            continue;
+        }
+        span += next->link[level].span;
+        prev = next;
+    }
+    return span;
+}
+
 void
 skiplist_debug(skiplist_t* sl, skiplist_tostring_func tostring) {
     if (sl) {
         skiplist_node_t* from = &sl->head;
+        printf("total=%d\n", skiplist_size(sl));
         for (int i = 0; i < MAX_SKIPLIST_LEVEL; ++ i) {
             skiplist_node_t* node = from->link[i].next;
             printf("level[%d]: ", i);

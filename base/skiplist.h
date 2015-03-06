@@ -7,7 +7,7 @@ extern "C" {
 
 // rank started from 1
 
-#define MAX_SKIPLIST_LEVEL 8
+#define MAX_SKIPLIST_LEVEL 4
 
 typedef int (*skiplist_cmp_func)(void*, void*);
 
@@ -31,6 +31,8 @@ void* skiplist_find_by_rank(skiplist_t* sl, int rank);
 void* skiplist_find_from_rank_forward(skiplist_t*, int rank, skiplist_filter_func, void* arg);
 
 void* skiplist_find_from_rank_backward(skiplist_t*, int rank, skiplist_filter_func, void* arg);
+
+int skiplist_size(skiplist_t*);
 
 // span: in & out
 int skiplist_find_list_by_rank(skiplist_t* sl, int rank, int* scope, void** list);
