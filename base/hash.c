@@ -69,10 +69,10 @@ hash_clean(hash_t* htable) {
     return 0;
 }
 
-void
+int
 hash_loop(hash_t* htable, hash_loop_func f, void* args) {
     if (!htable || !f) {
-        return;
+        return -1;
     }
     for (int i = 0; i < htable->m_size; ++ i) {
         node_t* node = htable->m_table[i];
@@ -83,6 +83,7 @@ hash_loop(hash_t* htable, hash_loop_func f, void* args) {
             node = node->m_next;
         }
     }
+    return 0;
 }
 
 int
@@ -115,10 +116,10 @@ hash_insert(hash_t* htable, void* data) {
     return 0;
 }
 
-int
+void*
 hash_remove(hash_t* htable, void* data) {
     if (!htable || !data) {
-        return -1;
+        return NULL;
     }
     uint32_t hash_key = htable->m_hash_func(data);
     uint32_t index = hash_key % htable->m_size;
@@ -131,15 +132,16 @@ hash_remove(hash_t* htable, void* data) {
             } else {
                 htable->m_table[index] = 0;
             }
+            void* ret = node->m_data;
             FREE(node);
             node = 0;
             -- htable->m_count;
-            return 0;
+            return ret;
         }
         prev = node;
         node = node->m_next;
     }
-    return -1;
+    return NULL;
 }
 
 int

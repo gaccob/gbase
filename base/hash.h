@@ -1,10 +1,8 @@
 #ifndef HASH_H_
 #define HASH_H_
 
-//
 // it's a hash table (not key-value style, just a table)
 // with a jhash method
-//
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,18 +12,18 @@ extern "C" {
 
 typedef uint32_t (*hash_func)(const void*);
 typedef int (*hash_cmp_func)(const void*, const void*);
-typedef void (*hash_loop_func)(void* data, void* args);
+typedef void (*hash_loop_func)(void* data, void* arg);
 typedef struct hash_t hash_t;
 
 hash_t* hash_create(hash_func hash, hash_cmp_func cmp, int hint_size);
 int hash_release(hash_t*);
 
-int hash_clean(hash_t*);
 int hash_insert(hash_t*, void* data);
-int hash_remove(hash_t*, void* data);
-int hash_count(hash_t*);
-void hash_loop(hash_t*, hash_loop_func func, void* args);
 void* hash_find(hash_t*, void* data);
+void* hash_remove(hash_t*, void* data);
+int hash_count(hash_t*);
+int hash_clean(hash_t*);
+int hash_loop(hash_t*, hash_loop_func func, void* arg);
 
 /* jhash.h: Jenkins hash support.
  *
