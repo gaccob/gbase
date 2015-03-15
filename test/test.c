@@ -4,6 +4,7 @@
 #include <sys/time.h>
 
 #include "test.h"
+#include "util/cmd.h"
 
 int
 get_process_time(struct timeval* from) {
@@ -13,7 +14,31 @@ get_process_time(struct timeval* from) {
 }
 
 int
+test_cmd() {
+    cmd_t* cmd = cmd_create(".history", "~>");
+    cmd_register(cmd, "base64");
+    cmd_register(cmd, "paa pbb");
+    cmd_register(cmd, "aaa bbb ccc");
+    while (1) {
+        char* line = cmd_readline(cmd);
+        if (!line) {
+            break;
+        }
+        printf("get command: %s\n", line);
+        free(line);
+        if (cmd_eof(cmd)) {
+            if (cmd_closed(cmd)) {
+                break;
+            }
+        }
+    }
+    cmd_release(cmd);
+    return 0;
+}
+
+int
 main(int argc, char** argv) {
+    // test_cmd();
     if (argc < 2) {
         printf("usage: ./test <base64>\n"
             "\t<wscode>\n"

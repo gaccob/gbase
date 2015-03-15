@@ -1,7 +1,8 @@
 DEPENDENCE:
 
-    1. curl-7.30.0
-    2. openssl-1.0.1e
+    1. curl
+    2. openssl
+    3. readline
 
 HOW TO BUILD (macos & linux only, windows ignore)
     
