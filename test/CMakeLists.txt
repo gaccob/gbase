@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 2.8.10)
+# compatible for travis CI
+cmake_minimum_required(VERSION 2.8.7)
 set(TEST_NAME "test")
 project("${TEST_NAME}")
 aux_source_directory(. TEST_SOURCES)
