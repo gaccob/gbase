@@ -1,0 +1,38 @@
+language: c
+
+compiler:
+  - gcc
+  - clang
+
+before_script:
+  - sudo apt-get install -qq cmake
+  - sudo apt-get install -qq curl
+  - sudo apt-get install -qq openssl
+  - sudo apt-get install -qq readline
+  - mkdir -p build && cd build && cmake ..
+
+after_success:
+
+script:
+  - make
+
+install: true
+
+branches:
+  only:
+    - master
+
+notifications:
+  email: false
+  irc:
+    template:
+      - "%{repository}/%{branch} (%{commit} - %{author}): %{build_url}: %{message}"
+
+env:
+  - LANG="zh_CN.UTF-8"
+
+os:
+  - linux
+  - osx
+
+osx_image: xcode61
