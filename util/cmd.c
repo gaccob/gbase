@@ -9,7 +9,7 @@
 #include "cmd.h"
 
 #define MAX_WORD_LEN 32
-#define MAX_WORD_OPTION 32
+#define MAX_WORD_OPTION 32 
 
 typedef struct word_t {
     char word[MAX_WORD_LEN];
@@ -89,15 +89,32 @@ _word_release(word_t* c) {
 }
 
 static void
-_word_add_complete(char* word) {
+_word_add_complete(const char* word) {
     if (_cmd && word) {
         for (int i = 0; i < MAX_WORD_OPTION; ++ i) {
             if (!_cmd->complete[i]) {
                 _cmd->complete[i] = (char*) MALLOC(MAX_WORD_LEN);
-                snprintf(_cmd->complete[i], MAX_WORD_LEN, "%s ", word);
+                snprintf(_cmd->complete[i], MAX_WORD_LEN, "%s", word);
+                // printf("auto complete[%s]\n", word);
                 return;
             }
         }
+    }
+}
+
+static bool
+_word_has_complete() {
+    return _cmd && _cmd->complete[0];
+}
+
+static void
+_word_add_complete_prefix(const char* prefix) {
+    if (_cmd && prefix && _cmd->complete[0] && !_cmd->complete[1]) {
+        char* concat = _cmd->complete[0];
+        int size = MAX_WORD_LEN + strlen(prefix) + 2;
+        _cmd->complete[0] = (char*) MALLOC(size);
+        snprintf(_cmd->complete[0], size, "%s %s", prefix, concat);
+        FREE(concat);
     }
 }
 
@@ -128,23 +145,25 @@ _auto_complete(const char* text, int state) {
             break;
         }
     }
+    _cmd->complete[MAX_WORD_OPTION - 1] = NULL;
     return ret;
 }
 
 static char**
 _completed(const char* text, int start, int end) {
-    (void)(start);
-    (void)(end);
     if (!_cmd || !_cmd->word) {
         return rl_completion_matches(text, rl_filename_completion_function);
     }
 
-    char* line = rl_line_buffer;
+    int line_size = end + 1;
+    char line[line_size];
+    snprintf(line, line_size, "%s", rl_line_buffer);
+    // printf("\nline[%s] text[%s]\n", line, text);
     char* sep = " \n";
     char* word = line ? strtok(line, sep) : NULL;
-    word_t* parent = _cmd->word;
 
     // find parent
+    word_t* parent = _cmd->word;
     for (; word; word = strtok(NULL, sep)) {
         bool found = false;
         for (int i = 0; i < MAX_WORD_OPTION; ++ i) {
@@ -172,7 +191,13 @@ _completed(const char* text, int start, int end) {
             break;
         }
     }
-    return rl_completion_matches(text, _auto_complete);
+    if (!word && text[0] != 0 && parent != _cmd->word) {
+        _word_add_complete_prefix(text);
+    }
+    if (_word_has_complete()) {
+        return rl_completion_matches(text, _auto_complete);
+    }
+    return rl_completion_matches("", rl_filename_completion_function);
 }
 
 cmd_t*

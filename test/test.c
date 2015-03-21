@@ -16,9 +16,13 @@ get_process_time(struct timeval* from) {
 int
 test_cmd() {
     cmd_t* cmd = cmd_create(".history", "~>");
-    cmd_register(cmd, "base64");
+    cmd_register(cmd, "ddddd");
     cmd_register(cmd, "paa pbb");
     cmd_register(cmd, "aaa bbb ccc");
+    cmd_register(cmd, "aaa bbb ccc ddd");
+    cmd_register(cmd, "aaa bb1");
+    cmd_register(cmd, "aaa bb2");
+    cmd_register(cmd, "aaa bbb ccc eee");
     while (1) {
         char* line = cmd_readline(cmd);
         if (!line) {
