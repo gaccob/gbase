@@ -4,9 +4,8 @@ compiler:
   - gcc
 
 before_script:
-  - sudo apt-get update -qq cmake
-  - sudo apt-get update -qq curl
-  - sudo apt-get update -qq openssl
+  - sudo apt-get install -qq cmake
+  - sudo apt-get install -qq curl
   - mkdir -p build && cd build && cmake ..
 
 after_success:
