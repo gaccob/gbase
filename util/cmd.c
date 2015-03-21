@@ -160,7 +160,7 @@ _completed(const char* text, int start, int end) {
     snprintf(line, line_size, "%s", rl_line_buffer);
     // printf("\nline[%s] text[%s]\n", line, text);
     char* sep = " \n";
-    char* word = line ? strtok(line, sep) : NULL;
+    char* word = strtok(line, sep);
 
     // find parent
     word_t* parent = _cmd->word;
