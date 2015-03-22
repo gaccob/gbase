@@ -20,16 +20,21 @@ extern int test_util_shuffle(char*);
 extern int test_util_unicode(char*);
 
 extern int test_base_conhash(char*);
+extern int test_base_bitset(char*);
+
+extern int test_core_fsm(char*);
 
 int
 main(int argc, char** argv) {
     cmd_t* cmd = cmd_create(".history", "~>");
-    cmd_register(cmd, "util base64", test_util_base64);
-    cmd_register(cmd, "util wscode", test_util_wscode);
-    cmd_register(cmd, "util random", test_util_random);
-    cmd_register(cmd, "util shuffle", test_util_shuffle);
-    cmd_register(cmd, "util unicode", test_util_unicode);
-    cmd_register(cmd, "base conhash", test_base_conhash);
+    cmd_register(cmd, "base conhash",   test_base_conhash);
+    cmd_register(cmd, "base bitset",    test_base_bitset);
+    cmd_register(cmd, "core fsm",       test_core_fsm);
+    cmd_register(cmd, "util base64",    test_util_base64);
+    cmd_register(cmd, "util wscode",    test_util_wscode);
+    cmd_register(cmd, "util random",    test_util_random);
+    cmd_register(cmd, "util shuffle",   test_util_shuffle);
+    cmd_register(cmd, "util unicode",   test_util_unicode);
 
     while (1) {
         char* line = cmd_readline(cmd);
@@ -59,8 +64,6 @@ main(int argc, char** argv) {
 #ifdef OS_LINUX
             "\t<coroutine>\n"
 #endif
-            "\t<fsm>\n"
-            "\t<bitset>\n"
             "\t<heap>\n"
             "\t<rbtree>\n"
             "\t<rbuffer>\n"
@@ -87,11 +90,7 @@ main(int argc, char** argv) {
         return 0;
     }
 
-    if (0 == strcmp(argv[1], "fsm")) {
-        test_fsm();
-    } else if (0 == strcmp(argv[1], "bitset")) {
-        test_bitset();
-    } else if (0 == strcmp(argv[1], "heap")) {
+    if (0 == strcmp(argv[1], "heap")) {
         test_heap();
     } else if (0 == strcmp(argv[1], "rbtree")) {
         test_rbtree();

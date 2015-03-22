@@ -13,38 +13,38 @@
 
 void
 test_fsm_init_enter(void* args) {
-    printf("enter status[init]\n");
+    printf("\tenter status [init]\n");
 }
 void
 test_fsm_init_exit(void* args) {
-    printf("exit status[init]\n");
+    printf("\texit  status [init]\n");
 }
 
 void
 test_fsm_loading_enter(void* args) {
-    printf("enter status[loading]\n");
+    printf("\tenter status [loading]\n");
 }
 void
 test_fsm_loading_exit(void* args) {
-    printf("exit status[loading]\n");
+    printf("\texit  status [loading]\n");
 }
 
 void
 test_fsm_playing_enter(void* args) {
-    printf("enter status[playing]\n");
+    printf("\tenter status [playing]\n");
 }
 void
 test_fsm_playing_exit(void* args) {
-    printf("exit status[playing]\n");
+    printf("\texit  status [playing]\n");
 }
 
 void
 test_fsm_logout_enter(void* args) {
-    printf("enter status[logout]\n");
+    printf("\tenter status [logout]\n");
 }
 void
 test_fsm_logout_exit(void* args) {
-    printf("exit status[logout]\n");
+    printf("\texit  status [logout]\n");
 }
 
 int
@@ -62,12 +62,9 @@ test_fsm_handle_logout(void* args) {
     return FSM_OK;
 }
 
-void
-test_fsm() {
-    struct fsm_t* fsm;
-    int ret;
-
-    fsm = fsm_create(4);
+int
+test_core_fsm(char* param) {
+    struct fsm_t* fsm = fsm_create(4);
     assert(fsm);
 
     FSM_STATUS(fsm, S_INIT, test_fsm_init_enter, test_fsm_init_exit);
@@ -90,8 +87,11 @@ test_fsm() {
 
     FSM_RULE(fsm, EV_LOGOUT, FSM_OK, FSM_WILDCARD_STATUS, S_LOGOUT);
 
-    ret = fsm_start(fsm, S_INIT);
-    assert(ret == FSM_OK);
+    int ret = fsm_start(fsm, S_INIT);
+    if (ret != FSM_OK) {
+        fprintf(stderr, "fsm start fail: %d\n", ret);
+        return ret;
+    }
 
     FSM_TRIGGER(fsm, EV_LOGIN, NULL);
     FSM_TRIGGER(fsm, EV_LOAD, NULL);
@@ -106,5 +106,6 @@ test_fsm() {
     FSM_TRIGGER(fsm, EV_LOGOUT, NULL);
 
     fsm_release(fsm);
+    return 0;
 }
 
