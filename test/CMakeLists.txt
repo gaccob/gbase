@@ -2,7 +2,9 @@
 cmake_minimum_required(VERSION 2.8.7)
 set(TEST_NAME "test")
 project("${TEST_NAME}")
+
 aux_source_directory(. TEST_SOURCES)
+aux_source_directory(./unit TEST_SOURCES)
 
 # set openssl default installer directory
 set (OPENSSL_ROOT "/usr/local/ssl")
@@ -15,11 +17,10 @@ target_link_libraries(${TEST_NAME} ${GBASE_LIB} ${GBASE_LIB_LINK} crypto readlin
 
 # copy test source file
 set(TEST_CONFIG_FILE
-    "dirty_cfg_words"
-    "dirty_test_words"
-    "json_test_file"
-    "ws_client.html"
-    "bevtree.jpg"
+    "assets/dirty_cfg_words"
+    "assets/json_test_file"
+    "assets/ws_client.html"
+    "assets/bevtree.jpg"
 )
 foreach(f ${TEST_CONFIG_FILE})
     configure_file(${f} .)

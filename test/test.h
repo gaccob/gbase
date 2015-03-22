@@ -10,7 +10,6 @@ int get_process_time(struct timeval* from);
 #ifdef OS_LINUX
 int test_coroutine();
 #endif
-int test_heap();
 int test_rbtree();
 int test_rbuffer();
 int test_slist();
@@ -22,13 +21,7 @@ int test_task();
 int test_shm_send();
 int test_shm_recv();
 int test_slab();
-int test_dirty();
 int test_thread();
-
-#define JSON_TEST_FILE "json_test_file"
-int test_json_text();
-int test_json_file();
-int test_json_create();
 
 int test_dh_perf();
 int test_dh();

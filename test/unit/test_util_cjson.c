@@ -23,36 +23,34 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+
 #include "core/os_def.h"
 #include "util/cjson.h"
-
-#include "test.h"
 
 // Parse text to JSON, then render back to text, and print!
 static void
 _json_do_text(char *text) {
-    char *out;cJSON *json;
-    json = cJSON_Parse(text);
+    char* out;
+    cJSON* json = cJSON_Parse(text);
     if (!json) {
-        printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+        fprintf(stderr, "Error before: [%s]\n", cJSON_GetErrorPtr());
     } else {
         out = cJSON_Print(json);
         cJSON_Delete(json);
-        printf("%s\n",out);
+        printf("%s\n", out);
         FREE(out);
     }
 }
 
 // Read a file, parse, render back, etc.
 static void
-_json_do_file(char *filename) {
-    char *data;
-    long len;
+_json_do_file(char* param) {
+    char* filename = param ? param : "./json_test_file";
     FILE *f = fopen(filename,"rb");
     fseek(f, 0, SEEK_END);
-    len = ftell(f);
+    long len = ftell(f);
     fseek(f, 0, SEEK_SET);
-    data = (char*)MALLOC(len + 1);
+    char* data = (char*)MALLOC(len + 1);
     fread(data, 1, len, f);
     fclose(f);
     _json_do_text(data);
@@ -157,7 +155,7 @@ _json_create() {
 }
 
 int
-test_json_text() {
+test_util_cjson_text(char* param) {
     char text[] = "[\n"
         "     {\n"
         "     \"precision\": \"zip\",\n"
@@ -185,13 +183,13 @@ test_json_text() {
 }
 
 int
-test_json_file() {
-    _json_do_file(JSON_TEST_FILE);
+test_util_cjson_file(char* param) {
+    _json_do_file(param);
    return 0; 
 }
 
 int
-test_json_create() {
+test_util_cjson_create(char* param) {
     _json_create();
     return 0;
 }
