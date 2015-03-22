@@ -13,22 +13,37 @@ get_process_time(struct timeval* from) {
     return ((tv.tv_sec - from->tv_sec)*1000+(tv.tv_usec - from->tv_usec)/1000);
 }
 
+extern int test_util_base64(char*);
+extern int test_util_wscode(char*);
+extern int test_util_random(char*);
+extern int test_util_shuffle(char*);
+extern int test_util_unicode(char*);
+
+extern int test_base_conhash(char*);
+
 int
-test_cmd() {
+main(int argc, char** argv) {
     cmd_t* cmd = cmd_create(".history", "~>");
-    cmd_register(cmd, "ddddd");
-    cmd_register(cmd, "paa pbb");
-    cmd_register(cmd, "aaa bbb ccc");
-    cmd_register(cmd, "aaa bbb ccc ddd");
-    cmd_register(cmd, "aaa bb1");
-    cmd_register(cmd, "aaa bb2");
-    cmd_register(cmd, "aaa bbb ccc eee");
+    cmd_register(cmd, "util base64", test_util_base64);
+    cmd_register(cmd, "util wscode", test_util_wscode);
+    cmd_register(cmd, "util random", test_util_random);
+    cmd_register(cmd, "util shuffle", test_util_shuffle);
+    cmd_register(cmd, "util unicode", test_util_unicode);
+    cmd_register(cmd, "base conhash", test_base_conhash);
+
     while (1) {
         char* line = cmd_readline(cmd);
         if (!line) {
             break;
         }
-        printf("get command: %s\n", line);
+
+        int ret = cmd_handle(cmd, line);
+        if (ret == 0) {
+            printf("[SUCCESS]   %s\n", line);
+        } else {
+            fprintf(stderr, "[FAIL] %s\n", line);
+        }
+
         free(line);
         if (cmd_eof(cmd)) {
             if (cmd_closed(cmd)) {
@@ -38,18 +53,9 @@ test_cmd() {
     }
     cmd_release(cmd);
     return 0;
-}
 
-int
-main(int argc, char** argv) {
-    // test_cmd();
     if (argc < 2) {
-        printf("usage: ./test <base64>\n"
-            "\t<wscode>\n"
-            "\t<random>\n"
-            "\t<shuffle>\n"
-            "\t<unicode>\n"
-            "\t<conhash>\n"
+        printf("usage: ./test\n"
 #ifdef OS_LINUX
             "\t<coroutine>\n"
 #endif
@@ -81,25 +87,7 @@ main(int argc, char** argv) {
         return 0;
     }
 
-    if (0 == strcmp(argv[1], "base64")) {
-        test_base64();
-    } else if (0 == strcmp(argv[1], "wscode")) {
-        test_wscode();
-    } else if (0 == strcmp(argv[1], "random")) {
-        test_random();
-    } else if (0 == strcmp(argv[1], "shuffle")) {
-        test_shuffle();
-    } else if (0 == strcmp(argv[1], "unicode")) {
-        test_unicode();
-    } else if (0 == strcmp(argv[1], "conhash")) {
-        test_conhash();
-    }
-#ifdef OS_LINUX
-    else if (0 == strcmp(argv[1], "coroutine")) {
-        test_coroutine();
-    }
-#endif
-    else if (0 == strcmp(argv[1], "fsm")) {
+    if (0 == strcmp(argv[1], "fsm")) {
         test_fsm();
     } else if (0 == strcmp(argv[1], "bitset")) {
         test_bitset();
@@ -107,7 +95,13 @@ main(int argc, char** argv) {
         test_heap();
     } else if (0 == strcmp(argv[1], "rbtree")) {
         test_rbtree();
-    } else if (0 == strcmp(argv[1], "rbuffer")) {
+    }
+#ifdef OS_LINUX
+    else if (0 == strcmp(argv[1], "coroutine")) {
+        test_coroutine();
+    }
+#endif
+    else if (0 == strcmp(argv[1], "rbuffer")) {
         test_rbuffer();
     } else if (0 == strcmp(argv[1], "slist")) {
         test_slist();

@@ -9,11 +9,15 @@
 #include "cmd.h"
 
 #define MAX_WORD_LEN 32
+#define MAX_SENTENCE_LEN 1024
 #define MAX_WORD_OPTION 32 
+
+const char* _sep = " \n";
 
 typedef struct word_t {
     char word[MAX_WORD_LEN];
     struct word_t* children[MAX_WORD_OPTION];
+    cmd_handle_t handle;
 } word_t;
 
 struct cmd_t {
@@ -111,9 +115,8 @@ static void
 _word_add_complete_prefix(const char* prefix) {
     if (_cmd && prefix && _cmd->complete[0] && !_cmd->complete[1]) {
         char* concat = _cmd->complete[0];
-        int size = MAX_WORD_LEN + strlen(prefix) + 2;
-        _cmd->complete[0] = (char*) MALLOC(size);
-        snprintf(_cmd->complete[0], size, "%s %s", prefix, concat);
+        _cmd->complete[0] = (char*) MALLOC(MAX_SENTENCE_LEN);
+        snprintf(_cmd->complete[0], MAX_SENTENCE_LEN, "%s %s", prefix, concat);
         FREE(concat);
     }
 }
@@ -159,12 +162,11 @@ _completed(const char* text, int start, int end) {
     char line[line_size];
     snprintf(line, line_size, "%s", rl_line_buffer);
     // printf("\nline[%s] text[%s]\n", line, text);
-    char* sep = " \n";
-    char* word = strtok(line, sep);
+    char* word = strtok(line, _sep);
 
     // find parent
     word_t* parent = _cmd->word;
-    for (; word; word = strtok(NULL, sep)) {
+    for (; word; word = strtok(NULL, _sep)) {
         bool found = false;
         for (int i = 0; i < MAX_WORD_OPTION; ++ i) {
             if (!parent->children[i]) {
@@ -289,27 +291,30 @@ cmd_readline(cmd_t* cmd) {
 }
 
 void
-cmd_register(cmd_t* cmd, const char* sentence) {
+cmd_register(cmd_t* cmd, const char* sentence, cmd_handle_t handle) {
     if (cmd && sentence) {
+        word_t* host = NULL;
         if (!cmd->word) {
             cmd->word = _word_create();
+            host = cmd->word;
         }
-        char* sep = " \n";
-        char input[MAX_WORD_LEN];
+        char input[MAX_SENTENCE_LEN];
         snprintf(input, sizeof(input), "%s", sentence);
-        char* word = strtok(input, sep);
+        char* word = strtok(input, _sep);
         word_t* c = cmd->word;
-        for (; word; word = strtok(NULL, sep)) {
+        for (; word; word = strtok(NULL, _sep)) {
             // find
             for (int i = 0; i < MAX_WORD_OPTION; ++ i) {
                 if (c->children[i] == NULL) {
                     c->children[i] = _word_create();
+                    host = c->children[i];
                     snprintf(c->children[i]->word, MAX_WORD_LEN, "%s", word);
                     c = c->children[i];
                     break;
                 }
                 else if (0 == strncmp(c->children[i]->word, word, MAX_WORD_LEN)) {
                     c = c->children[i];
+                    host = c;
                     break;
                 }
                 else if (i == MAX_WORD_OPTION - 1) {
@@ -318,6 +323,36 @@ cmd_register(cmd_t* cmd, const char* sentence) {
                 }
             }
         }
+        host->handle = handle;
     }
+}
+
+int
+cmd_handle(cmd_t* cmd, const char* sentence) {
+    if (cmd && sentence) {
+        char input[MAX_SENTENCE_LEN];
+        snprintf(input, sizeof(input), "%s", sentence);
+        char* word = strtok(input, _sep);
+        word_t* host = cmd->word;
+        for (; word; word = strtok(NULL, _sep)) {
+            bool found = false;
+            for (int i = 0; host->children[i] && i < MAX_WORD_OPTION; ++ i) {
+                if (0 == strncmp(host->children[i]->word, word, MAX_WORD_LEN)) {
+                    found = true;
+                    host = host->children[i];
+                    break;
+                } else if (i == MAX_WORD_OPTION - 1) {
+                    break;
+                }
+            }
+            if (!found) {
+                break;
+            }
+        }
+        if (host && host->handle) {
+            return host->handle(word);
+        }
+    }
+    return -1;
 }
 

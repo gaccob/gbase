@@ -13,7 +13,7 @@ void rand_seed(uint32_t seed);
 uint32_t rand_gen();
 
 // shuffle card
-void rand_shuffle(int32_t* src, size_t sz);
+void rand_shuffle(int* src, int sz);
 
 #ifdef __cplusplus
 }

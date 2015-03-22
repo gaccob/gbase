@@ -2,16 +2,11 @@
 #define TEST_H_
 
 #include "util/util_time.h"
+#include "util/cmd.h"
 #include "logic/bus.h"
 
 int get_process_time(struct timeval* from);
 
-int test_base64();
-int test_wscode();
-int test_random();
-int test_shuffle();
-int test_unicode();
-int test_conhash();
 #ifdef OS_LINUX
 int test_coroutine();
 #endif
@@ -65,3 +60,4 @@ int test_skiplist_dup();
 int test_skiplist_find();
 
 #endif
+

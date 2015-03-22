@@ -11,7 +11,7 @@ _get_unicode(const char* str, int n) {
 }
 
 int
-get_unicode(char** utf8, int* unicode) {
+utf8_unicode(char** utf8, int* unicode) {
     uint8_t c;
     if (!utf8 || !(*utf8) || !unicode) {
         return -1;

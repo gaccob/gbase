@@ -9,6 +9,8 @@ extern "C" {
 
 typedef struct cmd_t cmd_t;
 
+typedef int (*cmd_handle_t)(char* param);
+
 // must be singleton
 // not thread safe
 
@@ -20,7 +22,8 @@ bool cmd_closed(cmd_t* cmd);
 void cmd_set_closed(cmd_t* cmd);
 
 char* cmd_readline(cmd_t* cmd);
-void cmd_register(cmd_t* cmd, const char* sentence);
+void cmd_register(cmd_t* cmd, const char* sentence, cmd_handle_t);
+int cmd_handle(cmd_t* cmd, const char* sentence);
 
 #ifdef __cplusplus
 }

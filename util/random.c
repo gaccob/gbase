@@ -68,16 +68,17 @@ uint32_t rand_gen()
 }
 
 // shuffle card
-void rand_shuffle(int32_t* src, size_t sz)
+void rand_shuffle(int* src, int sz)
 {
-    size_t i;
-    uint32_t index;
-    for (i = sz; i > 1; -- i) {
+    int i, index;
+    for (i = sz - 1; i >= 0; -- i) {
         index = rand_gen() % sz;
-        // do swap
-        src[i - 1] ^= src[index];
-        src[index] ^= src[i - 1];
-        src[i - 1] ^= src[index];
+        if (index != i) {
+            // do swap
+            src[i] ^= src[index];
+            src[index] ^= src[i];
+            src[i] ^= src[index];
+        }
     }
 }
 

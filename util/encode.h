@@ -13,7 +13,7 @@ extern "C" {
 //
 // return -1, fail
 // return 0, success
-int get_unicode(char** utf8, int* unicode);
+int utf8_unicode(char** utf8, int* unicode);
 
 #ifdef __cplusplus
 }
