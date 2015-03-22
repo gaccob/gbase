@@ -70,10 +70,9 @@ test_util_wscode(char* param) {
 int
 test_util_random(char* param) {
     int32_t i;
-    uint32_t r;
     rand_seed((uint32_t)time(NULL));
     for (i = 0; i < 16; ++ i) {
-        r = rand_gen();
+        rand_gen();
     }
     return 0;
 }
