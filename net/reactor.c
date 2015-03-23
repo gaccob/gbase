@@ -33,21 +33,21 @@ reactor_release(reactor_t* reactor) {
 
 int
 reactor_register(reactor_t* reactor, struct handler_t* h, int events) {
-    return reactor->impl->add(reactor, h, events);
+    return reactor ? reactor->impl->add(reactor, h, events) : -1;
 }
 
 int
 reactor_unregister(reactor_t* reactor, struct handler_t* h) {
-    return reactor->impl->remove(reactor, h);
+    return reactor ? reactor->impl->remove(reactor, h) : -1;
 }
 
 int
 reactor_modify(reactor_t* reactor, struct handler_t* h, int events) {
-    return reactor->impl->modify(reactor, h, events);
+    return reactor ? reactor->impl->modify(reactor, h, events) : -1;
 }
 
 int
 reactor_dispatch(reactor_t* reactor, int ms) {
-    return reactor->impl->dispatch(reactor, ms);
+    return reactor ? reactor->impl->dispatch(reactor, ms) : -1;
 }
 
