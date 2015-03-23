@@ -111,15 +111,15 @@ epoll_dispatch(reactor_t* reactor, int ms) {
             if (0 == slist_find(epoll->expired, h))
                 continue;
             if ((EPOLLIN & type) || (EPOLLHUP & type)) {
-                res = h->in_func(h);
-                if (res < 0) {
+                int ret = h->in_func(h);
+                if (ret < 0) {
                     h->close_func(h);
                     continue;
                 }
             }
             if (EPOLLOUT & type) {
-                res = h->out_func(h);
-                if (res < 0) {
+                int ret = h->out_func(h);
+                if (ret < 0) {
                     h->close_func(h);
                     continue;
                 }
