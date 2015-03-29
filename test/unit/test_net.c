@@ -1,15 +1,14 @@
 #include <assert.h>
 #include <unistd.h>
+
 #include "core/os_def.h"
 #include "net/curlp.h"
 #include "net/curlc.h"
 
-#define TEST_CURL_LOOP 10
-
 static void
 _curl_cb(curlc_t* cc, void* args) {
-    printf("request: %s\n", curlc_req(cc));
-    printf("response: %s\n", curlc_res(cc));
+    printf("\trequest: %s\n", curlc_req(cc));
+    printf("\tresponse: %s\n", curlc_res(cc));
 }
 
 const char* const url = "https://openmobile.qq.com/user/get_simple_userinfo"
@@ -19,17 +18,28 @@ const char* const url = "https://openmobile.qq.com/user/get_simple_userinfo"
                         "&pf=qzone";
 
 int
-test_curl() {
+test_net_curl(char* param) {
+    int loop = param ? atoi(param) : 10;
     curlp_t* cp = curlp_create();
-    assert(cp);
-    for (int i = 0; i < TEST_CURL_LOOP; ++ i) {
-        int ret = curlp_add_get(cp, url, _curl_cb, NULL, NULL);
-        assert(0 == ret);
+    if (!cp) {
+        fprintf(stderr, "curl pool create fail\n");
+        return -1;
     }
+
+    for (int i = 0; i < loop; ++ i) {
+        int ret = curlp_add_get(cp, url, _curl_cb, NULL, NULL);
+        if (ret != 0) {
+            fprintf(stderr, "curl pool add client fail\n");
+            curlp_release(cp);
+            return -1;
+        }
+    }
+
     while (curlp_running_count(cp) > 0) {
         curlp_poll(cp);
         usleep(100);
     }
+
     curlp_release(cp);
     return 0;
 }

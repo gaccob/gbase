@@ -25,11 +25,14 @@ extern int test_util_cjson_create(char*);
 extern int test_base_conhash(char*);
 extern int test_base_bitset(char*);
 extern int test_base_heap(char*);
+extern int test_base_rbtree(char*);
 
 extern int test_core_fsm(char*);
 extern int test_core_atomic(char*);
 
-extern int test_logic_dirty();
+extern int test_logic_dirty(char*);
+
+extern int test_net_curl(char*);
 
 int
 main(int argc, char** argv) {
@@ -37,9 +40,11 @@ main(int argc, char** argv) {
     cmd_register(cmd, "base conhash",       test_base_conhash);
     cmd_register(cmd, "base bitset",        test_base_bitset);
     cmd_register(cmd, "base heap",          test_base_heap);
+    cmd_register(cmd, "base rbtree",        test_base_rbtree);
     cmd_register(cmd, "core fsm",           test_core_fsm);
     cmd_register(cmd, "core atomic",        test_core_atomic);
     cmd_register(cmd, "logic dirty",        test_logic_dirty);
+    cmd_register(cmd, "net curl",           test_net_curl);
     cmd_register(cmd, "util base64",        test_util_base64);
     cmd_register(cmd, "util cjson text",    test_util_cjson_text);
     cmd_register(cmd, "util cjson file",    test_util_cjson_file);
@@ -89,7 +94,6 @@ main(int argc, char** argv) {
             "\t<thread>\n"
             "\t<dh> [perf]\n"
             "\t<echo> <client | server>\n"
-            "\t<curl>\n"
             "\t<wssvr>\n"
             "\t<bus> <addr>\n"
             "\t<bevtree>\n"
