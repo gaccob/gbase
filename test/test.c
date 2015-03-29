@@ -82,7 +82,6 @@ main(int argc, char** argv) {
 #ifdef OS_LINUX
             "\t<coroutine>\n"
 #endif
-            "\t<rbtree>\n"
             "\t<rbuffer>\n"
             "\t<slist>\n"
             "\t<timer>\n"
