@@ -10,17 +10,12 @@ int get_process_time(struct timeval* from);
 #ifdef OS_LINUX
 int test_coroutine();
 #endif
-int test_rbtree();
-int test_rbuffer();
 int test_slist();
 int test_timer();
-int test_atom();
 int test_spin();
-int test_lock();
 int test_task();
 int test_shm_send();
 int test_shm_recv();
-int test_slab();
 int test_thread();
 
 int test_dh_perf();
@@ -33,8 +28,6 @@ int test_dh();
 int test_echo_svr();
 int test_echo_cli();
 
-int test_curl();
-
 #define WS_IP "127.0.0.1"
 #define WS_PORT 8000
 int test_ws_server();
@@ -45,10 +38,6 @@ int test_bus(bus_addr_t);
 #define BEV_LOOP 1000
 #define BEV_FILE "json_test_file"
 int test_bevtree();
-
-int test_skiplist();
-int test_skiplist_dup();
-int test_skiplist_find();
 
 #endif
 

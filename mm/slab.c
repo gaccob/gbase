@@ -7,6 +7,9 @@
 LIST_HEAD(g_slab_minor);
 LIST_HEAD(g_slab_common);
 
+LIST_HEAD(g_alloc_slab_minor);
+LIST_HEAD(g_alloc_slab_common);
+
 #define META_COLOR_DEFAULT 0x0
 #define META_COLOR_ALLOC 0x01
 
@@ -50,10 +53,9 @@ _slab_free_page(size_t sz) {
 
 static void
 _slab_free_insert(meta_t* meta, meta_t* insert) {
-    meta_t* next;
     if (!meta || !insert) return;
     if (meta->free_next > 0) {
-        next = META(meta, meta->free_next);
+        meta_t* next = META(meta, meta->free_next);
         insert->free_next = META_SHIFT(next);
         next->free_prev = META_SHIFT(insert);
     }
@@ -64,21 +66,12 @@ _slab_free_insert(meta_t* meta, meta_t* insert) {
 // return next meta, if any
 static meta_t*
 _slab_free_erase(meta_t* meta) {
-    meta_t *next, *prev;
     if (!meta) {
         return NULL;
     }
     // prev and next free link
-    if (meta->free_prev > 0) {
-        prev = META(meta, meta->free_prev);
-    } else {
-        prev = NULL;
-    }
-    if (meta->free_next > 0) {
-        next = META(meta, meta->free_next);
-    } else {
-        next = NULL;
-    }
+    meta_t* prev = (meta->free_prev > 0) ? META(meta, meta->free_prev) : NULL;
+    meta_t* next = (meta->free_next > 0) ? META(meta, meta->free_next) : NULL;
     // relink
     if (next) {
         next->free_prev = prev ? META_SHIFT(prev) : -1;
@@ -94,17 +87,18 @@ _slab_free_erase(meta_t* meta) {
 
 static void
 _slab_free_replace(meta_t* meta, meta_t* replace) {
-    meta_t *next, *prev;
-    if (!meta || !replace) { return; }
+    if (!meta || !replace) {
+        return;
+    }
     if (meta->free_prev > 0) {
-        prev = META(meta, meta->free_prev);
+        meta_t* prev = META(meta, meta->free_prev);
         prev->free_next = META_SHIFT(replace);
         replace->free_prev = META_SHIFT(prev);
     } else {
         replace->free_prev = -1;
     }
     if (meta->free_next > 0) {
-        next = META(meta, meta->free_next);
+        meta_t* next = META(meta, meta->free_next);
         next->free_prev = META_SHIFT(replace);
         replace->free_next = META_SHIFT(next);
     } else {
@@ -158,9 +152,8 @@ _slab_meta_init(meta_t* meta, size_t sz) {
 // return split meta
 static meta_t*
 _slab_free_split(meta_t* meta, int16_t used) {
-    meta_t* next = NULL;
     assert(meta->size > used + (int)META_SIZE);
-    next = (meta_t*)((char*)meta + META_SIZE + used);
+    meta_t* next = (meta_t*)((char*)meta + META_SIZE + used);
     _slab_meta_init(next, meta->size - used - META_SIZE);
     meta->size = used;
     return next;
@@ -173,10 +166,12 @@ _slab_page_erase(page_t* page, list_head_t* head) {
     if (head == &g_slab_minor) {
         if (page->remain < SLAB_SIZE_MINOR) {
             list_del(&page->link);
+            list_add(&page->link, &g_alloc_slab_minor);
         }
     } else if (head == &g_slab_common) {
         if (page->remain < SLAB_SIZE_MAX) {
             list_del(&page->link);
+            list_add(&page->link, &g_alloc_slab_common);
         }
     }
 }
@@ -185,10 +180,12 @@ static void
 _slab_page_insert(page_t* page, meta_t* meta) {
     list_head_t* head;
     head = _slab_free_page(meta->size);
-    // page not full, then add list
+    // remove from alloc list, add to in-use list
     if (head == &g_slab_minor && list_not_in_link(&page->link)) {
+        list_del(&page->link);
         list_add(&page->link, head);
     } else if (head == &g_slab_common && list_not_in_link(&page->link)) {
+        list_del(&page->link);
         list_add(&page->link, head);
     }
 }
@@ -276,7 +273,9 @@ slab_free(void* memory) {
     meta_t* meta, *next, *prev;
     page_t* page;
     size_t shift, next_shift;
-    if (!memory) return;
+    if (!memory) {
+        return;
+    }
     meta = META_FROM_MEM(memory);
     if (!(meta->color & META_COLOR_ALLOC)) {
         assert(0);
@@ -335,7 +334,7 @@ _page_debug(page_t* page) {
     meta_t* meta;
     int shift;
     if (page) {
-        printf("--> page %tX, remain %d: ", (ptrdiff_t)page, page->remain);
+        printf("\tpage[0x%tX] remain %d btes: ", (ptrdiff_t)page, page->remain);
         shift = page->free;
         if (shift != PAGE_HEAD_SIZE) {
             printf("[%d:%d] ", (int)PAGE_HEAD_SIZE, shift);
@@ -357,13 +356,19 @@ void
 slab_debug() {
     page_t* page;
     printf("minor slab: \n");
+    list_for_each_entry(page, page_t, &g_alloc_slab_minor, link) {
+        _page_debug(page);
+    }
     list_for_each_entry(page, page_t, &g_slab_minor, link) {
         _page_debug(page);
     }
     printf("common slab: \n");
+    list_for_each_entry(page, page_t, &g_alloc_slab_common, link) {
+        _page_debug(page);
+    }
     list_for_each_entry(page, page_t, &g_slab_common, link) {
         _page_debug(page);
     }
-    printf("slab debug complete!\n\n");
+    printf("\n\n");
 }
 

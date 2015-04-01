@@ -9,7 +9,7 @@
 // else if < SLAB_SIZE_MAX, we use common slab,
 // else, slab refuse to allocate
 //
-// notice: not thread-safe
+// thread unsafe as we use global list head
 //
 #ifdef __cplusplus
 extern "C" {
