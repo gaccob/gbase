@@ -180,11 +180,10 @@ static void
 _slab_page_insert(page_t* page, meta_t* meta) {
     list_head_t* head;
     head = _slab_free_page(meta->size);
-    // remove from alloc list, add to in-use list
-    if (head == &g_slab_minor && list_not_in_link(&page->link)) {
+    if (head == &g_slab_minor) {
         list_del(&page->link);
         list_add(&page->link, head);
-    } else if (head == &g_slab_common && list_not_in_link(&page->link)) {
+    } else if (head == &g_slab_common) {
         list_del(&page->link);
         list_add(&page->link, head);
     }
@@ -215,7 +214,6 @@ _slab_alloc(page_t* page, list_head_t* head, size_t sz) {
             if (META_SHIFT(meta) == page->free) {
                 page->free = next ? META_SHIFT(next) : -1;
             }
-            meta->color |= META_COLOR_ALLOC;
             break;
         }
         // do split
@@ -225,11 +223,12 @@ _slab_alloc(page_t* page, list_head_t* head, size_t sz) {
             if (META_SHIFT(meta) == page->free) {
                 page->free = META_SHIFT(split);
             }
-            meta->color |= META_COLOR_ALLOC;
             break;
         }
     }
     if (meta) {
+        meta->color |= META_COLOR_ALLOC;
+        meta->free_next = meta->free_prev = -1;
         page->remain -= (META_SIZE + meta->size);
         _slab_page_erase(page, head);
         return META_MEM(meta);
@@ -350,6 +349,24 @@ _page_debug(page_t* page) {
         }
         printf("\n");
     }
+
+    // if (page) {
+    //     printf("\tpage[0x%tX] remain %d btes: ", (ptrdiff_t)page, page->remain);
+    //     shift = page->free;
+    //     if (shift != PAGE_HEAD_SIZE) {
+    //         printf("[%d:%d] ", (int)PAGE_HEAD_SIZE, shift);
+    //     }
+    //     while (shift > 0) {
+    //         meta = PAGE_META(page, shift);
+    //         printf("<%d,%d> ", meta->free_prev, meta->free_next);
+    //         if (meta->free_next > 0) {
+    //             printf("[%d:%d] ", shift + (int)(META_SIZE) + (int)(meta->size),
+    //                 (int)(meta->free_next));
+    //         }
+    //         shift = meta->free_next;
+    //     }
+    //     printf("\n");
+    // }
 }
 
 void

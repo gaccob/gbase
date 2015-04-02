@@ -50,6 +50,7 @@ test_mm_slab(char* param) {
     for (int i = 0; i < _loop; ++ i) {
         slab_free(mem[i]);
     }
+    slab_debug();
     return 0;
 }
 
