@@ -10,10 +10,7 @@ int get_process_time(struct timeval* from);
 #ifdef OS_LINUX
 int test_coroutine();
 #endif
-int test_slist();
-int test_timer();
 int test_spin();
-int test_task();
 int test_shm_send();
 int test_shm_recv();
 int test_thread();

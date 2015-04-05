@@ -6,6 +6,9 @@
 #include "test.h"
 #include "util/cmd.h"
 
+#define COLOR_RED   31
+#define COLOR_GREEN 32
+
 int
 get_process_time(struct timeval* from) {
     struct timeval tv;
@@ -18,15 +21,18 @@ extern int test_base_bitset(char*);
 extern int test_base_heap(char*);
 extern int test_base_rbtree(char*);
 extern int test_base_rbuffer(char*);
+extern int test_base_slist(char*);
 extern int test_base_skiplist(char*);
 extern int test_base_skiplist_duplicate(char*);
 extern int test_base_skiplist_find(char*);
+extern int test_base_timer(char*);
 
 extern int test_core_fsm(char*);
 extern int test_core_atomic(char*);
 extern int test_core_lock(char*);
 
 extern int test_logic_dirty(char*);
+extern int test_logic_task(char*);
 
 extern int test_mm_slab(char*);
 
@@ -49,13 +55,16 @@ main(int argc, char** argv) {
     cmd_register(cmd, "base heap",                  test_base_heap);
     cmd_register(cmd, "base rbtree",                test_base_rbtree);
     cmd_register(cmd, "base rbuffer",               test_base_rbuffer);
+    cmd_register(cmd, "base slist",                 test_base_slist);
     cmd_register(cmd, "base skiplist",              test_base_skiplist);
     cmd_register(cmd, "base skiplist find",         test_base_skiplist_find);
     cmd_register(cmd, "base skiplist duplicate",    test_base_skiplist_duplicate);
+    cmd_register(cmd, "base timer",                 test_base_timer);
     cmd_register(cmd, "core fsm",                   test_core_fsm);
     cmd_register(cmd, "core atomic",                test_core_atomic);
     cmd_register(cmd, "core lock",                  test_core_lock);
     cmd_register(cmd, "logic dirty",                test_logic_dirty);
+    cmd_register(cmd, "logic task",                 test_logic_task);
     cmd_register(cmd, "mm slab",                    test_mm_slab);
     cmd_register(cmd, "net curl",                   test_net_curl);
     cmd_register(cmd, "util base64",                test_util_base64);
@@ -75,10 +84,11 @@ main(int argc, char** argv) {
 
         int ret = cmd_handle(cmd, line);
         if (ret == 0) {
-            printf("[SUCCESS]   %s\n", line);
+            printf("\033[%dm[SUCCESS]\033[0m %s\n", COLOR_GREEN, line);
         } else {
-            fprintf(stderr, "[FAIL] %s\n", line);
+            printf("\033[%dm[FAIL]\033[0m %s\n", COLOR_RED, line);
         }
+        fflush(stdout);
 
         free(line);
         if (cmd_eof(cmd)) {
@@ -95,10 +105,8 @@ main(int argc, char** argv) {
 #ifdef OS_LINUX
             "\t<coroutine>\n"
 #endif
-            "\t<slist>\n"
             "\t<timer>\n"
             "\t<spin>\n"
-            "\t<task>\n"
             "\t<shm> <send | recv>\n"
             "\t<thread>\n"
             "\t<dh> [perf]\n"
@@ -122,14 +130,8 @@ main(int argc, char** argv) {
         test_coroutine();
     }
 #endif
-    else if (0 == strcmp(argv[1], "slist")) {
-        test_slist();
-    } else if (0 == strcmp(argv[1], "timer")) {
-        test_timer();
-    } else if (0 == strcmp(argv[1], "spin")) {
+    else if (0 == strcmp(argv[1], "spin")) {
         test_spin();
-    } else if (0 == strcmp(argv[1], "task")) {
-        test_task();
     } else if (0 == strcmp(argv[1], "shm")) {
         if (argc >= 3) {
             if (0 == strcmp(argv[2], "send")) {
