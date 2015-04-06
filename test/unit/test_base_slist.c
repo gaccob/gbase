@@ -3,7 +3,7 @@
 
 #define CHECK(sl, condition, prompt) \
     if (!(condition)) {\
-        fprintf(stderr, "\t%s\n", prompt); \
+        fprintf(stderr, "%s\n", prompt); \
         slist_release(sl); \
         return -1; \
     }

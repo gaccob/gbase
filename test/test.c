@@ -84,9 +84,9 @@ main(int argc, char** argv) {
 
         int ret = cmd_handle(cmd, line);
         if (ret == 0) {
-            printf("\033[%dm[SUCCESS]\033[0m %s\n", COLOR_GREEN, line);
+            printf("\033[%dm[SUCCESS]\033[0m\n", COLOR_GREEN);
         } else {
-            printf("\033[%dm[FAIL]\033[0m %s\n", COLOR_RED, line);
+            printf("\033[%dm[FAIL]\033[0m\n", COLOR_RED);
         }
         fflush(stdout);
 

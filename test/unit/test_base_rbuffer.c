@@ -20,7 +20,7 @@ _write(void* arg) {
         } else {
             loop ++;
             if (loop % 1000 == 0) {
-                printf("\tthread write: %d\n", loop);
+                printf("thread write: %d\n", loop);
             }
         }
     } while(loop < _loop);
@@ -41,7 +41,7 @@ _read(void* arg) {
         } else {
             loop ++;
             if (loop % 1000 == 0) {
-                printf("\tthread read: %d\n", loop);
+                printf("thread read: %d\n", loop);
             }
             assert(nrecv == BYTES_SIZE);
             for (i = 0; i < (int)nrecv; i++) {

@@ -44,7 +44,7 @@ test_base_heap(char* param) {
         heap_release(heap);
         return -1;
     }
-    printf("\theap insert success\n");
+    printf("heap insert success\n");
 
     // erase
     for (int i = 0; i < _size; ++ i) {
@@ -55,14 +55,14 @@ test_base_heap(char* param) {
             return -1;
         }
     }
-    printf("\theap erase success\n");
+    printf("heap erase success\n");
 
     if (heap_size(heap) != 0) {
         fprintf(stderr, "head size fail!\n");
         heap_release(heap);
         return -1;
     }
-    printf("\theap size success\n");
+    printf("heap size success\n");
 
     // insert
     for (int i = 0; i < _size; ++ i) {
@@ -86,7 +86,7 @@ test_base_heap(char* param) {
             return -1;
         }
     }
-    printf("\theap pop success\n");
+    printf("heap pop success\n");
 
     FREE(data);
     FREE(key);

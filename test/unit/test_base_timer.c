@@ -8,13 +8,13 @@ static int _live = 0;
 
 int
 timer_cb(void* args) {
-    printf("\t-->timer[%d] callback\n", *(int*)args);
+    printf("-->timer[%d] callback\n", *(int*)args);
     return 0;
 }
 
 int
 timer_cb2(void* args) {
-    printf("\t-->timer close\n");
+    printf("-->timer close\n");
     _live = 1;
     return 0;
 }
@@ -23,7 +23,7 @@ int
 test_base_timer(char* param) {
     timerheap_t* timer = timer_create_heap();
     if (!timer) {
-        fprintf(stderr, "\t timer create fail\n");
+        fprintf(stderr, "timer create fail\n");
         return -1;
     }
 
@@ -42,11 +42,11 @@ test_base_timer(char* param) {
         delay.tv_usec = 0;
         int ret = timer_register(timer, &interval, &delay, timer_cb, &ids[i]);
         if (ret < 0) {
-            fprintf(stderr, "\ttimer register fail: %d\n", ret);
+            fprintf(stderr, "timer register fail: %d\n", ret);
             timer_release(timer);
             return -1;
         }
-        printf("\tregister timer[%d] delay=%d\n", ret, (int)delay.tv_sec);
+        printf("register timer[%d] delay=%d\n", ret, (int)delay.tv_sec);
     }
 
     struct timeval delay;
@@ -54,11 +54,11 @@ test_base_timer(char* param) {
     delay.tv_usec = 0;
     int ret = timer_register(timer, NULL, &delay, timer_cb2, NULL);
     if (ret < 0) {
-        fprintf(stderr, "\ttimer register fail: %d\n", ret);
+        fprintf(stderr, "timer register fail: %d\n", ret);
         timer_release(timer);
         return -1;
     }
-    printf("\tregister timer[%d] delay=%d\n", ret, (int)delay.tv_sec);
+    printf("register timer[%d] delay=%d\n", ret, (int)delay.tv_sec);
 
     while (0 == _live) {
         struct timeval now;

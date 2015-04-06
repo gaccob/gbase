@@ -49,7 +49,7 @@ test_base_conhash(char* param) {
             conhash_release(ch); \
             return -1; \
         } \
-        printf("\t%s -> %s\n", k.key, n->name); \
+        printf("%s -> %s\n", k.key, n->name); \
     }
 
     _do_hash();

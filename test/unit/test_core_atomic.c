@@ -32,8 +32,8 @@ test_core_atomic(char* param) {
     pthread_join(t1, NULL);
     pthread_join(t2, NULL);
 
-    printf("\tmulti-thread reference[%u] by atomic\n", _atom_ref);
-    printf("\tmulti-thread reference[%u] under race\n", _int_ref);
+    printf("multi-thread reference[%u] by atomic\n", _atom_ref);
+    printf("multi-thread reference[%u] under race\n", _int_ref);
     return 0;
 }
 

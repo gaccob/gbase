@@ -43,7 +43,7 @@ test_core_lock(char* param) {
     gettimeofday(&from,NULL);
     char ts[128];
     util_timestamp(&from, ts, sizeof(ts));
-    printf("\t%s thread %d loop %d start\n", ts, _lock_thread_count, _lock_loop);
+    printf("%s thread %d loop %d start\n", ts, _lock_thread_count, _lock_loop);
 
     for (int i = 0; i < _lock_thread_count; ++ i) {
         pthread_create(&tid[i], NULL, _lock_func, NULL);
@@ -58,7 +58,7 @@ test_core_lock(char* param) {
     struct timeval end;
     gettimeofday(&end,NULL);
     util_timestamp(&end, ts, sizeof(ts));
-    printf("\t%s thread %d loop %d end\n", ts, _lock_thread_count, _lock_loop);
+    printf("%s thread %d loop %d end\n", ts, _lock_thread_count, _lock_loop);
 
     FREE(tid);
     thread_lock_free(_lock);

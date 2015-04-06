@@ -30,16 +30,16 @@ _stamp(const char* content) {
     gettimeofday(&tm, NULL);
     util_timestamp(&tm, ts, sizeof(ts));
     if (content) {
-        printf("\t[%s] %s\n", content, ts);
+        printf("[%s] %s\n", content, ts);
     } else {
-        printf("\t%s\n", ts);
+        printf("%s\n", ts);
     }
 }
 
 static void
 _release(skiplist_t* sl, Test* test, const char* err) {
     if (err) {
-        fprintf(stderr, "\t%s\n", err);
+        fprintf(stderr, "%s\n", err);
     }
     skiplist_release(sl);
     FREE(test);
@@ -192,7 +192,7 @@ test_base_skiplist_duplicate(char* param) {
             _release(sl, test, "find fail");
             return -1;
         }
-        printf("\t%d rank[%d] addr[%p]\n", ((Test*)data)->value, top, data);
+        printf("%d rank[%d] addr[%p]\n", ((Test*)data)->value, top, data);
     }
     printf("\n");
 
@@ -203,7 +203,7 @@ test_base_skiplist_duplicate(char* param) {
             _release(sl, test, "find by rank fail");
             return -1;
         }
-        printf("\t%d rand[%d] addr[%p]\n", ((Test*)data)->value, i + 1, data);
+        printf("%d rand[%d] addr[%p]\n", ((Test*)data)->value, i + 1, data);
     }
 
     _release(sl, test, NULL);

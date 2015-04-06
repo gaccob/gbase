@@ -13,38 +13,38 @@
 
 void
 test_fsm_init_enter(void* args) {
-    printf("\tenter status [init]\n");
+    printf("enter status [init]\n");
 }
 void
 test_fsm_init_exit(void* args) {
-    printf("\texit  status [init]\n");
+    printf("exit  status [init]\n");
 }
 
 void
 test_fsm_loading_enter(void* args) {
-    printf("\tenter status [loading]\n");
+    printf("enter status [loading]\n");
 }
 void
 test_fsm_loading_exit(void* args) {
-    printf("\texit  status [loading]\n");
+    printf("exit  status [loading]\n");
 }
 
 void
 test_fsm_playing_enter(void* args) {
-    printf("\tenter status [playing]\n");
+    printf("enter status [playing]\n");
 }
 void
 test_fsm_playing_exit(void* args) {
-    printf("\texit  status [playing]\n");
+    printf("exit  status [playing]\n");
 }
 
 void
 test_fsm_logout_enter(void* args) {
-    printf("\tenter status [logout]\n");
+    printf("enter status [logout]\n");
 }
 void
 test_fsm_logout_exit(void* args) {
-    printf("\texit  status [logout]\n");
+    printf("exit  status [logout]\n");
 }
 
 int

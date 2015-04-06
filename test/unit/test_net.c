@@ -7,8 +7,8 @@
 
 static void
 _curl_cb(curlc_t* cc, void* args) {
-    printf("\trequest: %s\n", curlc_req(cc));
-    printf("\tresponse: %s\n", curlc_res(cc));
+    printf("request: %s\n", curlc_req(cc));
+    printf("response: %s\n", curlc_res(cc));
 }
 
 const char* const url = "https://openmobile.qq.com/user/get_simple_userinfo"

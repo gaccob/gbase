@@ -35,13 +35,13 @@ test_mm_slab(char* param) {
                 }
                 return -1;
             }
-            printf("\talloc array[%d] %d size\n", idx, size);
+            printf("alloc array[%d] %d size\n", idx, size);
         }
         // free
         else {
             slab_free(mem[idx]);
             mem[idx] = NULL;
-            printf("\tfree array[%d]\n", idx);
+            printf("free array[%d]\n", idx);
         }
     }
     slab_debug();
