@@ -18,10 +18,11 @@ target_link_libraries(${TEST_NAME} ${GBASE_LIB} ${GBASE_LIB_LINK} crypto readlin
 # copy test source file
 set(TEST_CONFIG_FILE
     "assets/dirty_cfg_words"
-    "assets/json_test_file"
-    "assets/ws_client.html"
     "assets/bevtree.jpg"
+    "assets/bevtree.json"
+    "assets/ws_client.html"
 )
 foreach(f ${TEST_CONFIG_FILE})
     configure_file(${f} .)
 endforeach()
+

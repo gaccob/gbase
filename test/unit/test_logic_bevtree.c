@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include <assert.h>
-#include <time.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
-#include "core/os_def.h"
-#include "logic/bevtree.h"
 
-#include "test.h"
+#include "util/random.h"
+#include "logic/bevtree.h"
 
 typedef struct input_t {
     int ratio;
@@ -49,20 +48,19 @@ action_404_cb(void* input) {
 }
 
 int
-test_bevtree() {
-    int ret = -1;
-    int loop = 0;
-    input_t i;
-    bvt_t* bvt = NULL;
+test_logic_bevtree(char* param) {
 
-    srand((uint32_t)time(NULL));
-    bvt = bvt_load_gliffy(BEV_FILE);
+    rand_seed(time(NULL));
+
+    char* file = param ? param : "bevtree.json";
+    bvt_t* bvt = bvt_load_gliffy(file);
     if (!bvt) {
-        printf("bvt init fail\n");
+        fprintf(stderr, "bvt init fail\n");
         return -1;
     }
     bvt_debug(bvt);
 
+    int ret = -1;
     ret = bvt_register_callback(bvt, action_400_cb, 400);
     assert(ret == BVT_SUCCESS);
     ret = bvt_register_callback(bvt, action_401_cb, 401);
@@ -78,10 +76,16 @@ test_bevtree() {
     ret = bvt_register_callback(bvt, condition_301_cb, 301);
     assert(ret == BVT_SUCCESS);
 
-    while (loop ++ < BEV_LOOP) {
-        i.ratio = rand() % 100;
+    int loop = 10;
+    while (-- loop > 0) {
+        input_t i;
+        i.ratio = rand_gen() % 100;
         ret = bvt_run(bvt, (void*)&i);
-        assert(BVT_SUCCESS == ret);
+        if (ret != BVT_SUCCESS) {
+            fprintf(stderr, "bvt run fail\n");
+            bvt_release(bvt);
+            return -1;
+        }
         printf("============\n\n");
         usleep(100);
     }
