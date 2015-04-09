@@ -24,7 +24,7 @@ static int _node_count = 4;
 static int _key_count = 10;
 
 int
-test_base_conhash(char* param) {
+test_base_conhash(const char* param) {
     conhash_t* ch;
     struct node_t node[10];
     struct key_t k;

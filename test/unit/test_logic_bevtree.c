@@ -48,11 +48,11 @@ action_404_cb(void* input) {
 }
 
 int
-test_logic_bevtree(char* param) {
+test_logic_bevtree(const char* param) {
 
     rand_seed(time(NULL));
 
-    char* file = param ? param : "bevtree.json";
+    const char* file = param ? param : "bevtree.json";
     bvt_t* bvt = bvt_load_gliffy(file);
     if (!bvt) {
         fprintf(stderr, "bvt init fail\n");

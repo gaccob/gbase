@@ -21,7 +21,7 @@ _crt_main(crt_t* c, void* arg) {
 }
 
 int
-test_core_coroutine(char* param) {
+test_core_coroutine(const char* param) {
     crt_t* c = crt_create(CRT_TEST_STACK_SIZE);
     if (!c) {
         fprintf(stderr, "coroutine create fail\n");

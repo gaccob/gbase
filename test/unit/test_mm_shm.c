@@ -68,7 +68,7 @@ _recv(void* arg) {
 }
 
 int
-test_mm_shm(char* param) {
+test_mm_shm(const char* param) {
     char words[1024];
     snprintf(words, sizeof(words), "hello shm!");
 

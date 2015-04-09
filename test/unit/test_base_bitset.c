@@ -3,7 +3,7 @@
 #include "base/bitset.h"
 
 int
-test_base_bitset(char* param) {
+test_base_bitset(const char* param) {
     rand_seed((uint32_t)time(NULL));
 
     // bit create 

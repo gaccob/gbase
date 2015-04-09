@@ -113,7 +113,7 @@ on_fail(struct task_t* t, int timeout) {
 //       |------v
 
 int
-test_logic_task(char* param) {
+test_logic_task(const char* param) {
     timerheap_t* timer = timer_create_heap();
     if (!timer) {
         fprintf(stderr, "timer create fail\n");

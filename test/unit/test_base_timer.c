@@ -5,6 +5,7 @@
 #include "util/util_time.h"
 
 static int _live = 0;
+static int _duration = 30;
 
 int
 timer_cb(void* args) {
@@ -20,7 +21,7 @@ timer_cb2(void* args) {
 }
 
 int
-test_base_timer(char* param) {
+test_base_timer(const char* param) {
     timerheap_t* timer = timer_create_heap();
     if (!timer) {
         fprintf(stderr, "timer create fail\n");
@@ -50,7 +51,7 @@ test_base_timer(char* param) {
     }
 
     struct timeval delay;
-    delay.tv_sec = 60;
+    delay.tv_sec = _duration;
     delay.tv_usec = 0;
     int ret = timer_register(timer, NULL, &delay, timer_cb2, NULL);
     if (ret < 0) {

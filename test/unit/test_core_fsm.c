@@ -63,7 +63,7 @@ test_fsm_handle_logout(void* args) {
 }
 
 int
-test_core_fsm(char* param) {
+test_core_fsm(const char* param) {
     struct fsm_t* fsm = fsm_create(4);
     assert(fsm);
 

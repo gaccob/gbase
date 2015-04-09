@@ -6,14 +6,14 @@
 #define DIRTY_CFG_FILE "dirty_cfg_words"
 
 int
-test_logic_dirty(char* param) {
+test_logic_dirty(const char* param) {
     dirty_ctx_t* ctx = dirty_create(DIRTY_CFG_FILE);
     if (!ctx) {
         fprintf(stderr, "create dirty context fail\n");
         return -1;
     }
 
-    char* source = param ? param : "test dirty words fucking";
+    const char* source = param ? param : "test dirty words fucking";
     int size = strlen(source) + 1;
     char result[size];
     snprintf(result, sizeof(result), "%s", source);

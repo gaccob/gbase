@@ -10,7 +10,7 @@
 
 #define MAX_WORD_LEN 32
 #define MAX_SENTENCE_LEN 1024
-#define MAX_WORD_OPTION 32 
+#define MAX_WORD_OPTION 32
 
 const char* _sep = " \n";
 
@@ -217,6 +217,7 @@ cmd_create(const char* history, const char* prompt) {
     cmd->eof = false;
     cmd->closed = false;
     cmd->word = NULL;
+    memset(cmd->complete, 0, sizeof(cmd->complete));
 
     // reuse history file as readline name
     rl_readline_name = cmd->history;
@@ -324,6 +325,33 @@ cmd_register(cmd_t* cmd, const char* sentence, cmd_handle_t handle) {
             }
         }
         host->handle = handle;
+    }
+}
+
+static void
+_cmd_word_recurse(word_t* w, const char* param, cmd_callback_t cb, const char* prefix) {
+    if (w) {
+        char* commands = (char*)MALLOC(MAX_SENTENCE_LEN);
+        snprintf(commands, MAX_SENTENCE_LEN, "%s %s", prefix, w->word);
+        if (w->handle) {
+            int ret = w->handle(param);
+            cb(commands, ret);
+        }
+        for (int i = 0; i < MAX_WORD_OPTION; ++ i) {
+            if (!w->children[i]) {
+                break;
+            }
+            _cmd_word_recurse(w->children[i], param, cb, commands);
+        }
+        FREE(commands);
+    }
+}
+
+void
+cmd_traverse(cmd_t* cmd, const char* param, cmd_callback_t cb) {
+    if (cmd) {
+        word_t* w = cmd->word;
+        return _cmd_word_recurse(w, param, cb, ""); 
     }
 }
 

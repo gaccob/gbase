@@ -13,7 +13,7 @@ _loop_func(void* data) {
 }
 
 int
-test_base_rbtree(char* param) {
+test_base_rbtree(const char* param) {
 
     struct rbtree_t* tree = rbtree_create(_cmp_func);
     if (!tree) {

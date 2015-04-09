@@ -28,7 +28,7 @@ _spin_func(void* arg) {
 }
 
 int
-test_core_spin(char* param) {
+test_core_spin(const char* param) {
     spinlock = spin_create();
     if (!spinlock) {
         fprintf(stderr, "spin lock create fail\n");
@@ -44,8 +44,12 @@ test_core_spin(char* param) {
     util_timestamp(&from, stamp, sizeof(stamp));
     printf("start: %s\n", stamp);
 
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, (1 << 20));
+
     for (int i = 0; i < count; ++ i) {
-        pthread_create(&tid[i], NULL, _spin_func, NULL);
+        pthread_create(&tid[i], &attr, _spin_func, NULL);
     }
     for (int i = 0; i < count; ++ i) {
         int ret = pthread_join(tid[i], NULL);

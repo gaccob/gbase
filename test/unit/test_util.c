@@ -13,7 +13,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 int
-test_util_base64(char* param) {
+test_util_base64(const char* param) {
     const char* const src = "Man is distinguished, not only by his reason,"
         " but by this singular passion from other animals, which is a lust"
         " of the mind, that by a perseverance of delight in the continued"
@@ -59,7 +59,7 @@ _test_util_wscode(const char* req, const char* res) {
 }
 
 int
-test_util_wscode(char* param) {
+test_util_wscode(const char* param) {
     char* req = "2SCVXUeP9cTjV+0mWB8J6A==";
     char* res = "mLDKNeBNWz6T9SxU+o0Fy/HgeSw=";
     int ret = 0;
@@ -74,7 +74,7 @@ test_util_wscode(char* param) {
 //////////////////////////////////////////////////////////////////////////
 
 int
-test_util_random(char* param) {
+test_util_random(const char* param) {
     int32_t i;
     rand_seed((uint32_t)time(NULL));
     for (i = 0; i < 16; ++ i) {
@@ -87,7 +87,7 @@ test_util_random(char* param) {
 //////////////////////////////////////////////////////////////////////////
 
 int
-test_util_shuffle(char* param) {
+test_util_shuffle(const char* param) {
     int size = param ? atoi(param) : 52;
 	int i, cards[size];
     rand_seed((uint32_t)time(NULL));
@@ -104,7 +104,7 @@ test_util_shuffle(char* param) {
 //////////////////////////////////////////////////////////////////////////
 
 int
-test_util_unicode(char* param) {
+test_util_unicode(const char* param) {
     int unicode = 0;
     char* utf8 = "这是一个测试串";
     char** src = &utf8;
@@ -119,11 +119,11 @@ test_util_unicode(char* param) {
 //////////////////////////////////////////////////////////////////////////
 
 int
-test_util_dh(char* param) {
+test_util_dh(const char* param) {
     DH* server = NULL;
     DH* client = NULL;
     int ret, errcode;
-    char* file = param ? param : "dh.pem";
+    const char* file = param ? param : "dh.pem";
     FILE* pem = fopen(file, "r");
     if (pem) {
         server = PEM_read_DHparams(pem, NULL, NULL, NULL);
@@ -296,7 +296,7 @@ _test_dh_perf() {
 }
 
 int
-test_util_dh_perf(char* param) {
+test_util_dh_perf(const char* param) {
     struct timeval tv;
     char timestamp[64];
     gettimeofday(&tv, NULL);

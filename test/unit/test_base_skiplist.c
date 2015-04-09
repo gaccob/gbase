@@ -59,7 +59,7 @@ _filter(void* data, void* args) {
 /////////////////////////////////////////////////////////////
 
 int
-test_base_skiplist(char* param) {
+test_base_skiplist(const char* param) {
     // raw data
     int cap = param ? atoi(param) : 128;
     int limit = cap * 10;
@@ -159,7 +159,7 @@ test_base_skiplist(char* param) {
 /////////////////////////////////////////////////////////////////////////
 
 int
-test_base_skiplist_duplicate(char* param) {
+test_base_skiplist_duplicate(const char* param) {
 
     // raw data
     int cap = param ? atoi(param) : 10;
@@ -213,7 +213,7 @@ test_base_skiplist_duplicate(char* param) {
 //////////////////////////////////////////////////////
 
 int
-test_base_skiplist_find(char* param) {
+test_base_skiplist_find(const char* param) {
 
     // raw data
     int cap = param ? atoi(param) : 10;

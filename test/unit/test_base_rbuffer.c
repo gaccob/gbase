@@ -11,10 +11,9 @@ static char _bytes[BYTES_SIZE];
 
 static void*
 _write(void* arg) {
-    int ret, loop;
-    loop = 0;
+    int loop = 0;
     do {
-        ret = rbuffer_write(_rbuffer, _bytes, sizeof(_bytes));
+        int ret = rbuffer_write(_rbuffer, _bytes, sizeof(_bytes));
         if (ret < 0) {
             usleep(100);
         } else {
@@ -29,13 +28,11 @@ _write(void* arg) {
 
 static void*
 _read(void* arg) {
-    int i, ret, loop;
     char recv[BYTES_SIZE];
-    size_t nrecv;
-    loop = 0;
+    int loop = 0;
     do {
-        nrecv = BYTES_SIZE;
-        ret = rbuffer_read(_rbuffer, recv, &nrecv);
+        size_t nrecv = BYTES_SIZE;
+        int ret = rbuffer_read(_rbuffer, recv, &nrecv);
         if (ret < 0) {
             usleep(100);
         } else {
@@ -44,7 +41,7 @@ _read(void* arg) {
                 printf("thread read: %d\n", loop);
             }
             assert(nrecv == BYTES_SIZE);
-            for (i = 0; i < (int)nrecv; i++) {
+            for (int i = 0; i < (int)nrecv; i++) {
                 assert(recv[i] == _bytes[i]);
             }
         }
@@ -53,7 +50,7 @@ _read(void* arg) {
 }
 
 int
-test_base_rbuffer(char* param) {
+test_base_rbuffer(const char* param) {
     if (param) {
         _loop = atoi(param);
     }
@@ -68,9 +65,13 @@ test_base_rbuffer(char* param) {
         return -1;
     }
 
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, (1 << 20));
+
     pthread_t p1, p2;
-    pthread_create(&p1, NULL, _write, NULL);
-    pthread_create(&p2, NULL, _read, NULL);
+    pthread_create(&p1, &attr, _write, NULL);
+    pthread_create(&p2, &attr, _read, NULL);
 
     pthread_join(p1, NULL);
     pthread_join(p2, NULL);

@@ -193,16 +193,20 @@ echo_client(void* arg) {
 /////////////////////////////////////////////////////////////////////////////
 
 int
-test_net_echo(void* param) {
+test_net_echo(const char* param) {
     _insts = param ? atoi((char*)param) : 3;
 
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, (1 << 20));
+
     pthread_t t_server;
-    pthread_create(&t_server, NULL, echo_server, NULL);
+    pthread_create(&t_server, &attr, echo_server, NULL);
     usleep(1000);
 
     pthread_t t_client[_insts];
     for (int i = 0; i < _insts; ++ i) {
-        pthread_create(&t_client[i], NULL, echo_client, NULL);
+        pthread_create(&t_client[i], &attr, echo_client, NULL);
     }
 
     for (int i = 0; i < _insts; ++ i) {

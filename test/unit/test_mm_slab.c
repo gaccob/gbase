@@ -8,7 +8,7 @@
 static int _loop;
 
 int
-test_mm_slab(char* param) {
+test_mm_slab(const char* param) {
     _loop = param ? atoi(param) : 10;
     void* mem[_loop];
     memset(mem, 0, sizeof(mem));

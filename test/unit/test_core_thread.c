@@ -44,15 +44,19 @@ _main_add(void* arg) {
 }
 
 int
-test_core_thread(char* param) {
+test_core_thread(const char* param) {
     _cond = thread_cond_alloc();
     _lock = thread_lock_alloc();
     _tval = 0;
     _loop = param ? atoi(param) : 3;
 
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, (1 << 20));
+
     pthread_t t_add, t_zero;
-    pthread_create(&t_add, NULL, _main_add, NULL);
-    pthread_create(&t_zero, NULL, _main_zero, NULL);
+    pthread_create(&t_add, &attr, _main_add, NULL);
+    pthread_create(&t_zero, &attr, _main_zero, NULL);
 
     pthread_join(t_add, NULL);
     pthread_join(t_zero, NULL);

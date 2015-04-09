@@ -27,7 +27,7 @@ _lock_func(void* arg) {
 }
 
 int
-test_core_lock(char* param) {
+test_core_lock(const char* param) {
 
     _lock_thread_count = param ? atoi(param) : 4;
 
@@ -45,8 +45,12 @@ test_core_lock(char* param) {
     util_timestamp(&from, ts, sizeof(ts));
     printf("%s thread %d loop %d start\n", ts, _lock_thread_count, _lock_loop);
 
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, (1 << 20));
+
     for (int i = 0; i < _lock_thread_count; ++ i) {
-        pthread_create(&tid[i], NULL, _lock_func, NULL);
+        pthread_create(&tid[i], &attr, _lock_func, NULL);
     }
     for (int i = 0; i < _lock_thread_count; ++ i) {
         int ret = pthread_join(tid[i], NULL);

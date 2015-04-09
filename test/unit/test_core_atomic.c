@@ -18,7 +18,7 @@ _atom_run(void* arg) {
 }
 
 int
-test_core_atomic(char* param) {
+test_core_atomic(const char* param) {
     if (param) {
         _loop = atoi(param);
     }
@@ -26,9 +26,13 @@ test_core_atomic(char* param) {
     _int_ref = 10;
     atom_set(&_atom_ref, 10);
 
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, (1 << 20));
+
     pthread_t t1, t2;
-    pthread_create(&t1, NULL, _atom_run, NULL);
-    pthread_create(&t2, NULL, _atom_run, NULL);
+    pthread_create(&t1, &attr, _atom_run, NULL);
+    pthread_create(&t2, &attr, _atom_run, NULL);
     pthread_join(t1, NULL);
     pthread_join(t2, NULL);
 

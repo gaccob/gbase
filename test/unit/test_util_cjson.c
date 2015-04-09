@@ -29,7 +29,7 @@
 
 // Parse text to JSON, then render back to text, and print!
 static void
-_json_do_text(char *text) {
+_json_do_text(const char *text) {
     char* out;
     cJSON* json = cJSON_Parse(text);
     if (!json) {
@@ -37,15 +37,15 @@ _json_do_text(char *text) {
     } else {
         out = cJSON_Print(json);
         cJSON_Delete(json);
-        printf("%s\n", out);
+        // printf("%s\n", out);
         FREE(out);
     }
 }
 
 // Read a file, parse, render back, etc.
 static void
-_json_do_file(char* param) {
-    char* filename = param ? param : "./json_test_file";
+_json_do_file(const char* param) {
+    const char* filename = param ? param : "./json_test_file";
     FILE *f = fopen(filename,"rb");
     fseek(f, 0, SEEK_END);
     long len = ftell(f);
@@ -155,7 +155,7 @@ _json_create() {
 }
 
 int
-test_util_cjson_text(char* param) {
+test_util_cjson_text(const char* param) {
     char text[] = "[\n"
         "     {\n"
         "     \"precision\": \"zip\",\n"
@@ -183,13 +183,13 @@ test_util_cjson_text(char* param) {
 }
 
 int
-test_util_cjson_file(char* param) {
+test_util_cjson_file(const char* param) {
     _json_do_file(param);
    return 0; 
 }
 
 int
-test_util_cjson_create(char* param) {
+test_util_cjson_create(const char* param) {
     _json_create();
     return 0;
 }

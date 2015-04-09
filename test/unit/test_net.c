@@ -18,7 +18,7 @@ const char* const url = "https://openmobile.qq.com/user/get_simple_userinfo"
                         "&pf=qzone";
 
 int
-test_net_curl(char* param) {
+test_net_curl(const char* param) {
     int loop = param ? atoi(param) : 10;
     curlp_t* cp = curlp_create();
     if (!cp) {

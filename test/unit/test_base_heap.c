@@ -11,7 +11,7 @@ _heap_cmp(void* data1, void* data2) {
 static int _size = 33;
 
 int
-test_base_heap(char* param) {
+test_base_heap(const char* param) {
     if (param) {
         _size = atoi(param);
     }

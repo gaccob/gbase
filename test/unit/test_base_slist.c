@@ -9,7 +9,7 @@
     }
 
 int
-test_base_slist(char* param) {
+test_base_slist(const char* param) {
     struct slist_t* sl = slist_create();
     if (!sl) {
         fprintf(stderr, "slist create fail\n");
