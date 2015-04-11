@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <getopt.h>
 #include <sys/time.h>
 
 #include "test.h"
@@ -50,6 +51,9 @@ extern int test_util_shuffle(const char*);
 extern int test_util_unicode(const char*);
 extern int test_util_wscode(const char*);
 
+static bool mode_all = false;
+static bool mode_interact = false;
+
 static int
 traverse_callback(const char* commands, int result) {
     fflush(stdout);
@@ -62,9 +66,15 @@ traverse_callback(const char* commands, int result) {
     return result;
 }
 
+static void
+usage() {
+    printf("usage:\n"
+        "\t--all(a)             \"run all test cases\"\n"
+        "\t--interact(i)        \"run under interact mode\"\n");
+}
 
-int
-main(int argc, char** argv) {
+static void
+run() {
     cmd_t* cmd = cmd_create(".history", "~>");
     cmd_register(cmd, "base conhash",               test_base_conhash);
     cmd_register(cmd, "base bitset",                test_base_bitset);
@@ -104,7 +114,7 @@ main(int argc, char** argv) {
     cmd_register(cmd, "util wscode",                test_util_wscode);
 
     // unit test mode
-    if (argc > 1 && strcmp(argv[1], "unit") == 0) {
+    if (mode_all) {
         int res = cmd_traverse(cmd, NULL, traverse_callback);
         if (res < 0) {
             fprintf(stderr, "\033[%dm--> [RUN ALL TEST CASES FAILURE] <--\033[0m\n\n", COLOR_RED);
@@ -114,17 +124,15 @@ main(int argc, char** argv) {
     }
 
     // interact mode
-    else {
+    if (mode_interact) {
         while (1) {
             char* line = cmd_readline(cmd);
             if (!line) {
                 break;
             }
-
             int ret = cmd_handle(cmd, line);
             traverse_callback(line, ret);
             free(line);
-
             if (cmd_eof(cmd)) {
                 if (cmd_closed(cmd)) {
                     break;
@@ -134,6 +142,38 @@ main(int argc, char** argv) {
     }
 
     cmd_release(cmd);
+}
+
+int
+main(int argc, char** argv) {
+
+    struct option opts[] = {
+        {"all",         no_argument,    0,  'a'},
+        {"interact",    no_argument,    0,  'i'},
+        {0,             0,              0,  0}
+    };
+
+    int index, c;
+    while ((c = getopt_long_only(argc, argv, "", opts, &index)) != -1) {
+        switch (c) {
+            case 'a':
+                mode_all = true;
+                break;
+            case 'i':
+                mode_interact = true;
+                break;
+            default:
+                usage();
+                exit(-1);
+        }
+    }
+
+    if (!mode_all && !mode_interact) {
+        usage();
+        exit(-1);
+    }
+
+    run();
     return 0;
 }
 
