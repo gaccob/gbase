@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
@@ -143,13 +144,13 @@ echo_client(void* arg) {
     int res = sock_nonblock_connect(sock, ECHO_IP, ECHO_PORT, tv);
     assert(0 == res);
 
-    printf("thread[%llx] client connect fd=%d\n", tid, sock);
+    printf("thread[%"PRIX64"] client connect fd=%d\n", tid, sock);
 
     int loop = arg ? atoi((char*)arg) : 3;
     while (loop -- > 0) {
 
         char buffer[1024];
-        snprintf(buffer, sizeof(buffer), "thread[%llx] say hello loop=%d", tid, loop);
+        snprintf(buffer, sizeof(buffer), "thread[%"PRIX64"] say hello loop=%d", tid, loop);
         printf("%s\n", buffer);
 
         int nsend = 0;
