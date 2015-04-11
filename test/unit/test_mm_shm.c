@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdint.h>
 #include <pthread.h>
 #include <unistd.h>
 
@@ -11,12 +12,12 @@ size_t SHM_SIZE = 1024;
 static void*
 _send(void* arg) {
 
-    uint64_t tid = pthread_self();
+    uint64_t tid = (uint64_t)pthread_self();
 
     struct shm_t* shm = shm_create(SHM_KEY, SHM_SIZE, 1);
     assert(shm);
 
-    printf("thread[%lx] shm size:%d addr:%p\n", tid, (int)shm_size(shm), (char*)shm_mem(shm));
+    printf("thread[%llx] shm size:%d addr:%p\n", tid, (int)shm_size(shm), (char*)shm_mem(shm));
 
     struct lock_t* pl = lock_create(SHM_KEY);
     assert(pl);
@@ -26,7 +27,7 @@ _send(void* arg) {
 
     lock_lock(pl);
     memcpy((char*)shm_mem(shm), buf, strlen(buf));
-    printf("thread[%lx] send: %s\n", tid, buf);
+    printf("thread[%llx] send: %s\n", tid, buf);
     lock_unlock(pl);
 
     shm_release(shm);
@@ -38,12 +39,12 @@ _send(void* arg) {
 static void*
 _recv(void* arg) {
 
-    uint64_t tid = pthread_self();
+    uint64_t tid = (uint64_t)pthread_self();
 
     struct shm_t* shm = shm_create(SHM_KEY, SHM_SIZE, 1);
     assert(shm);
 
-    printf("thread[%lx] shm size:%d addr:%p\n", tid, (int)shm_size(shm), (char*)shm_mem(shm));
+    printf("thread[%llx] shm size:%d addr:%p\n", tid, (int)shm_size(shm), (char*)shm_mem(shm));
 
     struct lock_t* pl = lock_create(SHM_KEY);
     assert(pl);
@@ -51,7 +52,7 @@ _recv(void* arg) {
     usleep(100);
 
     lock_lock(pl);
-    printf("thread[%lx] recv: %s\n", tid, (char*)shm_mem(shm));
+    printf("thread[%llx] recv: %s\n", tid, (char*)shm_mem(shm));
     lock_unlock(pl);
 
     if (arg) {

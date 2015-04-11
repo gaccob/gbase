@@ -328,31 +328,35 @@ cmd_register(cmd_t* cmd, const char* sentence, cmd_handle_t handle) {
     }
 }
 
-static void
+static int
 _cmd_word_recurse(word_t* w, const char* param, cmd_callback_t cb, const char* prefix) {
     if (w) {
+        int result = 0;
         char* commands = (char*)MALLOC(MAX_SENTENCE_LEN);
         snprintf(commands, MAX_SENTENCE_LEN, "%s %s", prefix, w->word);
         if (w->handle) {
             int ret = w->handle(param);
-            cb(commands, ret);
+            result |= cb(commands, ret);
         }
         for (int i = 0; i < MAX_WORD_OPTION; ++ i) {
             if (!w->children[i]) {
                 break;
             }
-            _cmd_word_recurse(w->children[i], param, cb, commands);
+            result |= _cmd_word_recurse(w->children[i], param, cb, commands);
         }
         FREE(commands);
+        return result;
     }
+    return -1;
 }
 
-void
+int
 cmd_traverse(cmd_t* cmd, const char* param, cmd_callback_t cb) {
     if (cmd) {
         word_t* w = cmd->word;
-        return _cmd_word_recurse(w, param, cb, ""); 
+        return _cmd_word_recurse(w, param, cb, "");
     }
+    return -1;
 }
 
 int

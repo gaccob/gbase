@@ -324,7 +324,7 @@ test_util_dh_perf(const char* param) {
 
     gettimeofday(&tv, NULL);
     util_timestamp(&tv, timestamp, 64);
-    printf("%s\n end", timestamp);
+    printf("%s end\n", timestamp);
     return 0;
 }
 

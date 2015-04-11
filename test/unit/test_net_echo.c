@@ -132,7 +132,7 @@ echo_server(void* arg) {
 static void*
 echo_client(void* arg) {
 
-    uint64_t tid = pthread_self();
+    uint64_t tid = (uint64_t)pthread_self();
 
     sock_t sock = sock_tcp();
     assert(sock >= 0);
@@ -143,13 +143,13 @@ echo_client(void* arg) {
     int res = sock_nonblock_connect(sock, ECHO_IP, ECHO_PORT, tv);
     assert(0 == res);
 
-    printf("thread[%lx] client connect fd=%d\n", tid, sock);
+    printf("thread[%llx] client connect fd=%d\n", tid, sock);
 
     int loop = arg ? atoi((char*)arg) : 3;
     while (loop -- > 0) {
 
         char buffer[1024];
-        snprintf(buffer, sizeof(buffer), "thread[%lx] say hello loop=%d", tid, loop);
+        snprintf(buffer, sizeof(buffer), "thread[%llx] say hello loop=%d", tid, loop);
         printf("%s\n", buffer);
 
         int nsend = 0;

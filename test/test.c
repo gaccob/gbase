@@ -50,7 +50,7 @@ extern int test_util_shuffle(const char*);
 extern int test_util_unicode(const char*);
 extern int test_util_wscode(const char*);
 
-static void
+static int
 traverse_callback(const char* commands, int result) {
     fflush(stdout);
     if (result == 0) {
@@ -59,6 +59,7 @@ traverse_callback(const char* commands, int result) {
         fprintf(stderr, "\033[%dm[FAILURE]\033[0m   %s\n\n", COLOR_RED, commands);
     }
     fflush(stderr);
+    return result;
 }
 
 
@@ -104,7 +105,12 @@ main(int argc, char** argv) {
 
     // unit test mode
     if (argc > 1 && strcmp(argv[1], "unit") == 0) {
-        cmd_traverse(cmd, NULL, traverse_callback);
+        int res = cmd_traverse(cmd, NULL, traverse_callback);
+        if (res < 0) {
+            fprintf(stderr, "\033[%dm--> [RUN ALL TEST CASES FAILURE] <--\033[0m\n\n", COLOR_RED);
+            cmd_release(cmd);
+            exit(res);
+        }
     }
 
     // interact mode
