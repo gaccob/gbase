@@ -58,6 +58,7 @@ test_core_lock(const char* param) {
             fprintf(stderr, "cannot join thread %d\n", i);
         }
     }
+    pthread_attr_destroy(&attr);
 
     struct timeval end;
     gettimeofday(&end,NULL);

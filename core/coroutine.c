@@ -51,7 +51,6 @@ _crt_unit_create(crt_t* c, crt_func func, void* arg) {
     cu->crt = c;
     cu->status = CRT_INIT;
     cu->stack = (char*)VALLOC(c->stack_size + CRT_UNIT_RESERVED_SIZE);
-    // printf("alloc %p\n", cu->stack);
     assert(cu->stack);
 
     // protect reserved space, top done, so resverd at front
@@ -67,7 +66,6 @@ _crt_unit_release(crt_unit_t* cu) {
     if (cu) {
         if (cu->stack) {
             cu->stack -= CRT_UNIT_RESERVED_SIZE;
-            // printf("free %p\n", cu->stack);
             FREE(cu->stack);
             cu->stack = 0;
         }
@@ -86,10 +84,12 @@ crt_create(int crt_stack_size) {
     // stack, round up 4k
     c->stack_size = ((crt_stack_size - 1) / getpagesize() + 1) * getpagesize();
     // printf("coroutine stack size %d\n", c->stack_size);
+
     // coroutine units
     c->units = (crt_unit_t**)MALLOC(sizeof(crt_unit_t*) * c->capacity);
     assert(c->units);
     memset(c->units, 0, sizeof(crt_unit_t*) * c->capacity);
+
     c->freelst = slist_create();
     assert(c->freelst);
     return c;

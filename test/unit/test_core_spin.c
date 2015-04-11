@@ -57,6 +57,7 @@ test_core_spin(const char* param) {
             fprintf(stderr, "cannot join thread[%d]\n", i);
         }
     }
+    pthread_attr_destroy(&attr);
 
     printf("test loop=%d code len=%d\n", spin_loop, spin_code_len);
 

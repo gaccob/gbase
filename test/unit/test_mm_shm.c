@@ -72,11 +72,16 @@ test_mm_shm(const char* param) {
     char words[1024];
     snprintf(words, sizeof(words), "hello shm!");
 
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, (1 << 20));
+
     int destroy = 0;
     pthread_t t_send, t_recv, t_destroy;
-    pthread_create(&t_send, NULL, _send, words);
-    pthread_create(&t_recv, NULL, _recv, NULL);
-    pthread_create(&t_destroy, NULL, _recv, &destroy);
+    pthread_create(&t_send, &attr, _send, words);
+    pthread_create(&t_recv, &attr, _recv, NULL);
+    pthread_create(&t_destroy, &attr, _recv, &destroy);
+    pthread_attr_destroy(&attr);
 
     pthread_join(t_send, NULL);
     pthread_join(t_recv, NULL);

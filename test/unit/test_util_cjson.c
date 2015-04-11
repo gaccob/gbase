@@ -45,7 +45,7 @@ _json_do_text(const char *text) {
 // Read a file, parse, render back, etc.
 static void
 _json_do_file(const char* param) {
-    const char* filename = param ? param : "./json_test_file";
+    const char* filename = param ? param : "bevtree.json";
     FILE *f = fopen(filename,"rb");
     fseek(f, 0, SEEK_END);
     long len = ftell(f);
@@ -185,7 +185,7 @@ test_util_cjson_text(const char* param) {
 int
 test_util_cjson_file(const char* param) {
     _json_do_file(param);
-   return 0; 
+    return 0; 
 }
 
 int

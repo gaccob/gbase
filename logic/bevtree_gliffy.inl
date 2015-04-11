@@ -1,5 +1,5 @@
-#include <unistd.h>
-#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "util/cjson.h"
 
 #define BVT_GLIFFY_SPLIT "|"
@@ -421,32 +421,38 @@ _bvt_load_gliffy(cJSON* js) {
 // init by gliffy file (also json format, but with lots of vision info)
 struct bvt_t*
 bvt_load_gliffy(const char* cfg) {
-    int fd;
-    off_t size;
-    char* src = NULL;
-    cJSON* js = NULL;
-    bvt_t* root = NULL;
+    if (!cfg) {
+        fprintf(stderr, "gliffy config empty\n");
+        return NULL;
+    }
+    FILE* f = fopen(cfg, "rb");
+    if (!f) {
+        fprintf(stderr, "open gliffy config %s error: %d\n", cfg, errno);
+        return NULL;
+    }
 
-    if (!cfg) return NULL;
-    fd = open(cfg, O_RDONLY);
-    if (fd < 0) return NULL;
-    size = lseek(fd, 0, SEEK_END);
-    src = (char*)MALLOC(size + 1);
-    lseek(fd, 0, SEEK_SET);
-    read(fd, src, size);
+    // file src
+    fseek(f, 0, SEEK_END);
+    int size = ftell(f);
+    char src[size + 1];
+
+    // read all file src
+    fseek(f, 0, SEEK_SET);
+    fread(src, 1, size, f);
     src[size] = 0;
 
-    // read gliffy config
-    js = cJSON_Parse(src);
+    // json parse
+    cJSON* js = cJSON_Parse(src);
     if (!js) {
-        printf("gliffy config %s error\n", cfg);
+        fprintf(stderr, "gliffy config %s error\n", cfg);
+        fclose(f);
         return NULL;
     }
 
     // load gliffy relation to bvt and check
-    root = _bvt_load_gliffy(js);
+    bvt_t* root = _bvt_load_gliffy(js);
     cJSON_Delete(js);
-    FREE(src);
+    fclose(f);
     return root;
 }
 

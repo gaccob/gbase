@@ -9,6 +9,7 @@ before_script:
   - mkdir -p build && cd build && cmake ..
 
 after_success:
+  - cd build && ./test unit 1>/dev/null
 
 script:
   - make

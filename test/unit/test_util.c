@@ -144,8 +144,12 @@ test_util_dh(const char* param) {
     }
 
     // P & G
-    printf("P: %s\n", BN_bn2hex(server->p));
-    printf("G: %s\n\n", BN_bn2hex(server->g));
+    char* pp = BN_bn2hex(server->p);
+    printf("P: %s\n", pp);
+    OPENSSL_free(pp);
+    char* pg = BN_bn2hex(server->g);
+    printf("G: %s\n\n", pg);
+    OPENSSL_free(pg);
 
     // generator key
     ret = DH_generate_key(server);
@@ -187,7 +191,11 @@ test_util_dh(const char* param) {
         printf("client compute key fail: %d\n", ret);
         goto DH_KEY_FAIL;
     }
-    printf("server public key: %s\n", BN_bn2hex(server->pub_key));
+
+    char* s_pub_key = BN_bn2hex(server->pub_key);
+    printf("server public key: %s\n", s_pub_key);
+    OPENSSL_free(s_pub_key);
+
     printf("client calculate key: ");
     for (int i = 0; i < DH_size(server); ++ i) {
         printf("%X%X", (key[i] >> 4) & 0xf, key[i] & 0xf);
@@ -202,7 +210,11 @@ test_util_dh(const char* param) {
         printf("server compute key fail: %d\n", ret);
         goto DH_KEY_FAIL;
     }
-    printf("client public key: %s\n", BN_bn2hex(client->pub_key));
+
+    char* c_pub_key = BN_bn2hex(server->pub_key);
+    printf("client public key: %s\n", c_pub_key);
+    OPENSSL_free(c_pub_key);
+
     printf("server calculate key: ");
     for (int i = 0; i < DH_size(server); ++ i) {
         printf("%X%X", (key[i] >> 4) & 0xf, key[i] & 0xf);
@@ -241,7 +253,7 @@ DH_FAIL:
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
-static int 
+static int
 _test_dh_perf() {
     int ret, errcode;
 

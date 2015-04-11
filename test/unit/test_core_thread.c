@@ -57,6 +57,7 @@ test_core_thread(const char* param) {
     pthread_t t_add, t_zero;
     pthread_create(&t_add, &attr, _main_add, NULL);
     pthread_create(&t_zero, &attr, _main_zero, NULL);
+    pthread_attr_destroy(&attr);
 
     pthread_join(t_add, NULL);
     pthread_join(t_zero, NULL);

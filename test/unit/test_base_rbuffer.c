@@ -72,6 +72,7 @@ test_base_rbuffer(const char* param) {
     pthread_t p1, p2;
     pthread_create(&p1, &attr, _write, NULL);
     pthread_create(&p2, &attr, _read, NULL);
+    pthread_attr_destroy(&attr);
 
     pthread_join(p1, NULL);
     pthread_join(p2, NULL);

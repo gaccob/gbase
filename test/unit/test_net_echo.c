@@ -164,6 +164,8 @@ echo_client(void* arg) {
         }
 
         char recv[1024];
+        memset(recv, 0, sizeof(recv));
+
         int nread = 0;
         while (nread < buflen) {
             res = read(sock, recv + nread, sizeof(recv) - nread);
@@ -176,7 +178,6 @@ echo_client(void* arg) {
                 usleep(1);
             }
         }
-
         printf("echo: %s\n", recv);
 
         if (strcmp(recv, buffer)) {

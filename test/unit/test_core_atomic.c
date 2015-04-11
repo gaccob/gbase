@@ -33,6 +33,8 @@ test_core_atomic(const char* param) {
     pthread_t t1, t2;
     pthread_create(&t1, &attr, _atom_run, NULL);
     pthread_create(&t2, &attr, _atom_run, NULL);
+    pthread_attr_destroy(&attr);
+
     pthread_join(t1, NULL);
     pthread_join(t2, NULL);
 
