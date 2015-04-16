@@ -228,8 +228,9 @@ dirty_replace(dirty_ctx_t* ctx, char* src, int len) {
     for (int i = 0; i < len; ++ i) {
         lowcase[i] = tolower((unsigned char)src[i]);
     }
-    for (int i = 0, step = 0; i < len; i += step) {
-        int step, key = 0;
+    int step = 0;
+    for (int i = 0; i < len; i += step) {
+        int key = 0;
         uint8_t* from = (uint8_t*)&lowcase[i];
         if (from[0] < GB_SPEC_CHAR) {
             key = ctx->index[0][from[0]];
