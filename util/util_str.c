@@ -8,7 +8,7 @@ util_str2int(const char *key) {
     uint8_t space_count = 0;
     uint8_t i = 0;
     do {
-        if (isdigit(key[i]))
+        if (isdigit((unsigned char)(key[i])))
             strncat(tail_res++, &key[i], 1);
         if (key[i] == ' ')
             space_count++;

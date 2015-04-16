@@ -27,9 +27,15 @@ typedef struct meta_t {
 #define META_FROM_MEM(memory) (meta_t*)((char*)memory - META_SIZE)
 
 // getpagesize() must be 2^n
-#define META_SHIFT(meta) (int16_t)((uint64_t)meta & (getpagesize() - 1))
-#define META_PAGE(meta) (page_t*)((uint64_t)meta & ~(getpagesize() - 1))
-#define META(meta, shift) (meta_t*)((char*)META_PAGE(meta) + shift)
+#ifdef __x86_64__
+    #define META_SHIFT(meta) (int16_t)((uint64_t)meta & (getpagesize() - 1))
+    #define META_PAGE(meta) (page_t*)((uint64_t)meta & ~(getpagesize() - 1))
+    #define META(meta, shift) (meta_t*)((char*)META_PAGE(meta) + shift)
+#else
+    #define META_SHIFT(meta) (int16_t)((uint32_t)meta & (getpagesize() - 1))
+    #define META_PAGE(meta) (page_t*)((uint32_t)meta & ~(getpagesize() - 1))
+    #define META(meta, shift) (meta_t*)((char*)META_PAGE(meta) + shift)
+#endif
 
 typedef struct page_t {
     list_head_t link;

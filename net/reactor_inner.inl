@@ -28,6 +28,8 @@ typedef struct reactor_impl_t {
 
 #if defined(OS_LINUX)
 extern reactor_impl_t reactor_epoll;
+#elif defined(OS_CYGWIN)
+extern reactor_impl_t reactor_select;
 #elif defined(OS_MAC)
 extern reactor_impl_t reactor_kqueue;
 #endif

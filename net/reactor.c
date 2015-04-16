@@ -10,6 +10,8 @@ reactor_create() {
     reactor->data = 0;
 #if defined(OS_LINUX)
     reactor->impl = &reactor_epoll;
+#elif defined(OS_CYGWIN)
+    reactor->impl = &reactor_select;
 #elif defined(OS_MAC)
     reactor->impl = &reactor_kqueue;
 #else

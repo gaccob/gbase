@@ -13,11 +13,15 @@ size_t SHM_SIZE = 1024;
 static void*
 _send(void* arg) {
 
-    uint64_t tid = (uint64_t)pthread_self();
+    pthread_t tid = pthread_self();
 
     struct shm_t* shm = shm_create(SHM_KEY, SHM_SIZE, 1);
     assert(shm);
-    printf("thread[%"PRIX64"] shm size:%d addr:%p\n", tid, (int)shm_size(shm), (char*)shm_mem(shm));
+#ifdef __x86_64__
+    printf("thread[%"PRIX64"] shm size:%d addr:%p\n", (uint64_t)tid, (int)shm_size(shm), (char*)shm_mem(shm));
+#else
+    printf("thread[%"PRIX32"] shm size:%d addr:%p\n", (uint32_t)tid, (int)shm_size(shm), (char*)shm_mem(shm));
+#endif
 
     struct lock_t* pl = lock_create(SHM_KEY);
     assert(pl);
@@ -27,7 +31,11 @@ _send(void* arg) {
 
     lock_lock(pl);
     memcpy((char*)shm_mem(shm), buf, strlen(buf));
-    printf("thread[%"PRIX64"] send: %s\n", tid, buf);
+#ifdef __x86_64__
+    printf("thread[%"PRIX64"] send: %s\n", (uint64_t)tid, buf);
+#else
+    printf("thread[%"PRIX32"] send: %s\n", (uint32_t)tid, buf);
+#endif
     lock_unlock(pl);
 
     shm_release(shm);
@@ -39,12 +47,16 @@ _send(void* arg) {
 static void*
 _recv(void* arg) {
 
-    uint64_t tid = (uint64_t)pthread_self();
+    pthread_t tid = pthread_self();
 
     struct shm_t* shm = shm_create(SHM_KEY, SHM_SIZE, 1);
     assert(shm);
 
-    printf("thread[%"PRIX64"] shm size:%d addr:%p\n", tid, (int)shm_size(shm), (char*)shm_mem(shm));
+#ifdef __x86_64__
+    printf("thread[%"PRIX64"] shm size:%d addr:%p\n", (uint64_t)tid, (int)shm_size(shm), (char*)shm_mem(shm));
+#else
+    printf("thread[%"PRIX32"] shm size:%d addr:%p\n", (uint32_t)tid, (int)shm_size(shm), (char*)shm_mem(shm));
+#endif
 
     struct lock_t* pl = lock_create(SHM_KEY);
     assert(pl);
@@ -52,7 +64,11 @@ _recv(void* arg) {
     usleep(100);
 
     lock_lock(pl);
-    printf("thread[%"PRIX64"] recv: %s\n", tid, (char*)shm_mem(shm));
+#ifdef __x86_64__
+    printf("thread[%"PRIX64"] recv: %s\n", (uint64_t)tid, (char*)shm_mem(shm));
+#else
+    printf("thread[%"PRIX32"] recv: %s\n", (uint32_t)tid, (char*)shm_mem(shm));
+#endif
     lock_unlock(pl);
 
     if (arg) {

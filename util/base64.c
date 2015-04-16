@@ -58,33 +58,37 @@ base64_encode(char* dst, const char* src, size_t sz) {
 
 int32_t
 base64_decode(char* dst, const char* src, size_t sz) {
-	size_t i = 0, idx = 0, j;
+	if (!dst || !src || sz == 0) {
+        return -1;
+    }
     uint8_t a[3], b[4];
-	if (!dst || !src || sz == 0) return -1;
-
+	size_t i = 0;
+    int idx = 0;
     while (sz-- > 0 && src[idx] != '=') {
-        if (!_BASE64_C(src[idx])) return -1;
+        if (!_BASE64_C((unsigned char)(src[idx]))) {
+            return -1;
+        }
         b[i++] = src[idx++];
         if (i == 4) {
-            for (j = 0; j < i; j++) {
+            for (size_t j = 0; j < i; j++) {
                 b[j] = strchr(_base64_table, b[j]) - _base64_table;
             }
             _BASE64_DECODE(a, b);
-            for (j = 0; j < 3; j++) {
+            for (size_t j = 0; j < 3; j++) {
                 *dst++ = a[j];
             }
             i = 0;
         }
     }
     if (i > 0) {
-        for (j = i; j < 4; j++) {
+        for (size_t j = i; j < 4; j++) {
             b[j] = 0;
         }
-        for (j = 0; j < 4; j++) {
+        for (size_t j = 0; j < 4; j++) {
             b[j] = strchr(_base64_table, b[j]) - _base64_table;
         }
         _BASE64_DECODE(a, b);
-        for (j = 0; j < i - 1; j++) {
+        for (size_t j = 0; j < i - 1; j++) {
             *dst++ = a[j];
         }
     }

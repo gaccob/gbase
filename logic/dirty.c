@@ -30,36 +30,31 @@ struct dirty_ctx_t {
 
 static dirty_ctx_t*
 _dirty_init_table(const char* cfg) {
-    dirty_ctx_t* ctx;
-    dirty_t* dirty;
-    FILE* fp;
-    int len;
-    size_t i;
-
-    if (!cfg) return NULL;
-
-    ctx = (dirty_ctx_t*)MALLOC(sizeof(dirty_ctx_t));
-    if (!ctx) return NULL;
-
+    if (!cfg) {
+        return NULL;
+    }
+    dirty_ctx_t* ctx = (dirty_ctx_t*)MALLOC(sizeof(dirty_ctx_t));
+    if (!ctx) {
+        return NULL;
+    }
     // open file
-    fp = fopen(cfg, "r");
+    FILE* fp = fopen(cfg, "r");
     if (!fp) {
         FREE(ctx);
         return NULL;
     }
-
     // read dirty words table
     ctx->table_size = 0;
     while (fgets(ctx->table[ctx->table_size].word, MAX_DIRTY_WORDS_LEN, fp)) {
-        dirty = &ctx->table[ctx->table_size ++];
+        dirty_t* dirty = &ctx->table[ctx->table_size ++];
         // lower case
-        for (i = 0; i < strnlen(dirty->word, MAX_DIRTY_WORDS_LEN); ++ i) {
-            dirty->word[i] = tolower(dirty->word[i]);
+        for (size_t i = 0; i < strnlen(dirty->word, MAX_DIRTY_WORDS_LEN); ++ i) {
+            dirty->word[i] = tolower((unsigned char)(dirty->word[i]));
         }
         dirty->next = dirty->prev = -1;
         // trim \r \n
         while (1) {
-            len = strnlen(dirty->word, MAX_DIRTY_WORDS_LEN);
+            int len = strnlen(dirty->word, MAX_DIRTY_WORDS_LEN);
             if (dirty->word[len - 1] == '\r' || dirty->word[len -1] == '\n') {
                 dirty->word[len - 1] = 0;
             } else {
@@ -78,22 +73,17 @@ _dirty_init_table(const char* cfg) {
 
 static int
 _dirty_init_hash(dirty_ctx_t* ctx) {
-    int i, hindex, windex;
-    uint32_t hkey;
-    size_t len;
-    dirty_t* dirty;
-
     // build hash table
     memset(ctx->hash, -1, sizeof(ctx->hash));
-    for (i = 0; i < ctx->table_size; ++ i) {
-        len = strnlen(ctx->table[i].word, MAX_DIRTY_WORDS_LEN);
-        hkey = hash_jhash(ctx->table[i].word, len);
-        hindex = hkey % MAX_DIRTY_WORDS_HASH_COUNT;
+    for (int i = 0; i < ctx->table_size; ++ i) {
+        size_t len = strnlen(ctx->table[i].word, MAX_DIRTY_WORDS_LEN);
+        uint32_t hkey = hash_jhash(ctx->table[i].word, len);
+        int hindex = hkey % MAX_DIRTY_WORDS_HASH_COUNT;
         if (ctx->hash[hindex] < 0) {
             ctx->hash[hindex] = i;
         } else {
-            windex = ctx->hash[hindex];
-            dirty = &ctx->table[windex];
+            int windex = ctx->hash[hindex];
+            dirty_t* dirty = &ctx->table[windex];
             while (dirty->next >= 0) {
                 windex = dirty->next;
                 dirty = &ctx->table[windex];
@@ -107,13 +97,10 @@ _dirty_init_hash(dirty_ctx_t* ctx) {
 
 static int
 _dirty_init_index(dirty_ctx_t* ctx) {
-    int i;
-    size_t len;
-    char* word;
     memset(ctx->index, 0, sizeof(ctx->index));
-    for (i = 0; i < ctx->table_size; ++ i) {
-        word = ctx->table[i].word;
-        len = strnlen(word, MAX_DIRTY_WORDS_LEN);
+    for (int i = 0; i < ctx->table_size; ++ i) {
+        char* word = ctx->table[i].word;
+        size_t len = strnlen(word, MAX_DIRTY_WORDS_LEN);
         if ((uint8_t)word[0] < GB_SPEC_CHAR) {
             SET_DIRTY_FLAG(ctx->index[0][(uint8_t)word[0]], len);
         } else if (len >= 2) {
@@ -127,11 +114,11 @@ _dirty_init_index(dirty_ctx_t* ctx) {
 
 dirty_ctx_t*
 dirty_create(const char* cfg) {
-    dirty_ctx_t* ctx;
-    int ret;
-    ctx = _dirty_init_table(cfg);
-    if (!ctx) return NULL;
-    ret = _dirty_init_hash(ctx);
+    dirty_ctx_t* ctx = _dirty_init_table(cfg);
+    if (!ctx) {
+        return NULL;
+    }
+    int ret = _dirty_init_hash(ctx);
     assert(0 == ret);
     ret = _dirty_init_index(ctx);
     assert(0 == ret);
@@ -140,9 +127,10 @@ dirty_create(const char* cfg) {
 
 int
 dirty_reload(dirty_ctx_t** ctx, const char* dirty_cfg) {
-    dirty_ctx_t* new_ctx;
-    new_ctx = dirty_create(dirty_cfg);
-    if (!new_ctx) return -1;
+    dirty_ctx_t* new_ctx = dirty_create(dirty_cfg);
+    if (!new_ctx) {
+        return -1;
+    }
     dirty_release(*ctx);
     *ctx = new_ctx;
     return 0;
@@ -150,26 +138,23 @@ dirty_reload(dirty_ctx_t** ctx, const char* dirty_cfg) {
 
 int
 dirty_hash_find(dirty_ctx_t* ctx, const char* src, size_t len) {
-    uint32_t hkey;
-    dirty_t* dirty;
-    int windex, hindex;
     if (!ctx || !src || len == 0) {
         return -1;
     }
     // index
-    hkey = hash_jhash(src, len);
-    hindex = hkey % MAX_DIRTY_WORDS_HASH_COUNT;
+    uint32_t hkey = hash_jhash(src, len);
+    int hindex = hkey % MAX_DIRTY_WORDS_HASH_COUNT;
     if (ctx->index[hindex] < 0) {
         return -1;
     }
     // hash table
-    windex = ctx->hash[hindex];
+    int windex = ctx->hash[hindex];
     while (1) {
         // not found
         if (windex < 0) {
             return -1;
         }
-        dirty = &ctx->table[windex];
+        dirty_t* dirty = &ctx->table[windex];
         windex = dirty->next;
         if (0 == strncmp(dirty->word, src, len)) {
             return 0;
@@ -184,20 +169,16 @@ dirty_hash_find(dirty_ctx_t* ctx, const char* src, size_t len) {
 // return -3, invalid input
 int
 dirty_check(dirty_ctx_t* ctx, const char* src, int len) {
-    static char lowcase[MAX_SOURCE_WORDS_LEN];
-    int i, k, step, key;
-    const uint8_t* from;
-
     if (!ctx || !src || len > MAX_SOURCE_WORDS_LEN) {
         return -3;
     }
-    for (i = 0; i < len; i++) {
-        lowcase[i] = tolower(src[i]);
+    static char lowcase[MAX_SOURCE_WORDS_LEN];
+    for (int i = 0; i < len; ++ i) {
+        lowcase[i] = tolower((unsigned char)src[i]);
     }
-
-    for (i = 0, step = 0; i < len; i += step) {
-        key = 0;
-        from = (const uint8_t*)&lowcase[i];
+    for (int i = 0, step = 0; i < len; i += step) {
+        int step, key = 0;
+        const uint8_t* from = (const uint8_t*)&lowcase[i];
         if (from[0] < GB_SPEC_CHAR) {
             key = ctx->index[0][from[0]];
             step = 1;
@@ -213,7 +194,7 @@ dirty_check(dirty_ctx_t* ctx, const char* src, int len) {
             continue;
         }
         // found key
-        for (k = 1; k < MAX_DIRTY_WORDS_LEN; k++) {
+        for (int k = 1; k < MAX_DIRTY_WORDS_LEN; ++ k) {
             // exceed len
             if (i + k > len) {
                 break;
@@ -241,19 +222,15 @@ dirty_check(dirty_ctx_t* ctx, const char* src, int len) {
 int
 dirty_replace(dirty_ctx_t* ctx, char* src, int len) {
     static char lowcase[MAX_SOURCE_WORDS_LEN];
-    int i, j, k, step, key;
-    uint8_t* from;
-
     if (!ctx || !src || len > MAX_SOURCE_WORDS_LEN) {
         return -1;
     }
-    for (i = 0; i < len; i++) {
-        lowcase[i] = tolower(src[i]);
+    for (int i = 0; i < len; ++ i) {
+        lowcase[i] = tolower((unsigned char)src[i]);
     }
-
-    for (i = 0, step = 0; i < len; i += step) {
-        key = 0;
-        from = (uint8_t*)&lowcase[i];
+    for (int i = 0, step = 0; i < len; i += step) {
+        int step, key = 0;
+        uint8_t* from = (uint8_t*)&lowcase[i];
         if (from[0] < GB_SPEC_CHAR) {
             key = ctx->index[0][from[0]];
             step = 1;
@@ -269,7 +246,7 @@ dirty_replace(dirty_ctx_t* ctx, char* src, int len) {
             continue;
         }
         // index exists, check
-        for (k = 1; k < MAX_DIRTY_WORDS_LEN; k++) {
+        for (int k = 1; k < MAX_DIRTY_WORDS_LEN; ++ k) {
             if (i + k > len) {
                 break;
             }
@@ -279,7 +256,7 @@ dirty_replace(dirty_ctx_t* ctx, char* src, int len) {
             }
             // look up table
             if (0 == dirty_hash_find(ctx, (const char*)from, k)) {
-                for (j = 0; j < k; j++) {
+                for (int j = 0; j < k; ++ j) {
                     src[i + j] = DIRTY_REPLACE_CHAR;
                 }
                 step = k;

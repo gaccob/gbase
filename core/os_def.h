@@ -24,20 +24,23 @@ extern "C" {
 // linux & gnuc
 #elif defined(__LINUX__) || defined(__linux__)
     #define OS_LINUX 1
-    #ifndef __GNUC__
-        #error LINUX but no GNUC
-    #endif
 
 // mac & gnuc
 #elif defined(__APPLE__) || defined(__APPLE_CC__)
     #define OS_MAC 1
-    #ifndef __GNUC__
-        #error LINUX but no GNUC
-    #endif
+
+// cygwin
+#elif defined(__CYGWIN__)
+    #define OS_CYGWIN 1
 
 // other os
 #else
     #error other platform not support now
+#endif
+
+// gcc version
+#ifndef __GNUC__
+    #error no GNUC
 #endif
 
 // gcc version

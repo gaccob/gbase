@@ -133,7 +133,7 @@ echo_server(void* arg) {
 static void*
 echo_client(void* arg) {
 
-    uint64_t tid = (uint64_t)pthread_self();
+    pthread_t tid = pthread_self();
 
     sock_t sock = sock_tcp();
     assert(sock >= 0);
@@ -143,14 +143,21 @@ echo_client(void* arg) {
     tv.tv_usec = 0;
     int res = sock_nonblock_connect(sock, ECHO_IP, ECHO_PORT, tv);
     assert(0 == res);
-
-    printf("thread[%"PRIX64"] client connect fd=%d\n", tid, sock);
+#ifdef __x86_64__
+    printf("thread[%"PRIX64"] client connect fd=%d\n", (uint64_t)tid, sock);
+#else
+    printf("thread[%"PRIX32"] client connect fd=%d\n", (uint32_t)tid, sock);
+#endif
 
     int loop = arg ? atoi((char*)arg) : 3;
     while (loop -- > 0) {
 
         char buffer[1024];
-        snprintf(buffer, sizeof(buffer), "thread[%"PRIX64"] say hello loop=%d", tid, loop);
+#ifdef __x86_64__
+        snprintf(buffer, sizeof(buffer), "thread[%"PRIX64"] say hello loop=%d", (uint64_t)tid, loop);
+#else
+        snprintf(buffer, sizeof(buffer), "thread[%"PRIX32"] say hello loop=%d", (uint32_t)tid, loop);
+#endif
         printf("%s\n", buffer);
 
         int nsend = 0;
