@@ -26,14 +26,16 @@ typedef struct meta_t {
 #define META_MEM(meta) ((char*)meta + META_SIZE)
 #define META_FROM_MEM(memory) (meta_t*)((char*)memory - META_SIZE)
 
-// getpagesize() must be 2^n
+// most of times ..
+#define PAGE_SIZE 4096
+
 #ifdef __x86_64__
-    #define META_SHIFT(meta) (int16_t)((uint64_t)meta & (getpagesize() - 1))
-    #define META_PAGE(meta) (page_t*)((uint64_t)meta & ~(getpagesize() - 1))
+    #define META_SHIFT(meta) (int16_t)((uint64_t)meta & (PAGE_SIZE - 1))
+    #define META_PAGE(meta) (page_t*)((uint64_t)meta & ~(PAGE_SIZE - 1))
     #define META(meta, shift) (meta_t*)((char*)META_PAGE(meta) + shift)
 #else
-    #define META_SHIFT(meta) (int16_t)((uint32_t)meta & (getpagesize() - 1))
-    #define META_PAGE(meta) (page_t*)((uint32_t)meta & ~(getpagesize() - 1))
+    #define META_SHIFT(meta) (int16_t)((uint32_t)meta & (PAGE_SIZE - 1))
+    #define META_PAGE(meta) (page_t*)((uint32_t)meta & ~(PAGE_SIZE - 1))
     #define META(meta, shift) (meta_t*)((char*)META_PAGE(meta) + shift)
 #endif
 
@@ -59,7 +61,9 @@ _slab_free_page(size_t sz) {
 
 static void
 _slab_free_insert(meta_t* meta, meta_t* insert) {
-    if (!meta || !insert) return;
+    if (!meta || !insert) {
+        return;
+    }
     if (meta->free_next > 0) {
         meta_t* next = META(meta, meta->free_next);
         insert->free_next = META_SHIFT(next);
@@ -119,7 +123,7 @@ static int
 _slab_free_quick_merge(meta_t* meta, int replace_next) {
     page_t* page = META_PAGE(meta);
     int shift = META_SHIFT(meta) + META_SIZE + meta->size;
-    if (shift < getpagesize()) {
+    if (shift < PAGE_SIZE) {
         meta_t* next = META(meta, shift);
         if (!(next->color & META_COLOR_ALLOC)) {
             meta_t* prev = next->free_prev > 0 ? PAGE_META(page, next->free_prev) : NULL;
@@ -184,8 +188,7 @@ _slab_page_erase(page_t* page, list_head_t* head) {
 
 static void
 _slab_page_insert(page_t* page, meta_t* meta) {
-    list_head_t* head;
-    head = _slab_free_page(meta->size);
+    list_head_t* head = _slab_free_page(meta->size);
     if (head == &g_slab_minor) {
         list_del(&page->link);
         list_add(&page->link, head);
@@ -197,14 +200,13 @@ _slab_page_insert(page_t* page, meta_t* meta) {
 
 static void*
 _slab_alloc(page_t* page, list_head_t* head, size_t sz) {
-    int16_t shift;
-    meta_t* meta, *next, *split;
     // no free memory
     if (page->free <= 0 || page->remain < (int)sz + (int)META_SIZE) {
         return NULL;
     }
     // loop free memory
-    shift = page->free;
+    int16_t shift = page->free;
+    meta_t* meta, *next, *split;
     while (shift > 0) {
         meta = PAGE_META(page, shift);
         shift = meta->free_next;
@@ -244,29 +246,33 @@ _slab_alloc(page_t* page, list_head_t* head, size_t sz) {
 
 void*
 slab_alloc(size_t sz) {
-    if (sz == 0)
+    if (sz == 0) {
         return NULL;
+    }
     sz = SLAB_ALIGN(sz);
     // try different list, if exceeds max return null
     list_head_t* head = _slab_free_page(sz);
-    if (!head)
+    if (!head) {
         return NULL;
+    }
     // alloc from free page
     page_t* page;
     list_for_each_entry(page, page_t, head, link) {
         void* memory = _slab_alloc(page, head, sz);
-        if (memory)
+        if (memory) {
             return memory;
+        }
     }
     // now, we need alloc a new page
     page = NULL;
-    posix_memalign((void**)&page, getpagesize(), getpagesize());
-    if (!page)
+    posix_memalign((void**)&page, PAGE_SIZE, PAGE_SIZE);
+    if (!page) {
         return NULL;
+    }
     page->free = PAGE_HEAD_SIZE;
-    page->remain = (int16_t)getpagesize() - page->free;
+    page->remain = (int16_t)PAGE_SIZE - page->free;
     meta_t* meta = PAGE_META(page, PAGE_HEAD_SIZE);
-    _slab_meta_init(meta, getpagesize() - PAGE_HEAD_SIZE - META_SIZE);
+    _slab_meta_init(meta, PAGE_SIZE - PAGE_HEAD_SIZE - META_SIZE);
     // add add to link list
     list_add(&page->link, head);
     // recursive
@@ -328,7 +334,7 @@ slab_free(void* memory) {
     }
 FREE_SUCCESS:
     // free page
-    if (page->remain + PAGE_HEAD_SIZE == getpagesize()) {
+    if (page->remain + PAGE_HEAD_SIZE == PAGE_SIZE) {
         list_del(&page->link);
         free((void*)page);
     }

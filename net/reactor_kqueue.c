@@ -40,8 +40,9 @@ kqueue_create(reactor_t* reactor) {
 
 int
 kqueue_register(reactor_t* reactor, handler_t* h, int events) {
-    if (!reactor || !reactor->data || !h)
+    if (!reactor || !reactor->data || !h) {
         return -1;
+    }
     kqueue_t* kq = (kqueue_t*)reactor->data;
     event_t ke_read, ke_write;
     if (EVENT_IN & events) {
@@ -61,12 +62,11 @@ kqueue_register(reactor_t* reactor, handler_t* h, int events) {
 
 int
 kqueue_unregister(reactor_t* reactor, handler_t* h) {
-    if (!reactor || !reactor->data || !h)
+    if (!reactor || !reactor->data || !h) {
         return -1;
-
+    }
     kqueue_t* kq = (kqueue_t*)reactor->data;
     slist_push_front(kq->expired, h);
-
     event_t ke;
     EV_SET(&ke, h->fd, 0, EV_DELETE, 0, 0, h);
     return kevent(kq->kqueue_fd, &ke, 1, NULL, 0, NULL);
@@ -74,9 +74,9 @@ kqueue_unregister(reactor_t* reactor, handler_t* h) {
 
 int
 kqueue_modify(reactor_t* reactor, handler_t* h, int events) {
-    if (!reactor || !reactor->data || !h)
+    if (!reactor || !reactor->data || !h) {
         return -1;
-
+    }
     kqueue_t* kq = (kqueue_t*)reactor->data;
     event_t ke;
     if (EVENT_OUT & events) {
@@ -100,9 +100,9 @@ kqueue_modify(reactor_t* reactor, handler_t* h, int events) {
 //  return > 0, noting to do
 int
 kqueue_dispatch(reactor_t* reactor, int ms) {
-    if (!reactor || !reactor->data)
+    if (!reactor || !reactor->data) {
         return -1;
-
+    }
     kqueue_t* kq = (kqueue_t*)(reactor->data);
     struct timespec ts;
     ts.tv_sec = ms / 1000;
@@ -110,38 +110,34 @@ kqueue_dispatch(reactor_t* reactor, int ms) {
     int res = kevent(kq->kqueue_fd, NULL, 0, kq->events, KQUEUE_SIZE, &ts);
     if (res < 0) {
         return EINTR == errno ? 0 : -errno;
-    } else if (0 == res) {
-        return 1;
     }
-   
     // get events
     for (int i = 0; i < res; ++ i) {
         int type = kq->events[i].filter;
         handler_t* h = (handler_t*)kq->events[i].udata;
         // check if expired
-        if (0 == slist_find(kq->expired, h))
+        if (0 == slist_find(kq->expired, h)) {
             continue;
+        }
         if (kq->events[i].flags & EV_ERROR) {
             printf("kqueue error flag=%d\n", kq->events[i].flags);
             h->close_func(h);
             continue;
         }
         if (EVFILT_READ == type) {
-            res = h->in_func(h);
-            if (res < 0) {
+            if (h->in_func(h) < 0) {
                 h->close_func(h);
                 continue;
             }
         } else if (EVFILT_WRITE == type) {
-            res = h->out_func(h);
-            if (res < 0) {
+            if (h->out_func(h) < 0) {
                 h->close_func(h);
                 continue;
             }
         }
     }
     slist_clean(kq->expired);
-    return 0;
+    return res;
 }
 
 void

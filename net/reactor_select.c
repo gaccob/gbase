@@ -69,7 +69,13 @@ select_register(reactor_t* reactor, handler_t* h, int events) {
     if (h->fd > SELECT_SIZE) {
         return -1;
     }
+    // duplicate handler
     select_t* s = (select_t*)reactor->data;
+    int ret = hash_insert(s->handler_table, h);
+    if (ret < 0) {
+        return ret;
+    }
+    // add to fds
     if (s->nfds < (int)h->fd) {
         s->nfds = h->fd;
     }
@@ -79,8 +85,7 @@ select_register(reactor_t* reactor, handler_t* h, int events) {
     if (EVENT_OUT & events) {
         FD_SET(h->fd, &s->out_prepare);
     }
-    hash_insert(s->handler_table, h);
-    return -1;
+    return 0;
 }
 
 int
@@ -91,7 +96,6 @@ select_unregister(struct reactor_t* reactor, struct handler_t* h) {
     select_t* s = (select_t*)reactor->data;
     FD_CLR(h->fd, &s->in_prepare);
     FD_CLR(h->fd, &s->out_prepare);
-    hash_remove(s->handler_table, h);
     slist_push_front(s->expired, h);
     return 0;
 }
@@ -128,15 +132,13 @@ _select_callback(select_t* s, int fd, int events) {
     }
     // callback
     if (EVENT_IN & events) {
-        res = h->in_func(h);
-        if (res < 0) {
+        if (h->in_func(h) < 0) {
             h->close_func(h);
             return;
         }
     }
     if (EVENT_OUT & events) {
-        res = h->out_func(h);
-        if (res < 0) {
+        if (h->out_func(h) < 0) {
             h->close_func(h);
             return;
         }
@@ -154,27 +156,36 @@ select_dispatch(reactor_t* reactor, int ms) {
     select_t* s = (select_t*)reactor->data;
     memcpy(&s->in_set, &s->in_prepare, sizeof(fd_set));
     memcpy(&s->out_set, &s->out_prepare, sizeof(fd_set));
+    // select with timeout
     struct timeval tv;
     tv.tv_sec = ms / 1000;
     tv.tv_usec = (ms % 1000) * 1000;
-    int res = select(s->nfds, &s->in_set, &s->out_set, NULL, &tv);
-    if (res == -1) {
-        if (errno != EINTR) return -errno;
-        return 1;
+    int res = select(s->nfds + 1, &s->in_set, &s->out_set, NULL, &tv);
+    if (res < 0) {
+        return errno != EINTR ? -errno : 1;
     }
     // callback, random for balance efficiency
-    int i = rand() % s->nfds;
-    for (int j = 0; j < s->nfds; ++ j) {
-        if (++ i >= s->nfds) i = 0;
+    int i = rand() % (s->nfds + 1);
+    int callback_times = 0;
+    for (int j = 0; j < s->nfds + 1; ++ j) {
+        if (++ i > s->nfds) i = 0;
         res = 0;
         if (FD_ISSET(i, &s->in_set)) res |= EVENT_IN;
         if (FD_ISSET(i, &s->out_set)) res |= EVENT_OUT;
         if (res == 0) continue;
+        ++ callback_times;
         _select_callback(s, i, res);
     }
     // clean expired list
-    slist_clean(s->expired);
-    return 0;
+    while (1) {
+        void* handler = slist_pop_front(s->expired);
+        if (handler) {
+            hash_remove(s->handler_table, handler);
+        } else {
+            break;
+        }
+    }
+    return callback_times;
 }
 
 void

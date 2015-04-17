@@ -28,9 +28,9 @@ int reactor_register(reactor_t*, handler_t*, int events);
 int reactor_unregister(reactor_t*, handler_t*);
 int reactor_modify(reactor_t*, handler_t*, int events);
 
-//  return = 0, success & process
+//  return = 0, nothing happened
 //  return < 0, fail
-//  return > 0, noting to do
+//  return > 0, return callback times
 int reactor_dispatch(reactor_t*, int ms);
 
 #ifdef __cplusplus

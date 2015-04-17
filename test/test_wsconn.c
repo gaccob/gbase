@@ -90,7 +90,7 @@ test_ws_server() {
     while (1) {
         res = reactor_dispatch(r, 1);
         if(res < 0) return -1;
-        if(res > 0) usleep(100);
+        if(res == 0) usleep(100);
     }
 
     acc_stop(acc);

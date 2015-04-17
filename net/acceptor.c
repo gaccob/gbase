@@ -64,27 +64,30 @@ acc_set_close_func(acc_t* a, acc_close_func on_close, void* arg) {
 
 int
 acc_release(acc_t* a) {
-    acc_stop(a);
-    if (a) FREE(a);
+    if (a) {
+        acc_stop(a);
+        FREE(a);
+    }
     return 0;
 }
 
 int
 acc_start(acc_t* a, sockaddr_t* laddr) {
-    int res;
-    if (!a || a->h.fd == INVALID_SOCK)
+    if (!a || a->h.fd == INVALID_SOCK) {
         return -1;
-    res = sock_listen(a->h.fd, laddr);
-    if (res < 0) return -1;
-    res = reactor_register(a->r, &a->h, EVENT_IN);
-    if (res < 0) return -1;
-    return 0;
+    }
+    int res = sock_listen(a->h.fd, laddr);
+    if (res < 0) {
+        return res;
+    }
+    return reactor_register(a->r, &a->h, EVENT_IN);
 }
 
 int
 acc_stop(acc_t* a) {
-    if (!a || a->h.fd == INVALID_SOCK)
+    if (!a || a->h.fd == INVALID_SOCK) {
         return -1;
+    }
     reactor_unregister(a->r, &a->h);
     sock_close(a->h.fd);
     return 0;
