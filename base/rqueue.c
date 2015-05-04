@@ -37,24 +37,38 @@ rqueue_release(rqueue_t* q) {
 
 void*
 rqueue_push_back(rqueue_t* q, void* data) {
-    if (rqueue_is_full(q)) return NULL;
-    q->data[q->write_pos] = data;
-    atom_set(&q->write_pos, (q->write_pos + 1) % q->size);
+    atom_t pos, next;
+    do {
+        if (rqueue_is_full(q)) {
+            return NULL;
+        }
+        pos = q->write_pos;
+        next = (pos + 1) % q->size;
+    } while (atom_set(&q->write_pos, next) != pos);
+    q->data[pos] = data;
     return data;
 }
 
 void*
 rqueue_pop_front(rqueue_t* q) {
+    atom_t pos, next;
     void* data;
-    if (rqueue_is_empty(q)) return NULL;
-    data = q->data[q->read_pos];
-    atom_set(&q->read_pos, (q->read_pos + 1) % q->size);
+    do {
+        if (rqueue_is_empty(q)) {
+            return NULL;
+        }
+        pos = q->read_pos;
+        data = q->data[pos];
+        next = (pos + 1) % q->size;
+    } while (atom_set(&q->read_pos, next) != pos);
     return data;
 }
 
 void*
 rqueue_head(rqueue_t* q) {
-    if (rqueue_is_empty(q)) return NULL;
+    if (rqueue_is_empty(q)) {
+        return NULL;
+    }
     return q->data[q->read_pos];
 }
 

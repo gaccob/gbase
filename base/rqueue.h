@@ -1,8 +1,9 @@
 #ifndef RQUEUE_H_
 #define RQUEUE_H_
 
-// it's a ring queue
-// likes a ring buffer, it's also lock-free
+// ring queue, likes a ring buffer, it's also lock-free
+// support only single pushing thread & poping thread
+// multi pushing threads or poping threads will cause un-expected problems
 
 #ifdef __cplusplus
 extern "C" {

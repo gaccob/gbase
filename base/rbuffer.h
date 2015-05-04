@@ -1,10 +1,9 @@
 #ifndef RBUFFER_H_
 #define RBUFFER_H_
 
-//
-// it's a ring buffer, so don't need to do memmove
-// it's flag is atomic, so lock-free
-//
+// it's a ring buffer, as atomic flags, so it's 'lock-free'
+// BUT, support only single reading thread & writing thread
+// multi reading threads or writing threads will cause un-expected problems
 
 #ifdef __cplusplus
 extern "C" {
