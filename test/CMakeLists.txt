@@ -1,6 +1,6 @@
 # compatible for travis CI
 cmake_minimum_required(VERSION 2.8.7)
-set(TEST_NAME "test")
+set(TEST_NAME "unitest")
 project("${TEST_NAME}")
 
 aux_source_directory(. TEST_SOURCES)
@@ -18,8 +18,6 @@ target_link_libraries(${TEST_NAME} ${GBASE_LIB} ${GBASE_LIB_LINK} crypto readlin
 # copy test source file
 set(TEST_CONFIG_FILE
     "assets/dirty_cfg_words"
-    "assets/bevtree.jpg"
-    "assets/bevtree.json"
     "assets/ws_client.html"
 )
 foreach(f ${TEST_CONFIG_FILE})

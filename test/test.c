@@ -30,7 +30,6 @@ extern int test_core_lock(const char*);
 extern int test_core_spin(const char*);
 extern int test_core_thread(const char*);
 
-extern int test_logic_bevtree(const char*);
 extern int test_logic_dirty(const char*);
 extern int test_logic_task(const char*);
 
@@ -95,7 +94,6 @@ run() {
     cmd_register(cmd, "core lock",                  test_core_lock);
     cmd_register(cmd, "core spin",                  test_core_spin);
     cmd_register(cmd, "core thread",                test_core_thread);
-    cmd_register(cmd, "logic bevtree",              test_logic_bevtree);
     cmd_register(cmd, "logic dirty",                test_logic_dirty);
     cmd_register(cmd, "logic task",                 test_logic_task);
     cmd_register(cmd, "mm slab",                    test_mm_slab);
