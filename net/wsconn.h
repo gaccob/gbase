@@ -2,7 +2,6 @@
 #define WSCONN_H_
 
 // web socket wrapper
-// reference: http://www.gaccob.com/?p=1148
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,3 +1,0 @@
-bus optimization: exception handle when duplicated bus address
-bugfix: coroutine memory error
-
