@@ -43,8 +43,8 @@ serial_write16(serial_t* s, uint16_t src) {
         return -1;
     }
 #if defined(OS_LITTLE_ENDIAN)
-    s->buffer[s->cur ++] = (uint8_t)(src & 0xFF00);
-    s->buffer[s->cur ++] = (uint8_t)((src & 0xFF) >> 8);
+    s->buffer[s->cur ++] = (uint8_t)((src & 0xFF00) >> 8);
+    s->buffer[s->cur ++] = (uint8_t)(src & 0xFF);
 #elif defined(OS_BIG_ENDIAN)
     s->buffer[s->cur ++] = (uint8_t)(src & 0xFF);
     s->buffer[s->cur ++] = (uint8_t)((src & 0xFF00) >> 8);
@@ -209,7 +209,7 @@ serial_writen(serial_t* s, const char* data, uint32_t len) {
 }
 int
 serial_readn(serial_t* s, char* data, uint32_t* len) {
-    uint32_t read_len;
+    uint32_t read_len = 0;
     uint32_t b1, b2, b3, b4;
     if(s->size - s->cur < sizeof(uint32_t)) {
         return -1;
