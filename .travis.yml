@@ -33,10 +33,11 @@ notifications:
 env:
   global:
       - LANG="zh_CN.UTF-8"
-      - OPENSSL_ROOT_DIR=${brew brew --prefix openssl}
+      - OPENSSL_ROOT_DIR=$(brew --prefix openssl)
 
 os:
   - linux
   - osx
 
 osx_image: xcode61
+
