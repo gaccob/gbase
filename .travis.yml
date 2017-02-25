@@ -9,9 +9,8 @@ before_script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" && ! $(brew list | grep cmake) ]]; then brew install cmake; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" && ! $(brew list | grep openssl) ]]; then brew install openssl; fi
-  - export PATH=/usr/local/include:/usr/local/ssl/include/:$PATH
+  - export PATH=/usr/local/include:/usr/local/opt/openssl/include/:$PATH
   - mkdir -p build && cd build && cmake ..
-  - find /usr/ -name "openssl"
 
 after_success:
   - cd test && ./unitest -a 1>/dev/null
