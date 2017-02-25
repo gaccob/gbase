@@ -23,6 +23,7 @@ target_link_libraries(${TEST_NAME} ${GBASE_LIB} ${GBASE_LIB_LINK} ${OPENSSL_LIBR
 # copy test source file
 set(TEST_CONFIG_FILE
     "assets/dirty_cfg_words"
+    "assets/example.json"
     "assets/ws_client.html"
 )
 foreach(f ${TEST_CONFIG_FILE})

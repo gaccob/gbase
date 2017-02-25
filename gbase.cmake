@@ -1,8 +1,8 @@
 include("${CMAKE_SOURCE_DIR}/common.cmake")
 
 # 版本号
-set(MAJOR_VERSION 0)
-set(MINOR_VERSION 1)
+set(MAJOR_VERSION 1)
+set(MINOR_VERSION 0)
 
 # 包含头文件
 include_directories("${CMAKE_SOURCE_DIR}")
@@ -17,7 +17,7 @@ set(GBASE_DIR_MM "${CMAKE_SOURCE_DIR}/mm")
 set(GBASE_DIR_LOGIC "${CMAKE_SOURCE_DIR}/logic")
 
 # 发布目录
-set(GBASE_DIR_RELEASE "${CMAKE_SOURCE_DIR}/release-${MAJOR_VERSION}.${MINOR_VERSION}")
+set(GBASE_DIR_RELEASE "${CMAKE_SOURCE_DIR}/gbase-${MAJOR_VERSION}.${MINOR_VERSION}")
 
 # 编译目标
 set(GBASE_LIB gbase)

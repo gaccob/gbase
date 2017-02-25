@@ -19,5 +19,6 @@ BUILD
 - cd build
 - cmake ..
 - make
+- cd test && ./unitest -a 1>/dev/null && cd ..
 - make install
 

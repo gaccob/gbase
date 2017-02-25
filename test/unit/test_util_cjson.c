@@ -45,7 +45,7 @@ _json_do_text(const char *text) {
 // Read a file, parse, render back, etc.
 static void
 _json_do_file(const char* param) {
-    const char* filename = param ? param : "bevtree.json";
+    const char* filename = param ? param : "example.json";
     FILE *f = fopen(filename,"rb");
     fseek(f, 0, SEEK_END);
     long len = ftell(f);
