@@ -31,8 +31,7 @@ notifications:
 
 env:
   global:
-      - "LANG=zh_CN.UTF-8"
-      - "PATH=/usr/local/include:/usr/local/opt/openssl/include/:$PATH"
+      - LANG="zh_CN.UTF-8"
 
 os:
   - linux
