@@ -9,7 +9,11 @@ aux_source_directory(./unit TEST_SOURCES)
 # set openssl directories
 find_package(OpenSSL)
 if (OPENSSL_FOUND)
+    message("openssl include: ${OPENSSL_INCLUDE_DIR}")
     include_directories("${OPENSSL_INCLUDE_DIR}")
+else ()
+    message("openssl include: ${OPENSSL_ROOT_DIR}/include")
+    include_directories("${OPENSSL_ROOT_DIR}/include")
 endif (OPENSSL_FOUND)
 
 # link

@@ -32,6 +32,7 @@ notifications:
 env:
   global:
       - LANG="zh_CN.UTF-8"
+      - OPENSSL_ROOT_DIR=${brew brew --prefix openssl}
 
 os:
   - linux
