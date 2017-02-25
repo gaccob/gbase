@@ -11,6 +11,9 @@ before_script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" && ! $(brew list | grep openssl) ]]; then brew install openssl; fi
   - export PATH=/usr/local/include:/usr/local/opt/openssl/include/:$PATH
   - mkdir -p build && cd build && cmake ..
+  - ls /usr/local/opt/openssl/
+  - ls /usr/local/include/
+  - ls /usr/include/
 
 after_success:
   - cd test && ./unitest -a 1>/dev/null
